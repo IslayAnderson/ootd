@@ -56,7 +56,7 @@ class User
         }
 
         $db = new Sql();
-        $db->Fetch($sql);
+        return $db->Fetch($sql);
     }
 
     public function authenticate($request = null)
