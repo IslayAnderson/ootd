@@ -1,6 +1,5 @@
 <?php
-include_once("./Functions/functions.php");
-include_once("./Classes/classes.php");
+include_once("./init.php");
 
 //check if init has been run (set it global memory I guess) and run init 
 //what will be in init?
@@ -14,6 +13,9 @@ switch ($request) {
         break;
     case '/login' :
         require __DIR__ . '/pages/login.php';
+        break;
+    case '/signup' :
+        require __DIR__ . '/pages/signup.php';
         break;
     default:
         http_response_code(404);

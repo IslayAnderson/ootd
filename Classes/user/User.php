@@ -1,4 +1,13 @@
 <?php
+/**
+ * 
+ ** User class it does user stuff
+ * 
+ * @author Islay Anderson <me@islayanderson.co.uk>
+ *
+ * @since 0.1
+ * 
+ */
 
 namespace user;
 
@@ -9,12 +18,21 @@ class User
     private $last_name;
     private $email;
 
-    public function __construct($id)
+    /**
+     * __construct
+     *
+     * @param mixed $id
+     */
+    public function __construct($id = null)
     {
-        $this->user_id = $id;
-        $this->first_name = $this->get_name($id)[0];
-        $this->last_name = $this->get_name($id)[1];
-        $this->email = $this->get_email($id);
+
+        if(!empty($id)){
+            $this->user_id = $id;
+            $this->first_name = $this->get_name($id)[0];
+            $this->last_name = $this->get_name($id)[1];
+            $this->email = $this->get_email($id);
+        }
+
     }
 
     public function get_user_id($email = null)
@@ -50,9 +68,21 @@ class User
         }
 
         if(!empty($user->username)){
-            $sql = "SELECT PASSWORD FROM `users` WHERE username = '"+$user->username+"'";
+            $val = new Validate($user->username);
+            if(!$val->basic()['state']){
+                throw new Exception('Input could not be validated');
+            }
+
+            $sql = "SELECT PASSWORD FROM `users` WHERE username = '".$user->username."'";
+
         } elseif(!empty($user->id)){
-            $sql = "SELECT PASSWORD FROM `users` WHERE user_id = '"+$user->id+"'";
+            $val = new Validate($user->id);
+            if(!$val->basic()['state']){
+                throw new Exception('Input could not be validated');
+            }
+
+            $sql = "SELECT PASSWORD FROM `users` WHERE user_id = '".$user->id."'";
+
         }
 
         $db = new Sql();
@@ -78,7 +108,7 @@ class User
 
     public function deauthenticate()
     {
-
+        echo "look maa i did something";
     }
 
     public function create_user($request = null)
@@ -89,6 +119,19 @@ class User
         
         $pwd_salted = hash_hmac("sha256", $request['password'], $_ENV['pwd_seed']);
         $pwd_hashed = password_hash($pwd_peppered, PASSWORD_ARGON2ID);
+
+        $params = array(
+            ":a" => $request['username'],
+            ":b" => $request['email'],
+            ":c" => $pwd_hashed,
+            ":d" => $request['first_name'],
+            ":e" => $request['last_name']
+        );
+
+        $sql = 'INSERT INTO `users` (`username`, `email`, `password`, `first_name`, `last_name`) VALUES (:a, :b, :c, :d, :e)';
+
+        $db = new Sql();
+        $db->Fetch($sql, $params);
 
     }
 
