@@ -2,7 +2,7 @@
 
 namespace sql;
 
-class DataAccess
+class Sql
 {
     private $host;
     private $user;

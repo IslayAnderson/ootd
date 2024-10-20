@@ -12,8 +12,8 @@ switch ($request) {
     case '/' /*|| '/index.php' */:
         require __DIR__ . '/pages/index.php';
         break;
-    case 'reporters' :
-        require __DIR__ . '/pages/view_reporters.php';
+    case '/login' :
+        require __DIR__ . '/pages/login.php';
         break;
     default:
         http_response_code(404);
