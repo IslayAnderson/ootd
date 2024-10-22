@@ -1,8 +1,8 @@
 <?php
 
-namespace sql;
+namespace mysql;
 
-class Sql
+class Mysql
 {
     private $host;
     private $user;

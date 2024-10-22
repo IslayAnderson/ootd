@@ -1,3 +1,3 @@
 <?php
-include_once("./Functions/functions.php");
-include_once("./Classes/classes.php");
+include("./Functions/functions.php");
+include("./Classes/classes.php");

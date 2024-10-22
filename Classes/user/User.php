@@ -13,10 +13,10 @@ namespace user;
 
 class User
 {
-    private $user_id;
-    private $first_name;
-    private $last_name;
-    private $email;
+    public $user_id;
+    public $first_name;
+    public $last_name;
+    public $email;
 
     /**
      * __construct
@@ -85,7 +85,7 @@ class User
 
         }
 
-        $db = new Sql();
+        $db = newMysql();
         return $db->Fetch($sql);
     }
 
@@ -130,7 +130,7 @@ class User
 
         $sql = 'INSERT INTO `users` (`username`, `email`, `password`, `first_name`, `last_name`) VALUES (:a, :b, :c, :d, :e)';
 
-        $db = new Sql();
+        $db = newMysql();
         $db->Fetch($sql, $params);
 
     }

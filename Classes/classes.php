@@ -1,8 +1,10 @@
 <?php
-foreach (glob("./Classes/*.php") as $filename) {
-    echo $filename;
-    $filename!="./Classes/classes.php"?include_once($filename):"";
+
+foreach (glob($_SERVER['DOCUMENT_ROOT']."/Classes/*.php") as $filename) {
+    $filename!=$_SERVER['DOCUMENT_ROOT']."/Classes/classes.php"?include($filename):"";
 }
-foreach (glob("./Classes/*/*.php") as $filename) {
-    include_once($filename);
+
+foreach (glob($_SERVER['DOCUMENT_ROOT']."/Classes/*/*.php") as $filename) {
+    echo "<br>" . $filename;
+    include($filename);
 }

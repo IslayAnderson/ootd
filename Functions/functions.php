@@ -1,7 +1,7 @@
 <?php
 foreach (glob("./Functions/*/*.php") as $filename) {
-    include_once($filename);
+    include($filename);
 }
 foreach (glob("./Functions/*.php") as $filename) {
-    $filename!="./Functions/functions.php"?include_once($filename):"";
+    $filename!="./Functions/functions.php"?include($filename):"";
 }

@@ -1,5 +1,5 @@
 <?php
-include_once("./init.php");
+include("./init.php");
 
 //check if init has been run (set it global memory I guess) and run init 
 //what will be in init?
