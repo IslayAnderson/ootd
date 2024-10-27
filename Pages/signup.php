@@ -12,7 +12,7 @@
     <input type="text" placeholder="Enter First name" name="first_name" required>
 
     <label for="last_name">Last Name</label>
-    <input type="text" placeholder="Enter Last name" name="last_username" required>
+    <input type="text" placeholder="Enter Last name" name="last_name" required>
 
     <button type="submit">Login</button>
 </form>

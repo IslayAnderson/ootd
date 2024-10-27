@@ -117,8 +117,8 @@ class User
             throw new Exception('Empty Request');
         }
         
-        $pwd_salted = hash_hmac("sha256", $request['password'], $_ENV['pwd_seed']);
-        $pwd_hashed = password_hash($pwd_peppered, PASSWORD_ARGON2ID);
+        $pwd_salted = hash_hmac("sha256", $request['password'], $_ENV['PWD_SEED']);
+        $pwd_hashed = password_hash($pwd_salted, PASSWORD_ARGON2ID);
 
         $params = array(
             ":a" => $request['username'],
@@ -130,7 +130,7 @@ class User
 
         $sql = 'INSERT INTO `users` (`username`, `email`, `password`, `first_name`, `last_name`) VALUES (:a, :b, :c, :d, :e)';
 
-        $db = newMysql();
+        $db = new Mysql();
         $db->Fetch($sql, $params);
 
     }
