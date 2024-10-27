@@ -9,7 +9,7 @@
  * 
  */
 
-namespace user;
+
 
 class User
 {

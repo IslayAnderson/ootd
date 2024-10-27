@@ -1,7 +1,5 @@
 <?php
 
-namespace validate;
-
 class Validate
 {
     private $input;
