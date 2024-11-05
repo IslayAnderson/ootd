@@ -1,4 +1,7 @@
 <?php
+ini_set('output_handler', null);
+ob_start();
+
 include("./init.php");
 
 //check if init has been run (set it global memory I guess) and run init 
@@ -35,3 +38,5 @@ switch ($request) {
 }
 
 require $_SERVER['DOCUMENT_ROOT'] . '/partials/foot.php';
+
+ob_end_flush();
