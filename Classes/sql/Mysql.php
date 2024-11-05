@@ -37,7 +37,12 @@ class Mysql
 
         $con->execute($params);
 
-        return $con->fetchAll(PDO::FETCH_OBJ);
+        $tables = $con->fetchAll(PDO::FETCH_OBJ);
+        if(!empty($tables)){
+            return $tables;
+        }else{
+            return $con->errorInfo();
+        }
     }
 
     public function DBOps($sql, $params)

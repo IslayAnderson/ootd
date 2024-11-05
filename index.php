@@ -7,18 +7,31 @@ include("./init.php");
 
 $request = $_SERVER['REQUEST_URI'];
 
+// if(count(explode("API", $request)) > 1){
+//     // do some authentication
+//     require require $_SERVER['DOCUMENT_ROOT'] . $request . ".php";
+//     exit();
+// }
+
+require $_SERVER['DOCUMENT_ROOT'] . '/partials/head.php';
+
 switch ($request) {
     case '/' /*|| '/index.php' */:
-        require __DIR__ . '/pages/index.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/pages/index.php';
         break;
     case '/login' :
-        require __DIR__ . '/pages/login.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/pages/login.php';
         break;
     case '/signup' :
-        require __DIR__ . '/pages/signup.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/pages/signup.php';
+        break;
+    case '/dashboard':
+        require $_SERVER['DOCUMENT_ROOT'] . '/pages/dashboard.php';
         break;
     default:
         http_response_code(404);
-        require __DIR__ . '/pages/404.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/pages/404.php';
         break;
 }
+
+require $_SERVER['DOCUMENT_ROOT'] . '/partials/foot.php';

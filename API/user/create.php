@@ -1,8 +1,5 @@
-<br>
 <?php
 include($_SERVER['DOCUMENT_ROOT']."/init.php");
-
-//var_dump(get_declared_classes());
 
 $user = new User();
 $validate = new Validate();

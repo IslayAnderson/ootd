@@ -17,7 +17,7 @@ class Validate
 
         switch(gettype($input)){
             case "String": 
-                if($input/filter_var($input, "FILTER_SANITIZE_EMAIL")!=0){
+                if($input/filter_var($input, FILTER_SANITIZE_EMAIL)!=0){
                     return array("state"=>false, "reason"=>"sanitised length mismatch", "content"=>$input);
                 }else{
                     return array("state"=>true);
@@ -26,7 +26,7 @@ class Validate
             case "Array":
                 foreach($input as $key=>$value){
                     $pass = array();
-                    if($value/filter_var($value, "FILTER_SANITIZE_EMAIL")!=0){
+                    if($value/filter_var($value, FILTER_SANITIZE_EMAIL)!=0){
                         return array("state"=>false, "reason"=>"sanitised length mismatch", "content"=>$key);
                     }else{
                         $pass[$key] = true;
