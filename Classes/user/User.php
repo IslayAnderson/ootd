@@ -252,7 +252,7 @@ class User
         exit();
     }
 
-    public function create_user($request = null)
+    public function create_user($request = null, $admin = false)
     {
         if(empty($request)){
             throw new Exception('Empty Request');
@@ -274,10 +274,15 @@ class User
             ":b" => $request['email'],
             ":c" => $pwd_hashed,
             ":d" => $request['first_name'],
-            ":e" => $request['last_name']
+            ":e" => $request['last_name'],
+            ":f" => 1
         );
 
-        $sql = 'INSERT INTO `users` (`username`, `email`, `password`, `first_name`, `last_name`) VALUES (:a, :b, :c, :d, :e)';
+        if($admin){
+            $params[":f"] = 0;
+        }
+
+        $sql = 'INSERT INTO `users` (`username`, `email`, `password`, `first_name`, `last_name`, `permission`) VALUES (:a, :b, :c, :d, :e, :f)';
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
@@ -303,13 +308,13 @@ class User
         $row = $db->Fetch($sql, $params);
 
         if($val){
-            if(!empty($row)){
+            if($row[0] != '00000' ){
                 return array('email'=>true);
             }else{
                 return array('email'=>false);
             }
         }else{
-            if(!empty($row)){
+            if($row[0] != '00000'){
                 return array('username'=>true);
             }else{
                 return array('username'=>false);
