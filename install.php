@@ -490,6 +490,45 @@ function garments_create_table()
     return garments_check_table();
 }
 
+
+function outfits_check_table(){
+    $sql = "SHOW TABLES LIKE 'outfits';";
+    
+    $db = new Mysql();
+    $table = $db->Fetch($sql, null);
+
+    $table = (array) $table[0];
+
+    if($table != '00000'){
+        if($table['Tables_in_'.$_ENV['DB_SCHEMA'].' (outfits)'] == "outfits"){
+            return true;
+        }else{
+            return false;
+        }
+    }else{
+        return false;
+    }
+}
+
+function outfits_create_table()
+{
+    $sql = "CREATE TABLE outfits(
+        outfit_num	int(11) AUTO_INCREMENT,
+        outfit_id varchar(128) NULL,
+        user int(11),
+        garments varchar(1024) NULL,
+        description varchar(1024) NULL,
+        tags varchar(512) NULL,
+        image blob NULL,
+        PRIMARY KEY(outfit_num)
+    );";
+    
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+    
+    return outfits_check_table();
+}
+
 //i've just realised this could be made shorter with bigger macros... i'm dumb but i'll do that later
 
 function installed()
@@ -524,6 +563,13 @@ if(!garments_check_table()){
     garments_create_table();
 }else{
     echo "<br>garments table already complete";
+}
+
+//build garments table
+if(!outfits_check_table()){
+    outfits_create_table();
+}else{
+    echo "<br>outfits table already complete";
 }
 
 //build permissions table
