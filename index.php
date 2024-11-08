@@ -21,20 +21,20 @@ require $_SERVER['DOCUMENT_ROOT'] . '/partials/navigation.php';
 
 switch ($request) {
     case '/' /*|| '/index.php' */:
-        require $_SERVER['DOCUMENT_ROOT'] . '/pages/index.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/index.php';
         break;
     case '/login' :
-        require $_SERVER['DOCUMENT_ROOT'] . '/pages/login.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/login.php';
         break;
     case '/signup' :
-        require $_SERVER['DOCUMENT_ROOT'] . '/pages/signup.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/signup.php';
         break;
     case '/feed':
-        require $_SERVER['DOCUMENT_ROOT'] . '/pages/feed.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/feed.php';
         break;
     default:
         http_response_code(404);
-        require $_SERVER['DOCUMENT_ROOT'] . '/pages/404.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/404.php';
         break;
 }
 
