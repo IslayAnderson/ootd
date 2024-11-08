@@ -1,0 +1,64 @@
+.top-bar{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    border-bottom: solid 1px black;
+    background-color: #fff;
+    .inner{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        button{
+            all:unset;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 4rem;
+            justify-content: space-between;
+            svg{
+                height: 2rem;
+                width: 2rem;
+            }
+        }
+    }
+}
+.main-nav{
+    position: fixed;
+    top: 5.1rem;
+    left: -100vw;
+    width: 100vw;
+    height: 100%;
+    color: #fff;
+    backdrop-filter: blur(2px);
+    transition: all 1s;
+    z-index: 999;
+    transition: all 1s;
+    &.open{
+        transform: translateX(100vw);
+    }
+    .inner{
+        position: absolute;
+        width:70%;
+        height:100%;
+        background-color: #000000e3;
+        ul{
+            list-style: none;
+            font-size: xxx-large;
+        }
+    }
+}
+.nav-blur{
+    position: fixed;
+    top: 5.1rem;
+    left: 0;
+    width: 100vw;
+    height: 100%;
+    z-index: 998;
+    filter:blur(5px);
+}

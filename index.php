@@ -17,6 +17,7 @@ $request = $_SERVER['REQUEST_URI'];
 // }
 
 require $_SERVER['DOCUMENT_ROOT'] . '/partials/head.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/partials/navigation.php';
 
 switch ($request) {
     case '/' /*|| '/index.php' */:
@@ -28,8 +29,8 @@ switch ($request) {
     case '/signup' :
         require $_SERVER['DOCUMENT_ROOT'] . '/pages/signup.php';
         break;
-    case '/dashboard':
-        require $_SERVER['DOCUMENT_ROOT'] . '/pages/dashboard.php';
+    case '/feed':
+        require $_SERVER['DOCUMENT_ROOT'] . '/pages/feed.php';
         break;
     default:
         http_response_code(404);
