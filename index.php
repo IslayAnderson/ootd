@@ -2,7 +2,7 @@
 ini_set('output_handler', null);
 ob_start();
 
-include("./init.php");
+require "./init.php";
 
 //check if init has been run (set it global memory I guess) and run init 
 //what will be in init?

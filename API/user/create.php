@@ -1,5 +1,5 @@
 <?php
-include($_SERVER['DOCUMENT_ROOT']."/init.php");
+require $_SERVER['DOCUMENT_ROOT']."/init.php";
 
 $user = new User();
 $validate = new Validate();

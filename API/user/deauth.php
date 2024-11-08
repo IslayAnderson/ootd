@@ -1,5 +1,5 @@
 <?php
-include($_SERVER['DOCUMENT_ROOT']."/init.php");
+require $_SERVER['DOCUMENT_ROOT']."/init.php";
 
 if(!isset($_SESSION['user_id'])){
     throw new Exception('Session not found');
