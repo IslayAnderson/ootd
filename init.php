@@ -19,6 +19,7 @@ $scssContents = file_get_contents($source_scss);
 $import_path = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/sass';
 $compiler->addImportPath($import_path);
 $target_css = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/css/main.css';
+<<<<<<< HEAD
 
 if(empty($GLOBALS['sass_len'])){
 
@@ -42,6 +43,19 @@ if(empty($GLOBALS['sass_len'])){
 }
 
 print_r($GLOBALS['sass_len']);
+=======
+$css = $compiler->compile($scssContents);
+
+if (!empty($css) && is_string($css)) {
+    file_put_contents($target_css, $css);
+}
+
+$minified_css = $compressor->run(file_get_contents($target_css)); 
+if (!empty($minified_css) && is_string($minified_css)) {
+    file_put_contents($target_css, $minified_css);
+}
+
+>>>>>>> cf2ea56 (feed prototyping)
 
 use Dotenv\Dotenv;
 
