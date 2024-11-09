@@ -33,6 +33,9 @@ switch ($request) {
     case '/feed':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/feed.php';
         break;
+    case '/wardrobe':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/wardrobe.php';
+        break;
     default:
         http_response_code(404);
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/404.php';

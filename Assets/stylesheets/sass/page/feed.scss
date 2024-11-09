@@ -1,19 +1,5 @@
 .feed{
     article{
-        padding: 1rem;
-        padding-bottom: 2rem;
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
-        &:nth-child(odd) {
-            border-bottom: solid 1px black;
-            border-top: solid 1px black;
-        }
-        &:nth-child(1) {
-            border-top: unset;
-        }
-        &:last-child {
-            border-bottom: unset;
-        }
         .info{
             display: flex;
             flex-direction: row;
