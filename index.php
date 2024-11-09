@@ -36,6 +36,18 @@ switch ($request) {
     case '/wardrobe':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/wardrobe.php';
         break;
+    case '/admin':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/admin.php';
+        break;
+    case '/account':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/account.php';
+        break;
+    case '/outtfits':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfits.php';
+        break;
+    case '/privacy':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/privacy.php';
+        break;
     default:
         http_response_code(404);
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/404.php';
