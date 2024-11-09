@@ -5,3 +5,4 @@
 /vendor
 /tmp/*
 debug.php
+/Assets/stylesheets/css/*

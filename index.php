@@ -21,6 +21,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/partials/navigation.php';
 
 switch ($request) {
     case '/' /*|| '/index.php' */:
+        header("location: /feed");
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/index.php';
         break;
     case '/login' :

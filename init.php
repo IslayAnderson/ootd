@@ -20,28 +20,19 @@ $import_path = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/sass';
 $compiler->addImportPath($import_path);
 $target_css = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/css/main.css';
 
-if(empty($GLOBALS['sass_len'])){
+$css = $compiler->compile($scssContents);
 
-    $GLOBALS['sass_len'] = strlen($scssContents);
-
-}elseif($GLOBALS['sass_len'] != strlen($scssContents)){
-    
-    $css = $compiler->compile($scssContents);
-
-    if (!empty($css) && is_string($css)) {
-        file_put_contents($target_css, $css);
-    }
-
-    $minified_css = $compressor->run(file_get_contents($target_css)); 
-    if (!empty($minified_css) && is_string($minified_css)) {
-        file_put_contents($target_css, $minified_css);
-    }
-
-    $GLOBALS['sass_len'] = strlen($scssContents);
-
+if (!empty($css) && is_string($css)) {
+    file_put_contents($target_css, $css);
 }
 
-print_r($GLOBALS['sass_len']);
+$minified_css = $compressor->run(file_get_contents($target_css)); 
+if (!empty($minified_css) && is_string($minified_css)) {
+    file_put_contents($target_css, $minified_css);
+}
+
+$GLOBALS['sass_len'] = strlen($scssContents);
+$GLOBALS['sass_gen'] = "true";
 
 use Dotenv\Dotenv;
 
