@@ -1,0 +1,66 @@
+.invite, .signup, .login{
+  padding: 1.5rem;
+  form {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1rem;
+    label {
+      width: 30%;
+    }
+    input {
+      width: 70%;
+      border-radius: unset;
+      border: solid 1px black;
+    }
+    button{
+      margin-top: 1rem;
+      background: #fff;
+      border: solid 1px black;
+    }
+  }
+}
+.signup {
+  padding:0.5rem;
+  .description{
+    width:100%;
+    padding-bottom: 1rem;
+  }
+  form {
+    input{
+      margin-bottom: 0.5rem;
+    }
+    .name {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-content: center;
+      align-items: center;
+      justify-content: flex-start;
+      label{
+        width:50%;
+        &:nth-child(1){
+          padding-right: 0.5rem;
+        }
+        &:nth-child(2){
+          padding-left: 0.5rem;
+        }
+        input{
+          width:100%;
+        }
+      }
+    }
+  }
+}
+.login{
+  .description{
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  input[type="email"]{
+    margin-bottom: 0.5rem;
+  }
+}

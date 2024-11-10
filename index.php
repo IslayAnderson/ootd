@@ -30,6 +30,9 @@ switch ($request) {
     case '/signup' :
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/signup.php';
         break;
+    case '/invite' :
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/invite.php';
+        break;
     case '/feed':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/feed.php';
         break;
