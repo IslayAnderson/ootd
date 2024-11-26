@@ -10,10 +10,8 @@
         flex-direction: row;
         flex-wrap: nowrap;
         justify-content: space-between;
-        padding-left: 1rem;
-        padding-right: 1rem;
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
+        padding: 0.5rem 1rem;
+
         a{
             all:unset;
         }
@@ -41,7 +39,6 @@
     backdrop-filter: blur(2px);
     transition: all 1s;
     z-index: 999;
-    transition: all 1s;
     &.open{
         transform: translateX(100vw);
     }

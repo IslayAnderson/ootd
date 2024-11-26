@@ -7,6 +7,6 @@
   <meta name="description" content="{description_placeholder}" />
   <meta content="<?= $_SESSION['CSRF'] ?>" name="csrf-token" />
   <link rel="stylesheet" type="text/css" href="/Assets/stylesheets/css/main.css" />
-  <link rel="icon" href="favicon.png">
+  <link rel="icon" href="/Assets/images/favicon.png">
 </head>
 <body>
