@@ -290,7 +290,8 @@ class User
     {
         $params = array( ':a'=> null, ':b'=> $this->get_user_id());
     
-        $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` = :b";
+        $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` = :b
+                UPDATE `users` SET `csrf`= :a WHERE `user_id` = :b;";
     
         $db = new Mysql();
         $db->Fetch($sql, $params);
@@ -314,7 +315,8 @@ class User
     public function kill_all_sessions(){
         $params = array( ':a'=> null );
     
-        $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` > 0";
+        $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` > 0;
+                UPDATE `users` SET `csrf`= :a WHERE `user_id` > 0;";
     
         $db = new Mysql();
         $db->Fetch($sql, $params);

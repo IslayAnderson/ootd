@@ -40,8 +40,8 @@ $dotenv = Dotenv::createImmutable($_SERVER['DOCUMENT_ROOT']);
 $dotenv->load();
 
 if(!isset($_SESSION['user_id']) ){
-    if($_SERVER['REQUEST_URI'] != "/login" || $_SERVER['REQUEST_URI'] != '/signup'){
-        //header("location: /login");
+    if($_SERVER['REQUEST_URI'] != "/login" && $_SERVER['REQUEST_URI'] != '/signup'){
+        header("location: /login");
     }
 }else{
     if(!isset($_SESSION['user'])){

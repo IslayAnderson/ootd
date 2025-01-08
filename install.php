@@ -445,6 +445,7 @@ function users_create_table()
         last_name varchar(64),
         permission int(11) DEFAULT 1,
         session	varchar(32) NULL,
+        csrf varchar(256),
         PRIMARY KEY(user_id)
     );";
     
