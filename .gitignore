@@ -4,9 +4,7 @@ modules.xml
 public.iml
 watcherTasks.xml
 Project_Default.xml
-/.idea/php.xml
-/.idea/vcs.xml
-/.idea/workspace.xml
+/.idea/*
 /vendor
 /tmp/*
 debug.php
