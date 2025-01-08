@@ -13,7 +13,7 @@ $request = array(
 $state = $user->authenticate($request);
 
 if($state){
-    header('Location: /dashboard',200);
+    header('Location: /feed',200);
     exit();
 }else{
     echo json_encode(array(

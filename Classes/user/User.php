@@ -13,16 +13,31 @@
 
 class User
 {
+    /**
+     * @var integer
+     */
     private $user_id;
+    /**
+     * @var string
+     */
     private $first_name;
+    /**
+     * @var string
+     */
     private $last_name;
+    /**
+     * @var string
+     */
     private $email;
+    /**
+     * @var string
+     */
     private $password;
 
     /**
      * __construct
      *
-     * @param mixed $id
+     * @param integer $id
      */
     public function __construct($id = null)
     {
@@ -36,6 +51,9 @@ class User
 
     }
 
+    /**
+     * @return array
+     */
     public function __serialize(): array
     {
         return [
@@ -46,15 +64,24 @@ class User
         ];
     }
 
+    /**
+     * @param array $data
+     * @return void
+     */
     public function __unserialize(array $data): void
     {
-        $this->user_id      = $data['id'];
-        $this->first_name   = $data['get_name'];
-        $this->last_name    = $data['get_name'];
-        $this->email        = $data['get_email'];
+        $this->user_id      = $data['user_id'];
+        $this->first_name   = $data['first_name'];
+        $this->last_name    = $data['last_name'];
+        $this->email        = $data['email'];
     }
 
 
+    /**
+     * @param $email
+     * @return mixed
+     * @throws Exception
+     */
     public function get_user_id($email = null)
     {
         if(empty($email) && empty($this->user_id)){
@@ -73,7 +100,12 @@ class User
         return $row[0]->user_id;
 
     }
-    
+
+    /**
+     * @param $id
+     * @return array
+     * @throws Exception
+     */
     public function get_name($id = null)
     {
         if(empty($id)){ 
@@ -91,7 +123,12 @@ class User
         return array($row[0]->first_name, $row[0]->last_name);
 
     }
-    
+
+    /**
+     * @param $id
+     * @return mixed
+     * @throws Exception
+     */
     public function get_email($id = null)
     {
         if(empty($id)){
@@ -110,6 +147,11 @@ class User
 
     }
 
+    /**
+     * @param $user
+     * @return mixed
+     * @throws Exception
+     */
     private function get_password($user = null)
     {
         if(empty($user)){
@@ -148,45 +190,79 @@ class User
         return $row[0]->PASSWORD;
     }
 
+    /**
+     * @param $user_id
+     * @return void
+     */
     public function set_user_id($user_id)
     {
         $this->$user_id = $user_id;
     }
+
+    /**
+     * @param $first_name
+     * @return void
+     */
     public function set_first_name($first_name)
     {
         $this->$first_name = $first_name;
     }
+
+    /**
+     * @param $last_name
+     * @return void
+     */
     public function set_last_name($last_name)
     {
         $this->$last_name = $last_name;
     }
+
+    /**
+     * @param $email
+     * @return void
+     */
     public function set_email($email)
     {
         $this->$email = $email;
     }
+
+    /**
+     * @param $password
+     * @return void
+     */
     private function set_password($password)
     {
         $this->$password = $password;
     }
 
+    /**
+     * @param $request
+     * @return bool
+     * @throws Exception
+     */
     public function authenticate($request = null)
     {
         if(empty($request)){
             throw new Exception('Empty Request');
         }
 
+        //Salts input with predefined seed
         $pwd_salted = hash_hmac("sha256", $request['password'], $_ENV['PWD_SEED']);
+        //Gets hashed password from database
         $pwd_hashed = $this->get_password(array("email"=>$request['email']));
 
+        //Compare sated input with stored hash
         if(password_verify($pwd_salted, $pwd_hashed)){
-    
+
+            //Update Session id in the database
             $params = array( ':a'=> session_id(), ':b'=> $request['email']);
     
             $sql = "UPDATE `users` SET `session`= :a WHERE `email` = :b";
     
             $db = new Mysql();
             $db->Fetch($sql, $params);
-            
+
+            //Set class properties with basic user info
             $this->set_user_id($this->get_user_id($request['email']));
             $this->set_first_name($request['first_name']);
             $this->set_last_name($request['last_name']);
@@ -206,6 +282,10 @@ class User
 
     }
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     public function deauthenticate()
     {
         $params = array( ':a'=> null, ':b'=> $this->get_user_id());
@@ -224,10 +304,13 @@ class User
         }
         session_destroy();
         session_regenerate_id();
-        header("location: /");
+        header("location: /login");
         exit();
     }
 
+    /**
+     * @return void
+     */
     public function kill_all_sessions(){
         $params = array( ':a'=> null );
     
@@ -248,10 +331,16 @@ class User
 
         session_destroy();
         session_regenerate_id();
-        header("location: /");
+        header("location: /login");
         exit();
     }
 
+    /**
+     * @param $request
+     * @param $admin
+     * @return void
+     * @throws Exception
+     */
     public function create_user($request = null, $admin = false)
     {
         if(empty($request)){
@@ -289,6 +378,10 @@ class User
 
     }
 
+    /**
+     * @param $input
+     * @return false[]|true[]
+     */
     public function check_exists($input)
     {
         $params = array(':a'=>$input);

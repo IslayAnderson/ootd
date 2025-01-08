@@ -4,6 +4,8 @@ ob_start();
 
 require "./init.php";
 
+
+
 //check if init has been run (set it global memory I guess) and run init 
 //what will be in init?
 //the data store and all that jazz :)
@@ -45,7 +47,7 @@ switch ($request) {
     case '/account':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/account.php';
         break;
-    case '/outtfits':
+    case '/outfits':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfits.php';
         break;
     case '/privacy':
