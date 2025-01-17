@@ -15,11 +15,11 @@
 </form>
 <div class="wardrobe">
     <?php
-        require $_SERVER['DOCUMENT_ROOT']."/partials/dummydata_wardobe.php";
-        require $_SERVER['DOCUMENT_ROOT']."/partials/dummydata_wardobe.php";
-        require $_SERVER['DOCUMENT_ROOT']."/partials/dummydata_wardobe.php";
-        require $_SERVER['DOCUMENT_ROOT']."/partials/dummydata_wardobe.php";
-        require $_SERVER['DOCUMENT_ROOT']."/partials/dummydata_wardobe.php";
-        require $_SERVER['DOCUMENT_ROOT']."/partials/dummydata_wardobe.php";
+        require $_SERVER['DOCUMENT_ROOT'] . "/partials/dummydata/wardrobe.php";
+        require $_SERVER['DOCUMENT_ROOT'] . "/partials/dummydata/wardrobe.php";
+        require $_SERVER['DOCUMENT_ROOT'] . "/partials/dummydata/wardrobe.php";
+        require $_SERVER['DOCUMENT_ROOT'] . "/partials/dummydata/wardrobe.php";
+        require $_SERVER['DOCUMENT_ROOT'] . "/partials/dummydata/wardrobe.php";
+        require $_SERVER['DOCUMENT_ROOT'] . "/partials/dummydata/wardrobe.php";
     ?>
 </div>
