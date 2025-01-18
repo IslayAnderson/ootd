@@ -5,12 +5,11 @@ ob_start();
 require "./init.php";
 
 
-
-//check if init has been run (set it global memory I guess) and run init 
+//check if init has been run (set it global memory I guess) and run init
 //what will be in init?
 //the data store and all that jazz :)
 
-$request = $_SERVER['REQUEST_URI'];
+$request = explode("?", $_SERVER['REQUEST_URI']);
 
 // if(count(explode("API", $request)) > 1){
 //     // do some authentication
@@ -21,8 +20,9 @@ $request = $_SERVER['REQUEST_URI'];
 require $_SERVER['DOCUMENT_ROOT'] . '/partials/head.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/partials/navigation.php';
 
-switch ($request) {
-    case '/' /*|| '/index.php' */:
+switch ($request[0]) {
+    case '/' /*|| '/index.php' */
+    :
         header("location: /feed");
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/index.php';
         break;

@@ -22,6 +22,7 @@ if (!$_GET['install'] == "complete"):
 
 <?php
 else:
+    $_SESSION['installing'] = "complete";
     ?>
 
     <div class="login">
