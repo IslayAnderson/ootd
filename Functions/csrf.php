@@ -1,6 +1,7 @@
 <?php
 /**
  * @return bool
+ * @throws \Random\RandomException
  */
 function CSRF_generate(): bool
 {
@@ -8,7 +9,7 @@ function CSRF_generate(): bool
         $_SESSION['CSRF'] = array();
         $_SESSION['CSRF']['expiry'] = time();
     }
-    if (time() < mktime($_SESSION['CSRF']['expiry'])) {
+    if (time() < mktime($_SESSION['CSRF']['expiry']) && !empty($_SESSION['CSRF']['token'])) {
         return false;
     }
 

@@ -1,19 +1,23 @@
 <?php
-function id_gen(){
+/**
+ * @throws \Random\RandomException
+ */
+function id_gen(): string
+{
     $alphanumeric = array_merge(
         range('0', '9'),
         range('A', 'Z'),
         range('a', 'z')
     );
 
-    $seedgen = '';
-    $seedgen_0 = '';
+    $seed_gen = '';
+    $seed_gen_0 = '';
 
-    for($i = 0; $i < 32; $i++){
-        $seedgen .= $alphanumeric[random_int(0, count($alphanumeric)-1)];
-        $seedgen_0 .= $alphanumeric[random_int(0, count($alphanumeric)-1)];
+    for ($i = 0; $i < 32; $i++) {
+        $seed_gen .= $alphanumeric[random_int(0, count($alphanumeric) - 1)];
+        $seed_gen_0 .= $alphanumeric[random_int(0, count($alphanumeric) - 1)];
     }
 
-    $randomsalt = hash_hmac("sha256", $seedgen, $seedgen_0);
-    return password_hash($randomsalt, PASSWORD_DEFAULT);
+    $random_salt = hash_hmac("sha256", $seed_gen, $seed_gen_0);
+    return password_hash($random_salt, PASSWORD_DEFAULT);
 }

@@ -6,7 +6,8 @@
     </div>
     <form action="/API/user/auth.php" method="post">
         <label for="email">Email</label>
-        <input type="email" placeholder="Enter Email" name="email" value="me@islayanderson.co.uk" required>
+        <input type="email" placeholder="Enter Email" name="email" value="webmaster@<?= $_SERVER['SERVER_NAME'] ?>"
+               required>
 
         <label for="password">Password</label>
         <input type="password" placeholder="Enter Password" name="password" required>

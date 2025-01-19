@@ -2,12 +2,12 @@
     <div class="info">
         <time datetime="2024-09-23 11:12">2024-09-23 11:12</time>
         <div class="profile">
-    <span class="username">Islay</span>
+            <span class="username">Islay</span>
             <img loading="lazy" src="/Assets/images/avi.jpg">
         </div>
     </div>
     <div class="description">
-        <p>A cute corpogoth fit, nothing crazy but comfy and cute.</p>
+        <p>Ready for Amy and Milozs's wedding.<br>FCUK satin suit in orange and Timberland heels.</p>
     </div>
     <div class="album">
         <figure>

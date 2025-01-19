@@ -6,6 +6,9 @@ session_start();
 require $_SERVER['DOCUMENT_ROOT'] . "/Functions/functions.php";
 require $_SERVER['DOCUMENT_ROOT'] . "/Classes/classes.php";
 require $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
+foreach (glob($_SERVER['DOCUMENT_ROOT'] . "/partials/components/*.php") as $filename) {
+    require $filename;
+}
 
 use Dotenv\Dotenv;
 
@@ -40,7 +43,7 @@ $GLOBALS['sass_len'] = strlen($scssContents);
 $GLOBALS['sass_gen'] = "true";
 
 if (!isset($_SESSION['user_id'])) {
-    if ($_SERVER['REQUEST_URI'] != "/login" && $_SERVER['REQUEST_URI'] != '/signup') {
+    if ($_SERVER['REQUEST_URI'] != "/login" && $_SERVER['REQUEST_URI'] != '/signup' && $_SERVER['REQUEST_URI'] != '/invite') {
         header("location: /login");
     }
 } else {
