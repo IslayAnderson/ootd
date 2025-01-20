@@ -54,18 +54,20 @@ class Outfit
 
     }
 
-    public function render_outfit(): void
+    public function render_outfit($is_profile = false): void
     {
         ?>
         <article dataset-outfit-id="<?= $this->outfit_id ?>">
             <div class="info">
                 <time datetime="<?= $this->timestamp ?>"><?= $this->timestamp ?></time>
-                <div class="profile">
-                    <a href="/user/<?= $this->user['username'] ?>">
-                        <span class="username"><?= $this->user['username'] ?></span>
-                        <img loading="lazy" src="<?= $this->user['image'] ?>">
-                    </a>
-                </div>
+                <?php if (!$is_profile): ?>
+                    <div class="profile">
+                        <a href="/user/<?= $this->user['username'] ?>">
+                            <span class="username"><?= $this->user['username'] ?></span>
+                            <img loading="lazy" src="<?= $this->user['image'] ?>">
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="description">
                 <p><?= $this->description ?></p>

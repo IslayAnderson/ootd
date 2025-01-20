@@ -7,6 +7,7 @@
         "scssphp/scssphp": "^1.12.1",
         "natxet/cssmin": "^3.0",
         "tubalmartin/cssmin": "^4.1",
-      "ext-fileinfo": "*"
+      "ext-fileinfo": "*",
+        "tinymce/tinymce": "^7.6"
     }
 }

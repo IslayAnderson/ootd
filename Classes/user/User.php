@@ -1,14 +1,13 @@
 <?php
 /**
- * 
+ *
  ** User class it does user stuff
- * 
+ *
  * @author Islay Anderson <me@islayanderson.co.uk>
  *
  * @since 0.1
- * 
+ *
  */
-
 
 
 class User
@@ -16,18 +15,19 @@ class User
     /**
      * @var integer
      */
-    private $user_id;
+    public $user_id;
     /**
      * @var string
      */
-    private $first_name;
+    public $first_name;
     /**
      * @var string
      */
-    private $last_name;
+    public $last_name;
     /**
      * @var string
      */
+    public $username;
     private $email;
     /**
      * @var string
@@ -42,11 +42,12 @@ class User
     public function __construct($id = null)
     {
 
-        if(!empty($id)){
+        if (!empty($id)) {
             $this->user_id = $id;
             $this->first_name = $this->get_name($id)[0];
             $this->last_name = $this->get_name($id)[1];
             $this->email = $this->get_email($id);
+            $this->username = $this->get_username($id);
         }
 
     }
@@ -57,10 +58,10 @@ class User
     public function __serialize(): array
     {
         return [
-            'user_id'       => $this->user_id,
-            'first_name'    => $this->first_name,
-            'last_name'     => $this->last_name,
-            'email'         => $this->email
+            'user_id' => $this->user_id,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'email' => $this->email
         ];
     }
 
@@ -70,10 +71,10 @@ class User
      */
     public function __unserialize(array $data): void
     {
-        $this->user_id      = $data['user_id'];
-        $this->first_name   = $data['first_name'];
-        $this->last_name    = $data['last_name'];
-        $this->email        = $data['email'];
+        $this->user_id = $data['user_id'];
+        $this->first_name = $data['first_name'];
+        $this->last_name = $data['last_name'];
+        $this->email = $data['email'];
     }
 
 
@@ -84,16 +85,16 @@ class User
      */
     public function get_user_id($email = null)
     {
-        if(empty($email) && empty($this->user_id)){
+        if (empty($email) && empty($this->user_id)) {
             throw new Exception('Email variable missing');
-        }elseif(empty($email) && !empty($this->user_id)){
+        } elseif (empty($email) && !empty($this->user_id)) {
             return $this->user_id;
         }
 
-        $params = array( ':a'=> $email);
-    
+        $params = array(':a' => $email);
+
         $sql = "SELECT `user_id` FROM `users` WHERE `email` = :a";
-    
+
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
 
@@ -108,15 +109,15 @@ class User
      */
     public function get_name($id = null)
     {
-        if(empty($id)){ 
+        if (empty($id)) {
             $this->deauthenticate();
             throw new Exception('ID variable missing and name properties malformed');
         }
 
-        $params = array( ':a'=> $id);
-    
+        $params = array(':a' => $id);
+
         $sql = "SELECT `first_name`, `last_name` FROM `users` WHERE `user_id` = :a";
-    
+
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
 
@@ -131,19 +132,37 @@ class User
      */
     public function get_email($id = null)
     {
-        if(empty($id)){
+        if (empty($id)) {
             $this->deauthenticate();
             throw new Exception('ID variable missing and email property malformed');
         }
 
-        $params = array( ':a'=> $id);
-    
+        $params = array(':a' => $id);
+
         $sql = "SELECT `email` FROM `users` WHERE `user_id` = :a";
-    
+
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
 
         return $row[0]->email;
+
+    }
+
+    public function get_username($id = null)
+    {
+        if (empty($id)) {
+            $this->deauthenticate();
+            throw new Exception('ID variable missing and username property malformed');
+        }
+
+        $params = array(':a' => $id);
+
+        $sql = "SELECT `username` FROM `users` WHERE `user_id` = :a";
+
+        $db = new Mysql();
+        $row = $db->Fetch($sql, $params);
+
+        return $row[0]->username;
 
     }
 
@@ -154,33 +173,33 @@ class User
      */
     private function get_password($user = null)
     {
-        if(empty($user)){
+        if (empty($user)) {
             throw new Exception('Empty user variable');
         }
 
-        if(!empty($user['username'])){
+        if (!empty($user['username'])) {
             $val = new Validate($user['username']);
-            if(!$val->basic()['state']){
+            if (!$val->basic()['state']) {
                 throw new Exception('Input could not be validated');
             }
 
-            $sql = "SELECT PASSWORD FROM `users` WHERE username = '".$user['username']."'";
+            $sql = "SELECT PASSWORD FROM `users` WHERE username = '" . $user['username'] . "'";
 
-        } elseif(!empty($user['id'])){
+        } elseif (!empty($user['id'])) {
             $val = new Validate($user['id']);
-            if(!$val->basic()['state']){
+            if (!$val->basic()['state']) {
                 throw new Exception('Input could not be validated');
             }
 
-            $sql = "SELECT PASSWORD FROM `users` WHERE user_id = '".$user['id']."'";
+            $sql = "SELECT PASSWORD FROM `users` WHERE user_id = '" . $user['id'] . "'";
 
-        } elseif(!empty($user['email'])){
+        } elseif (!empty($user['email'])) {
             // $val = new Validate($user['email']);
             // if(!$val->basic()['state']){
             //     throw new Exception('Input could not be validated');
             // }
 
-            $sql = "SELECT PASSWORD FROM `users` WHERE email = '".$user['email']."'";
+            $sql = "SELECT PASSWORD FROM `users` WHERE email = '" . $user['email'] . "'";
 
         }
 
@@ -242,23 +261,23 @@ class User
      */
     public function authenticate($request = null)
     {
-        if(empty($request)){
+        if (empty($request)) {
             throw new Exception('Empty Request');
         }
 
         //Salts input with predefined seed
         $pwd_salted = hash_hmac("sha256", $request['password'], $_ENV['PWD_SEED']);
         //Gets hashed password from database
-        $pwd_hashed = $this->get_password(array("email"=>$request['email']));
+        $pwd_hashed = $this->get_password(array("email" => $request['email']));
 
         //Compare sated input with stored hash
-        if(password_verify($pwd_salted, $pwd_hashed)){
+        if (password_verify($pwd_salted, $pwd_hashed)) {
 
             //Update Session id in the database
-            $params = array( ':a'=> session_id(), ':b'=> $request['email']);
-    
+            $params = array(':a' => session_id(), ':b' => $request['email']);
+
             $sql = "UPDATE `users` SET `session`= :a WHERE `email` = :b";
-    
+
             $db = new Mysql();
             $db->Fetch($sql, $params);
 
@@ -288,11 +307,11 @@ class User
      */
     public function deauthenticate()
     {
-        $params = array( ':a'=> null, ':b'=> $this->get_user_id());
-    
+        $params = array(':a' => null, ':b' => $this->get_user_id());
+
         $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` = :b
                 UPDATE `users` SET `csrf`= :a WHERE `user_id` = :b;";
-    
+
         $db = new Mysql();
         $db->Fetch($sql, $params);
 
@@ -312,12 +331,13 @@ class User
     /**
      * @return void
      */
-    public function kill_all_sessions(){
-        $params = array( ':a'=> null );
-    
+    public function kill_all_sessions()
+    {
+        $params = array(':a' => null);
+
         $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` > 0;
                 UPDATE `users` SET `csrf`= :a WHERE `user_id` > 0;";
-    
+
         $db = new Mysql();
         $db->Fetch($sql, $params);
 
@@ -345,18 +365,18 @@ class User
      */
     public function create_user($request = null, $admin = false)
     {
-        if(empty($request)){
+        if (empty($request)) {
             throw new Exception('Empty Request');
         }
 
-        if($this->check_exists($request['username'])['username']){
-             throw new Exception('username exists');
+        if ($this->check_exists($request['username'])['username']) {
+            throw new Exception('username exists');
         }
 
-        if($this->check_exists($request['email'])['email']){
-             throw new Exception('email exists');
+        if ($this->check_exists($request['email'])['email']) {
+            throw new Exception('email exists');
         }
-        
+
         $pwd_salted = hash_hmac("sha256", $request['password'], $_ENV['PWD_SEED']);
         $pwd_hashed = password_hash($pwd_salted, PASSWORD_ARGON2ID);
 
@@ -369,7 +389,7 @@ class User
             ":f" => 1
         );
 
-        if($admin){
+        if ($admin) {
             $params[":f"] = 0;
         }
 
@@ -386,10 +406,10 @@ class User
      */
     public function check_exists($input)
     {
-        $params = array(':a'=>$input);
+        $params = array(':a' => $input);
         $val = false;
 
-        switch(filter_var($input, FILTER_VALIDATE_EMAIL)){
+        switch (filter_var($input, FILTER_VALIDATE_EMAIL)) {
             case true:
                 $sql = 'SELECT * FROM `users` WHERE `email` = :a';
                 $val = true;
@@ -402,17 +422,17 @@ class User
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
 
-        if($val){
-            if($row[0] != '00000' ){
-                return array('email'=>true);
-            }else{
-                return array('email'=>false);
+        if ($val) {
+            if ($row[0] != '00000') {
+                return array('email' => true);
+            } else {
+                return array('email' => false);
             }
-        }else{
-            if($row[0] != '00000'){
-                return array('username'=>true);
-            }else{
-                return array('username'=>false);
+        } else {
+            if ($row[0] != '00000') {
+                return array('username' => true);
+            } else {
+                return array('username' => false);
             }
         }
     }
