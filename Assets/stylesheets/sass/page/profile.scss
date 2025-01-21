@@ -41,7 +41,9 @@
     margin: 0.25rem;
 
     form {
-      margin-bottom: -60px;
+      &.blog {
+        margin-bottom: -60px;
+      }
 
       label {
         display: flex;

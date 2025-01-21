@@ -9,6 +9,7 @@ $user = unserialize($_SESSION['user']);
 <section class="blog">
     <h2>New post</h2>
     <div class="post">
+        <script src="/vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
         <div class="post_tabs">
             <button class="behind">
                 <span>New blog</span>
@@ -20,9 +21,8 @@ $user = unserialize($_SESSION['user']);
                 <span>New Garment</span>
             </button>
         </div>
-        <div class="frame blog">
+        <div class="frame blog hidden">
             <form>
-                <script src="/vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
                 <label>
                     Title
                     <input type="text" name="title" placeholder="Title">
@@ -36,14 +36,44 @@ $user = unserialize($_SESSION['user']);
                     <textarea id="blog" name="blog" placeholder="Write a new blog..."></textarea>
                 </label>
                 <input type="submit" value="" title="Post" class="btn post">
-                <script>
-                    tinymce.init({
-                        selector: '#blog',
-                        license_key: '<?= $_ENV['TINYMCE'] ?>'
-                    });
-                </script>
             </form>
         </div>
+        <div class="frame outfit">
+            <form>
+                <label>
+                    Caption
+                    <textarea id="description" name="description" placeholder="Write a caption..."></textarea>
+                </label>
+                <label>
+                    Existing garments
+                    <select name="garments" id="garments" multiple>
+                        <option value="0">Select garments</option>
+                        <?php
+                        $garments = new Post\Garment($user->get_user_id());
+                        $garments->render_garment_options();
+                        ?>
+                    </select>
+                </label>
+                <label>
+                    Tags
+                    <input type="text" name="tags" placeholder="Pick tags...">
+                </label>
+                <label>
+                    Outfit Photo
+                    <input type="file" name="image" placeholder="Pick photo...">
+                </label>
+            </form>
+        </div>
+        <script>
+            tinymce.init({
+                selector: '#blog',
+                license_key: '<?= $_ENV['TINYMCE'] ?>'
+            });
+            tinymce.init({
+                selector: '#description',
+                license_key: '<?= $_ENV['TINYMCE'] ?>'
+            });
+        </script>
     </div>
 
     <h2>Blogs</h2>
@@ -126,8 +156,8 @@ $user = unserialize($_SESSION['user']);
 
         setTimeout(
             function () {
-                var path = document.querySelector('.ct-series-a path');
-                var length = path.getTotalLength();
+                const path = document.querySelector('.ct-series-a path');
+                const length = path.getTotalLength();
                 console.log(length);
             },
             3000);
