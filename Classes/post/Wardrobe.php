@@ -12,7 +12,7 @@ class Wardrobe
     public function __construct($id, $limit = 100)
     {
         $params = array(":a" => $id);
-        $sql = "SELECT * FROM `garments` WHERE `user_id` = :a order by `timestamp` LIMIT " . $limit;
+        $sql = "SELECT * FROM `garments` WHERE `user_id` = :a order by `timestamp` DESC LIMIT " . $limit;
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
@@ -33,13 +33,13 @@ class Wardrobe
         foreach ($this->wardrobe as $garment):
 
             ?>
-            <figure style="width:33%; float:left;">
+            <figure style="width:33%; ">
                 <a href="/garment/<?= $garment['garment_id'] ?>"
                    title="<?= $garment['garment_name'] ?>"
                    dataset-garment-id="<?= $garment['garment_id'] ?>"
                 >
                     <h3><?= $garment['garment_name'] ?></h3>
-                    <p><?= $garment['garment_description'] ?></p>
+                    <p><?= str_split($garment['garment_description'], 60)[0] ?> ...</p>
                     <img loading="lazy"
                          src="<?= $garment['garment_image'] ?>"
                          alt="<?= $garment['garment_name'] ?>"
