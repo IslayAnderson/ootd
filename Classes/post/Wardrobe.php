@@ -33,13 +33,13 @@ class Wardrobe
         foreach ($this->wardrobe as $garment):
 
             ?>
-            <figure style="width:33%; ">
+            <figure>
                 <a href="/garment/<?= $garment['garment_id'] ?>"
                    title="<?= $garment['garment_name'] ?>"
                    dataset-garment-id="<?= $garment['garment_id'] ?>"
                 >
-                    <h3><?= $garment['garment_name'] ?></h3>
-                    <p><?= str_split($garment['garment_description'], 60)[0] ?> ...</p>
+                    <h3><?= strlen($garment['garment_name']) > 35 ? str_split($garment['garment_name'], 35)[0] . "..." : str_split($garment['garment_name'], 35)[0] ?></h3>
+                    <p><?= strlen($garment['garment_description']) > 80 ? str_split($garment['garment_description'], 80)[0] . "..." : str_split($garment['garment_description'], 80)[0] ?></p>
                     <img loading="lazy"
                          src="<?= $garment['garment_image'] ?>"
                          alt="<?= $garment['garment_name'] ?>"

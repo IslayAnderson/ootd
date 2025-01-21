@@ -11,13 +11,13 @@ $user = unserialize($_SESSION['user']);
     <div class="post">
         <div class="post_tabs">
             <button class="behind">
-                New blog
+                <span>New blog</span>
             </button>
             <button class="active">
-                New outfit
+                <span>New outfit</span>
             </button>
             <button>
-                New Garment
+                <span>New Garment</span>
             </button>
         </div>
         <div class="frame blog">
