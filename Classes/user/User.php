@@ -437,4 +437,13 @@ class User
         }
     }
 
+    public function get_user_id_from_username($input)
+    {
+        $params = array(':a' => $input);
+        $sql = 'SELECT `user_id` FROM `users` WHERE `username` = :a';
+        $db = new Mysql();
+        $row = $db->Fetch($sql, $params);
+        return $row[0]->user_id;
+    }
+
 }

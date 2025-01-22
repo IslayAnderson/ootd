@@ -18,7 +18,9 @@ class Blog
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
-
+        if ($row[0] == "00000") {
+            return false;
+        }
         $this->blogs = array();
         foreach ($row as $index => $blog) {
             $this->blogs[$index]['blog_id'] = $blog->blog_id;
