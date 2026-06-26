@@ -178,33 +178,20 @@ class User
         }
 
         if (!empty($user['username'])) {
-            $val = new Validate($user['username']);
-            if (!$val->basic()['state']) {
-                throw new Exception('Input could not be validated');
-            }
-
-            $sql = "SELECT PASSWORD FROM `users` WHERE username = '" . $user['username'] . "'";
-
+            $sql = "SELECT PASSWORD FROM `users` WHERE username = :a";
+            $params = array(':a' => $user['username']);
         } elseif (!empty($user['id'])) {
-            $val = new Validate($user['id']);
-            if (!$val->basic()['state']) {
-                throw new Exception('Input could not be validated');
-            }
-
-            $sql = "SELECT PASSWORD FROM `users` WHERE user_id = '" . $user['id'] . "'";
-
+            $sql = "SELECT PASSWORD FROM `users` WHERE user_id = :a";
+            $params = array(':a' => $user['id']);
         } elseif (!empty($user['email'])) {
-            // $val = new Validate($user['email']);
-            // if(!$val->basic()['state']){
-            //     throw new Exception('Input could not be validated');
-            // }
-
-            $sql = "SELECT PASSWORD FROM `users` WHERE email = '" . $user['email'] . "'";
-
+            $sql = "SELECT PASSWORD FROM `users` WHERE email = :a";
+            $params = array(':a' => $user['email']);
+        } else {
+            throw new Exception('No valid user identifier provided');
         }
 
         $db = new Mysql();
-        $row = $db->Fetch($sql);
+        $row = $db->Fetch($sql, $params);
 
         return $row[0]->PASSWORD;
     }
