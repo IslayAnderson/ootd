@@ -23,7 +23,7 @@ if ($post['user'] == ($_SESSION['user_id'] ?? null)): ?>
     <section class="edit">
         <script src="/vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
         <details>
-            <summary>Edit entry</summary>
+            <summary>Edit article</summary>
             <form action="/API/blog/update.php" method="post">
                 <?php CSRF_input(); ?>
                 <input type="hidden" name="blog_id" value="<?= escape($post['blog_id']) ?>">
@@ -59,10 +59,10 @@ if ($post['user'] == ($_SESSION['user_id'] ?? null)): ?>
                 <button type="submit">Save changes</button>
             </form>
         </details>
-        <form action="/API/blog/delete.php" method="post" class="delete" data-confirm="Delete this blog post? This can't be undone.">
+        <form action="/API/blog/delete.php" method="post" class="delete" data-confirm="Delete this article? This can't be undone.">
             <?php CSRF_input(); ?>
             <input type="hidden" name="blog_id" value="<?= escape($post['blog_id']) ?>">
-            <button type="submit" class="link-button">Delete entry</button>
+            <button type="submit" class="link-button">Delete article</button>
         </form>
         <script>
             tinymce.init({

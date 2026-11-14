@@ -17,7 +17,7 @@ try {
 
     $blog->create_blog($request);
 
-    header('Location: /account?posted=journal');
+    header('Location: /account?posted=article');
     exit();
 } catch (Exception $e) {
     echo json_encode(array(

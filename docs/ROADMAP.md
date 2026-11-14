@@ -515,6 +515,15 @@ Schema 15.
 - Tests: 4 checks, and checked in a browser that a listed site can frame `/create-blog` and an
   unlisted one is blocked.
 
+### 0.14.8 — Articles ✅
+
+- Long-form posts are called **articles** everywhere people see them: the profile and account
+  headings, "New article", "Edit article" / "Delete article", the saved and deleted notices,
+  privacy page, export readme and the admin's removal text. Old `?posted=journal` links still
+  read correctly. URLs (`/user/<name>/blog/<id>`), tables and code are unchanged (D65).
+- Includes the owner's login wording ("The TREATwork").
+- Tests: t131 updated (3 new checks).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

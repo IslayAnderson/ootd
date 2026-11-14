@@ -3,7 +3,7 @@
 /**
  * Admin clean-up from the users tab (0.13.4).
  *
- * content(): everything someone posted goes (outfits, garments, journal entries, comments, wears,
+ * content(): everything someone posted goes (outfits, garments, articles, comments, wears,
  * likes); posts other blogs have are taken back the usual way (Delete), so the account stays and
  * can start again.
  *
