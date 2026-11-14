@@ -30,6 +30,7 @@ class Garment
             $where[] = "garments.`" . $id_type . "` = :b";
             $params[":b"] = $garment_id;
         }
+        $where[] = visibility_where("garments", "user_id");
         $sql = "SELECT garments.*, brands.brand_name, categories.categories AS category_name, users.username FROM `garments`
                 LEFT JOIN `brands` ON garments.brand = brands.brand_id
                 LEFT JOIN `categories` ON garments.category = categories.category_id
@@ -57,6 +58,7 @@ class Garment
             $this->garments[$index]['brand_name'] = $garment->brand_name;
             $this->garments[$index]['category_name'] = $garment->category_name;
             $this->garments[$index]['username'] = $garment->username;
+            $this->garments[$index]['visibility'] = $garment->visibility;
 
         }
     }
@@ -80,8 +82,12 @@ class Garment
                 </figure>
                 <div class="info">
                     <span>Added <time datetime="<?= escape($garment['timestamp']) ?>"><?= escape(date_display($garment['timestamp'])) ?></time></span>
-                    <?php $last_worn = \Insights::last_worn($garment['garment_num']); ?>
-                    <span>Last worn <?php if ($last_worn): ?><time datetime="<?= escape($last_worn) ?>"><?= escape(date_display($last_worn)) ?></time><?php else: ?>never<?php endif; ?></span>
+                    <?php if ($garment['user'] == ($_SESSION['user_id'] ?? null)): ?>
+                        <?php //wears are private, only the owner sees them ?>
+                        <?php $last_worn = \Insights::last_worn($garment['garment_num']); ?>
+                        <span>Last worn <?php if ($last_worn): ?><time datetime="<?= escape($last_worn) ?>"><?= escape(date_display($last_worn)) ?></time><?php else: ?>never<?php endif; ?></span>
+                        <span class="visibility"><?= escape(visibility_options()[$garment['visibility']] ?? "") ?></span>
+                    <?php endif; ?>
                     <?php if (!$is_profile): ?>
                         <span>By <a href="/user/<?= escape($garment['username']) ?>"><?= escape($garment['username']) ?></a></span>
                     <?php endif; ?>
@@ -116,7 +122,8 @@ class Garment
     public static function outfits_with($garment_num, $limit = 30): array
     {
         $params = array(":a" => json_encode((int)$garment_num));
-        $sql = "SELECT `outfit_num` FROM `outfits` WHERE JSON_CONTAINS(`garments`, :a) order by `timestamp` DESC LIMIT " . (int)$limit;
+        $sql = "SELECT `outfit_num` FROM `outfits` WHERE JSON_CONTAINS(`garments`, :a) AND " . visibility_where("outfits", "user") . "
+                order by `timestamp` DESC LIMIT " . (int)$limit;
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
@@ -151,16 +158,81 @@ class Garment
             ":e" => tags_normalise($request['tags']),
             ":f" => $request['image'],
             ":g" => brand_lookup($request['brand']),
-            ":h" => category_lookup($request['category'])
+            ":h" => category_lookup($request['category']),
+            ":i" => visibility_normalise($request['visibility'] ?? null)
         );
 
-        $sql = 'INSERT INTO `garments` (`garment_id`, `user_id`, `garment_name`, `description`, `tags`, `image`, `brand`, `category`)
-                VALUES (:a, :b, :c, :d, :e, :f, :g, :h)';
+        $sql = 'INSERT INTO `garments` (`garment_id`, `user_id`, `garment_name`, `description`, `tags`, `image`, `brand`, `category`, `visibility`)
+                VALUES (:a, :b, :c, :d, :e, :f, :g, :h, :i)';
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
 
         return $garment_id;
+    }
+
+    /**
+     * @param $user_id
+     * @param $garment_id public garment_id
+     * @return int|null garment_num when the user owns that garment and it isn't deleted
+     */
+    public static function owned_num($user_id, $garment_id): ?int
+    {
+        $sql = "SELECT `garment_num` FROM `garments` WHERE `garment_id` = :a AND `user_id` = :b AND `deleted_at` IS NULL";
+        $db = new Mysql();
+        $row = $db->Fetch($sql, array(":a" => (string)$garment_id, ":b" => (int)$user_id));
+        return $row[0] != '00000' ? (int)$row[0]->garment_num : null;
+    }
+
+    /**
+     * @param array $request user_id, garment_id, garment_name, description, tags, brand, category, visibility
+     * @return void
+     * @throws Exception
+     */
+    public function update_garment($request = null): void
+    {
+        $garment_num = self::owned_num($request['user_id'] ?? 0, $request['garment_id'] ?? "");
+        if (empty($garment_num)) {
+            throw new Exception('Garment not found');
+        }
+        if (trim((string)($request['garment_name'] ?? "")) == "") {
+            throw new Exception('Garment name missing');
+        }
+
+        $params = array(
+            ":a" => $garment_num,
+            ":b" => mb_substr(trim($request['garment_name']), 0, 128),
+            ":c" => mb_substr(trim((string)($request['description'] ?? "")), 0, 1024),
+            ":d" => tags_normalise($request['tags'] ?? ""),
+            ":e" => brand_lookup($request['brand'] ?? ""),
+            ":f" => category_lookup($request['category'] ?? ""),
+            ":g" => visibility_normalise($request['visibility'] ?? null)
+        );
+        $sql = 'UPDATE `garments` SET `garment_name` = :b, `description` = :c, `tags` = :d, `brand` = :e, `category` = :f,
+                `visibility` = :g, `updated_at` = NOW() WHERE `garment_num` = :a';
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+    }
+
+    /**
+     * Soft delete, outfits that include the garment keep working and just stop showing it
+     *
+     * @param $user_id
+     * @param $garment_id
+     * @return void
+     * @throws Exception
+     */
+    public static function delete_garment($user_id, $garment_id): void
+    {
+        $garment_num = self::owned_num($user_id, $garment_id);
+        if (empty($garment_num)) {
+            throw new Exception('Garment not found');
+        }
+
+        $sql = 'UPDATE `garments` SET `deleted_at` = NOW() WHERE `garment_num` = :a';
+        $db = new Mysql();
+        $db->Fetch($sql, array(":a" => $garment_num));
     }
 
     /**
@@ -175,7 +247,7 @@ class Garment
         $owned = array();
         foreach ((array)$garment_nums as $garment_num) {
             $params = array(":a" => $user_id, ":b" => (int)$garment_num);
-            $sql = "SELECT `garment_num` FROM `garments` WHERE `user_id` = :a AND `garment_num` = :b";
+            $sql = "SELECT `garment_num` FROM `garments` WHERE `user_id` = :a AND `garment_num` = :b AND `deleted_at` IS NULL";
             $db = new Mysql();
             $row = $db->Fetch($sql, $params);
             if ($row[0] != '00000') {

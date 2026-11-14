@@ -26,6 +26,9 @@ elseif (($_GET['install'] ?? "") != "complete"):
             <input type="text" placeholder="Enter Database User" name="user" required>
             <label for="password">Password</label>
             <input type="password" placeholder="Enter Password" name="password" required>
+            <label for="app_url">Site address</label>
+            <input type="url" placeholder="https://ootd.example" name="app_url" id="app_url">
+            <script>document.getElementById("app_url").value = window.location.origin;</script>
 
             <button type="submit">Install</button>
         </form>

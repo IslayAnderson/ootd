@@ -35,7 +35,7 @@ class Wardrobe
         $sql = "SELECT garments.*, brands.brand_name, categories.categories AS category_name FROM `garments`
                 LEFT JOIN `brands` ON garments.brand = brands.brand_id
                 LEFT JOIN `categories` ON garments.category = categories.category_id
-                WHERE garments.`user_id` = :a" . $where . "
+                WHERE garments.`user_id` = :a AND " . visibility_where("garments", "user_id") . $where . "
                 order by garments.`timestamp` DESC LIMIT " . (int)$limit;
 
         $db = new Mysql();
@@ -65,7 +65,7 @@ class Wardrobe
     public static function tags($user_id): array
     {
         $params = array(":a" => $user_id);
-        $sql = "SELECT `tags` FROM `garments` WHERE `user_id` = :a AND `tags` != ''";
+        $sql = "SELECT `tags` FROM `garments` WHERE `user_id` = :a AND `tags` != '' AND " . visibility_where("garments", "user_id");
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);

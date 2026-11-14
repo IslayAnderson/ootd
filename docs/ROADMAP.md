@@ -37,6 +37,7 @@ release. Nothing has been merged into `claude/main` or `main`.
 | 0.5.0 | Done, merged to `claude/development` |
 | 0.6.0 | Done, merged to `claude/development` |
 | 0.6.1 | Done, merged to `claude/development` |
+| 0.7.0 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -117,6 +118,23 @@ Restyle with design cues from Glamcult magazine: editorial, monochrome and type-
 
 - Top bar shows the OOTD wordmark on its own; the flower icon is dropped from `logo.svg`
   (the favicon is unchanged).
+
+### 0.7.0 — Addresses, visibility and public pages ✅
+
+First release of the [federation roadmap](FEDERATION.md). Upgrade with `/install.php` (schema 3).
+
+- `APP_URL` in `.env`: asked for by the installer, added from the admin's address on upgrade.
+  `app_url()` / `absolute_url()` helpers.
+- Every garment, outfit and blog has a visibility: **Public** (anyone, signed in or not),
+  **Members** (anyone signed in here, which is how everything behaved before) or **Only me**.
+  Existing posts become Members. Picker on every "New post" form and edit form.
+- Guests can open `/user/<username>`, `/outfit/<id>`, `/garment/<id>` and blog pages, and see
+  only what's public. Real names and wear history are never shown to guests. `/@username`
+  redirects to the profile. `/privacy` is open to guests.
+- Outfit permalinks (`/outfit/<id>`, linked from each post's date).
+- Edit and delete for outfits, garments and blogs, owner only, from each item's page. Deletes are
+  soft (`deleted_at`) so they can be federated later. Photos can't be changed yet (0.8.0).
+- Connection charset fixed and every table converted to `utf8mb4` (AUDIT F16).
 
 ## Later (not started)
 

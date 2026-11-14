@@ -11,7 +11,8 @@ try {
         "description"   =>  $_POST['description'] ?? "",
         "tags"          =>  $_POST['tags'] ?? "",
         "garments"      =>  $_POST['garments'] ?? array(),
-        "image"         =>  image_upload($_FILES['image'] ?? null)
+        "image"         =>  image_upload($_FILES['image'] ?? null),
+        "visibility"    =>  $_POST['visibility'] ?? ""
     );
 
     $outfit->create_outfit($request);

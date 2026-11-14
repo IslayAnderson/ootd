@@ -56,6 +56,13 @@ switch ($request[0]) {
     case (bool)preg_match('#^/user/#', $request[0]):
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/user.php';
         break;
+    case (bool)preg_match('#^/@[^/]+$#', $request[0]):
+        //short profile address, /@username
+        header("location: /user/" . rawurlencode(rawurldecode(substr(parse_url($request[0], PHP_URL_PATH), 2))), true, 301);
+        exit();
+    case (bool)preg_match('#^/outfit/[^/]+$#', $request[0]):
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfit.php';
+        break;
     case (bool)preg_match('#^/garment/[^/]+$#', $request[0]):
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/garment.php';
         break;

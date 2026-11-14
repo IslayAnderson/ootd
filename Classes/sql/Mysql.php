@@ -21,7 +21,7 @@ class Mysql
 
     private function BuildConnection()
     {
-        return new PDO("mysql:host=" . $this->host . ";mysql:charset=utf8mb4;" . "dbname=" . $this->schema, $this->user, $this->password);
+        return new PDO("mysql:host=" . $this->host . ";charset=utf8mb4;" . "dbname=" . $this->schema, $this->user, $this->password);
     }
 
     public function Fetch($sql, $params = null)

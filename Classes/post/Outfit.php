@@ -14,6 +14,9 @@ class Outfit
     public $description;
     public $image;
     public $garments;
+    public $garment_nums;
+    public $tags;
+    public $visibility;
 
     public function __construct($id = null)
     {
@@ -29,11 +32,15 @@ class Outfit
           garments.tags as garment_tags,
           outfits.description as outfit_description,
           outfits.timestamp as outfit_timestamp,
+          outfits.tags as outfit_tags,
+          outfits.visibility as outfit_visibility,
+          outfits.garments as outfit_garments,
+          garments.visibility as garment_visibility,
           garments.description as garment_description FROM `outfits`
          JOIN `users` ON outfits.user = users.user_id
          LEFT JOIN JSON_TABLE(COALESCE(outfits.garments, '[]'), '$[*]' COLUMNS (garment_ref INT PATH '$')) AS GT ON TRUE
-         LEFT JOIN `garments` ON garments.garment_num = GT.garment_ref
-         WHERE `outfit_num` = :a;";
+         LEFT JOIN `garments` ON garments.garment_num = GT.garment_ref AND garments.deleted_at IS NULL
+         WHERE `outfit_num` = :a AND outfits.deleted_at IS NULL;";
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
@@ -51,11 +58,15 @@ class Outfit
             "image" => image_bin_encode($row[0]->user_image, "/Assets/images/avi.jpg"),
         );
         $this->description = $row[0]->outfit_description;
+        $this->tags = $row[0]->outfit_tags;
+        $this->visibility = $row[0]->outfit_visibility;
+        $this->garment_nums = json_decode((string)$row[0]->outfit_garments) ?: array();
         $this->image = image_bin_encode($row[0]->outfit_image);
         $garments = array();
 
         foreach ($row as $index => $garment) {
-            if (empty($garment->garment_num)) {
+            //a public outfit can still contain garments the visitor isn't allowed to see
+            if (empty($garment->garment_num) || !can_view($garment->user_id, $garment->garment_visibility)) {
                 continue;
             }
             $garments[$index] = array(
@@ -68,6 +79,81 @@ class Outfit
         }
         $this->garments = $garments;
 
+    }
+
+    /**
+     * @param string $outfit_id public outfit_id
+     * @return int|null outfit_num, null when it doesn't exist or was deleted
+     */
+    public static function num_from_id($outfit_id): ?int
+    {
+        $sql = "SELECT `outfit_num` FROM `outfits` WHERE `outfit_id` = :a AND `deleted_at` IS NULL";
+        $db = new Mysql();
+        $row = $db->Fetch($sql, array(":a" => (string)$outfit_id));
+        return $row[0] != '00000' ? (int)$row[0]->outfit_num : null;
+    }
+
+    /**
+     * @return bool can the current visitor see this outfit
+     */
+    public function viewable(): bool
+    {
+        return !empty($this->outfit_num) && can_view($this->user['user_id'], $this->visibility);
+    }
+
+    /**
+     * @return bool is the signed in user the owner
+     */
+    public function owned(): bool
+    {
+        return !empty($this->outfit_num) && $this->user['user_id'] == ($_SESSION['user_id'] ?? null);
+    }
+
+    /**
+     * @param array $request user_id, outfit_id, description, tags, garments (garment_nums), visibility
+     * @return void
+     * @throws Exception
+     */
+    public function update_outfit($request = null): void
+    {
+        $outfit_num = self::num_from_id($request['outfit_id'] ?? "");
+        $outfit = new Outfit($outfit_num);
+        if (empty($request['user_id']) || !$outfit->owned()) {
+            throw new Exception('Outfit not found');
+        }
+
+        $params = array(
+            ":a" => $outfit_num,
+            ":b" => json_encode(Garment::owned_garments($request['user_id'], $request['garments'] ?? array())),
+            ":c" => mb_substr(trim((string)($request['description'] ?? "")), 0, 1024),
+            ":d" => tags_normalise($request['tags'] ?? ""),
+            ":e" => visibility_normalise($request['visibility'] ?? null)
+        );
+        $sql = 'UPDATE `outfits` SET `garments` = :b, `description` = :c, `tags` = :d, `visibility` = :e, `updated_at` = NOW()
+                WHERE `outfit_num` = :a';
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+    }
+
+    /**
+     * Soft delete, the row is kept with deleted_at set so the deletion can be sent to other servers later
+     *
+     * @param $user_id
+     * @param $outfit_id
+     * @return void
+     * @throws Exception
+     */
+    public static function delete_outfit($user_id, $outfit_id): void
+    {
+        $outfit = new Outfit(self::num_from_id($outfit_id));
+        if (empty($user_id) || !$outfit->owned()) {
+            throw new Exception('Outfit not found');
+        }
+
+        $sql = 'UPDATE `outfits` SET `deleted_at` = NOW() WHERE `outfit_num` = :a';
+        $db = new Mysql();
+        $db->Fetch($sql, array(":a" => $outfit->outfit_num));
     }
 
     /**
@@ -89,11 +175,12 @@ class Outfit
             ":c" => json_encode(Garment::owned_garments($request['user_id'], $request['garments'])),
             ":d" => mb_substr(trim((string)$request['description']), 0, 1024),
             ":e" => tags_normalise($request['tags']),
-            ":f" => $request['image']
+            ":f" => $request['image'],
+            ":g" => visibility_normalise($request['visibility'] ?? null)
         );
 
-        $sql = 'INSERT INTO `outfits` (`outfit_id`, `user`, `garments`, `description`, `tags`, `image`)
-                VALUES (:a, :b, :c, :d, :e, :f)';
+        $sql = 'INSERT INTO `outfits` (`outfit_id`, `user`, `garments`, `description`, `tags`, `image`, `visibility`)
+                VALUES (:a, :b, :c, :d, :e, :f, :g)';
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
@@ -103,10 +190,18 @@ class Outfit
 
     public function render_outfit($is_profile = false): void
     {
+        if (!$this->viewable()) {
+            return;
+        }
         ?>
         <article class="outfit" dataset-outfit-id="<?= escape($this->outfit_id) ?>">
             <div class="info">
-                <time datetime="<?= escape($this->timestamp) ?>"><?= escape(date_display($this->timestamp)) ?></time>
+                <a href="/outfit/<?= escape($this->outfit_id) ?>" class="permalink">
+                    <time datetime="<?= escape($this->timestamp) ?>"><?= escape(date_display($this->timestamp)) ?></time>
+                </a>
+                <?php if ($this->owned()): ?>
+                    <span class="visibility"><?= escape(visibility_options()[$this->visibility] ?? "") ?></span>
+                <?php endif; ?>
                 <?php if (!$is_profile): ?>
                     <div class="profile">
                         <a href="/user/<?= escape($this->user['username']) ?>">

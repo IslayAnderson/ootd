@@ -11,7 +11,8 @@ try {
         "title"         =>  $_POST['title'] ?? "",
         "excerpt"       =>  $_POST['excerpt'] ?? "",
         "content"       =>  $_POST['blog'] ?? "",
-        "outfits"       =>  $_POST['outfits'] ?? array()
+        "outfits"       =>  $_POST['outfits'] ?? array(),
+        "visibility"    =>  $_POST['visibility'] ?? ""
     );
 
     $blog->create_blog($request);

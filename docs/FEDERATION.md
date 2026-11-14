@@ -42,6 +42,9 @@ CSRF and invites are already hardened.
 
 ## Key decisions (to confirm before starting)
 
+Work is going ahead on the recommended options below; every assumption made along the way is
+logged in [DECISIONS.md](DECISIONS.md) for sign-off.
+
 1. **Protocol: ActivityPub.** It's what Mastodon, Pixelfed and the rest use, so OOTD users get an
    audience on day one. Bluesky's AT Protocol is the alternative but has a different model
    (personal data repositories, relays) and much less PHP tooling.

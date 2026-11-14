@@ -4,7 +4,7 @@ title_update("feed");
 <div class="feed">
     <?php
     $params = null;
-    $sql = "SELECT `outfit_num` FROM `outfits` order by timestamp DESC limit 30";
+    $sql = "SELECT `outfit_num` FROM `outfits` WHERE " . visibility_where("outfits", "user") . " order by timestamp DESC limit 30";
     $db = new Mysql();
     $row = $db->Fetch($sql, $params);
 

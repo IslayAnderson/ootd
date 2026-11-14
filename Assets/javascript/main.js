@@ -6,6 +6,7 @@ let register_listeners = (callbackfn, thisArg) => {
     let accordions = document.querySelectorAll(".accordion__section-button");
     let post_tabs = document.querySelectorAll(".post_tabs button");
     let filters = document.querySelectorAll("form.filters select");
+    let confirms = document.querySelectorAll("form[data-confirm]");
 
     if(nav_draw) {
         nav_draw.addEventListener("click", () => {
@@ -33,6 +34,16 @@ let register_listeners = (callbackfn, thisArg) => {
         filters.forEach((item, index) => {
             item.addEventListener("change", (e) => {
                 item.form.submit();
+            });
+        })
+    }
+
+    if(confirms.length > 0) {
+        confirms.forEach((item, index) => {
+            item.addEventListener("submit", (e) => {
+                if(!window.confirm(item.dataset.confirm)){
+                    e.preventDefault();
+                }
             });
         })
     }
