@@ -1,4 +1,7 @@
 <?php
+
+//what a blog is called until its admin names it (OOTD until 0.14.6)
+const DEFAULT_NAME = "TREAT blog";
 /**
  * @param $setting
  * @param $default
@@ -92,7 +95,7 @@ function registration_mode(): string
 }
 
 /**
- * @return string the instance's name, OOTD unless an admin changed it
+ * @return string the instance's name, TREAT blog unless an admin changed it
  */
 //what the settings form calls each setting; the names in the database stay as they are
 const SETTING_LABELS = array(
@@ -100,7 +103,7 @@ const SETTING_LABELS = array(
     "instance_description" => "Blog description",
     "instance_rules" => "Rules for members",
     "admin_contact" => "Admin contact",
-    "federation" => "Connect with other blogs (other OOTD blogs, Mastodon and the Fediverse)",
+    "federation" => "Connect with other blogs (other TREAT blogs, Mastodon and the Fediverse)",
     "source_url" => "Source code address",
     "privacy_notice" => "Extra privacy notice",
     "remote_media_mb" => "Space for photos from other blogs (MB)",
@@ -110,11 +113,11 @@ const SETTING_LABELS = array(
 
 //how the settings form shows a choice, where its stored value isn't clear enough
 const SETTING_CHOICE_LABELS = array(
-    "logo" => array("wordmark" => "OOTD wordmark", "image" => "Uploaded image", "name" => "Blog name as text")
+    "logo" => array("wordmark" => "TREAT wordmark", "image" => "Uploaded image", "name" => "Blog name as text")
 );
 
 function instance_name(): string
 {
-    $name = setting_get("instance_name", "OOTD");
-    return $name === null || $name === "" ? "OOTD" : $name;
+    $name = setting_get("instance_name", DEFAULT_NAME);
+    return $name === null || $name === "" ? DEFAULT_NAME : $name;
 }

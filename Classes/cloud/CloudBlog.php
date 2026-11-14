@@ -123,7 +123,7 @@ class CloudBlog
                 ":f" => $email, ":g" => hash("sha256", $token), ":h" => $ip_hash));
 
         Mailer::queue($email, "Confirm your new blog, " . $name . "." . self::domain(),
-            "Someone (we hope you) asked " . instance_name() . " for a new OOTD blog called \"" . $blog_name . "\" at\n"
+            "Someone (we hope you) asked " . instance_name() . " for a new TREAT blog called \"" . $blog_name . "\" at\n"
             . "https://" . $name . "." . self::domain() . "\n\n"
             . "Confirm it here and we'll start setting it up (the link works for " . self::UNCONFIRMED_HOURS . " hours):\n"
             . absolute_url("/create-blog/confirm?t=" . $token) . "\n\n"
@@ -300,7 +300,7 @@ class CloudBlog
                         break;
                     case "email":
                         Mailer::queue($blog->email, "Your blog " . $blog->domain . " is ready",
-                            "Your OOTD blog \"" . $blog->blog_name . "\" is ready:\nhttps://" . $blog->domain . "\n\n"
+                            "Your TREAT blog \"" . $blog->blog_name . "\" is ready:\nhttps://" . $blog->domain . "\n\n"
                             . "You're its admin, " . $blog->username . ". Choose your password here (the link works for 7 days):\n"
                             . "https://" . $blog->domain . "/reset?token=" . $secrets['reset'] . "\n\n"
                             . "Then log in with " . $blog->email . " and that password. From /admin you can name it, add a logo, invite people\n"

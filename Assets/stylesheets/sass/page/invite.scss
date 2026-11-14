@@ -21,6 +21,16 @@
       margin: 0 auto 2rem;
     }
 
+    .site-logo--wordmark {
+      display: block;
+      font-family: $sans;
+      font-weight: 800;
+      font-size: 4.5rem;
+      line-height: 1;
+      letter-spacing: 0.06em;
+      margin-bottom: 1.5rem;
+    }
+
     .site-logo--text {
       display: block;
       font-family: $serif;

@@ -1,5 +1,5 @@
 <?php
-// /create-blog: anyone can ask for an OOTD blog of their own (cloud blogs, 0.14.0)
+// /create-blog: anyone can ask for a TREAT blog of their own (cloud blogs, 0.14.0)
 // /create-blog/confirm?t=...: the link from the email starts the build
 title_update("create your own blog");
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -33,7 +33,7 @@ $domain = CloudBlog::domain();
     <?php else: ?>
         <div class="description">
             <h1>Create your own <em>blog</em></h1>
-            <p>Your own OOTD: a wardrobe, daily outfits and a journal, at your own address. You&rsquo;re its admin,
+            <p>Your own TREAT blog: a wardrobe, daily outfits and a journal, at your own address. You&rsquo;re its admin,
                 and people on other blogs and on Mastodon can follow you.</p>
             <?php if (!empty($_GET['error'])): ?>
                 <p class="notice"><?= escape($_GET['error']) ?></p>
