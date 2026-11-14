@@ -22,7 +22,7 @@ title_update($item['garment_name']);
     <section class="edit">
         <details>
             <summary>Edit garment</summary>
-            <form action="/API/garment/update.php" method="post">
+            <form action="/API/garment/update.php" method="post" enctype="multipart/form-data">
                 <?php CSRF_input(); ?>
                 <input type="hidden" name="garment_id" value="<?= escape($item['garment_id']) ?>">
                 <label>
@@ -54,6 +54,14 @@ title_update($item['garment_name']);
                 <label>
                     Tags
                     <input type="text" name="tags" value="<?= escape(tags_display($item['garment_tags'])) ?>">
+                </label>
+                <label>
+                    <?= empty($item['media_id']) ? "Add a photo" : "Replace photo" ?>
+                    <input type="file" name="image" accept="image/*">
+                </label>
+                <label>
+                    Describe the photo
+                    <input type="text" name="alt_text" maxlength="1500" value="<?= escape($item['alt_text']) ?>">
                 </label>
                 <?php visibility_select($item['visibility']); ?>
                 <button type="submit">Save changes</button>

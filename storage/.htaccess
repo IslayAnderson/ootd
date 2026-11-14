@@ -1,0 +1,2 @@
+# uploaded media is served through /media/<id>/<variant>, never directly
+Require all denied

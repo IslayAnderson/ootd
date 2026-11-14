@@ -119,7 +119,7 @@ class Insights
     public function most_worn($limit = 5): array
     {
         $params = array(":a" => $this->user_id);
-        $sql = "SELECT garments.garment_id, garments.garment_name, garments.image, COUNT(DISTINCT wears.worn_on) AS worn
+        $sql = "SELECT garments.garment_id, garments.garment_name, garments.media_id, COUNT(DISTINCT wears.worn_on) AS worn
                 FROM `wears` JOIN `garments` ON wears.garment_num = garments.garment_num
                 WHERE wears.user = :a AND garments.deleted_at IS NULL
                 GROUP BY garments.garment_num
@@ -139,7 +139,7 @@ class Insights
     public function least_recently_worn($limit = 5): array
     {
         $params = array(":a" => $this->user_id);
-        $sql = "SELECT garments.garment_id, garments.garment_name, garments.description, garments.image,
+        $sql = "SELECT garments.garment_id, garments.garment_name, garments.description, garments.media_id,
                        garments.timestamp AS added, MAX(wears.worn_on) AS last_worn
                 FROM `garments` LEFT JOIN `wears` ON wears.garment_num = garments.garment_num
                 WHERE garments.user_id = :a AND garments.deleted_at IS NULL
@@ -207,7 +207,7 @@ class Insights
             </svg>
             <a href="/garment/<?= escape($garment->garment_id) ?>">
                 <img loading="lazy"
-                     src="<?= image_bin_encode($garment->image) ?>"
+                     src="<?= media_url($garment->media_id, "thumb") ?>"
                      alt="<?= escape($garment->description) ?>"
                 >
             </a>

@@ -32,6 +32,10 @@ needs an answer before the work that depends on it).
 | D8 | 0.7.0 | `/privacy` is readable without signing in. | It's linked from the footer on public pages. | assumed |
 | D9 | 0.7.1 | An early-design `invites` table found during upgrade is renamed `invites_legacy`, not converted or dropped. | Its columns (`invitee`, `token`, `confirmed`) don't map cleanly onto the current flow; keeping it loses nothing. | assumed |
 | D10 | 0.7.1 | Staging is upgraded in place rather than wiped and reinstalled. | Exercises the real upgrade path on old data; a full backup was taken first (`/root/ootd-backups` on the server). | assumed |
+| D11 | 0.8.0 | The old image BLOB columns are kept (unused) after the move to the media store, to be dropped in 0.10.0. | A rollback to 0.7.x still has its images; costs disk space until then. | assumed |
+| D12 | 0.8.0 | Uploads are stored as 1600px and 480px versions only; the original file isn't kept. Photos become JPEG (quality 85); images with transparency stay PNG. | Strips location data with no way to leak it later, and keeps storage small. Means originals can't be re-processed later. | assumed |
+| D13 | 0.8.0 | Images are served through PHP (`/media/...`) with a visibility check, not straight from disk or a public bucket. | Members-only and private photos stay private. Public ones get long cache headers to offset the cost. | assumed |
+| D14 | 0.8.0 | Profile photos are always visible, including to people who aren't signed in. | They're shown on public profiles and next to public posts. | assumed |
 
 ## Questions
 
@@ -41,3 +45,5 @@ needs an answer before the work that depends on it).
 | Q2 | Should staging's `.env` move fully to the current format? | It used `DEV_/STAGE_/PROD_` prefixed keys that no version of the code reads. The current `DB_*` keys and `APP_URL` were added alongside them; the old keys were left in place. |
 | Q3 | What were the `profile`, `profile_options` and `size_*` tables (and `garments.size`) for? | They're in the staging database but in no branch of the code. Left untouched. If sizing is a feature you want, it can go on the roadmap. |
 | Q4 | Is the New Relic browser agent on staging intentional? | The server injects New Relic's script into every page. If it stays, the privacy page should mention it (third-party requests, AUDIT F15). |
+| Q5 | Which S3-compatible provider (if any) should cloud and larger self-hosts use? | The S3 driver signs requests correctly against AWS's published example but hasn't run against a live bucket yet. |
+| Q6 | Should the email code found only on staging come into the repo? | `Classes/mail/Mail.php` (Brevo invite emails), `Pages/onboard.php` and `partials/email_templates/invite.php` are on the server but in no branch. They were left in place on deploy and copied for safekeeping. They need `brevo/brevo-php` and Guzzle, which aren't in `composer.json`. The roadmap puts email in 0.10.0. |

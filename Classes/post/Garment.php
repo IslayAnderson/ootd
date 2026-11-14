@@ -31,7 +31,8 @@ class Garment
             $params[":b"] = $garment_id;
         }
         $where[] = visibility_where("garments", "user_id");
-        $sql = "SELECT garments.*, brands.brand_name, categories.categories AS category_name, users.username FROM `garments`
+        $sql = "SELECT garments.*, brands.brand_name, categories.categories AS category_name, users.username, media.alt_text FROM `garments`
+                LEFT JOIN `media` ON media.media_id = garments.media_id
                 LEFT JOIN `brands` ON garments.brand = brands.brand_id
                 LEFT JOIN `categories` ON garments.category = categories.category_id
                 JOIN `users` ON garments.user_id = users.user_id
@@ -49,7 +50,9 @@ class Garment
             $this->garments[$index]['garment_name'] = $garment->garment_name;
             $this->garments[$index]['garment_description'] = $garment->description;
             $this->garments[$index]['garment_tags'] = $garment->tags;
-            $this->garments[$index]['garment_image'] = image_bin_encode($garment->image);
+            $this->garments[$index]['garment_image'] = media_url($garment->media_id);
+            $this->garments[$index]['media_id'] = $garment->media_id;
+            $this->garments[$index]['alt_text'] = (string)$garment->alt_text;
             $this->garments[$index]['garment_num'] = $garment->garment_num;
             $this->garments[$index]['user'] = $garment->user_id;
             $this->garments[$index]['timestamp'] = $garment->timestamp;
@@ -78,7 +81,7 @@ class Garment
                     <p><?= escape($garment['garment_description']) ?></p>
                 </div>
                 <figure>
-                    <img src="<?= $garment['garment_image'] ?>" alt="<?= escape($garment['garment_name']) ?>">
+                    <img src="<?= $garment['garment_image'] ?>" alt="<?= escape($garment['alt_text'] ?: $garment['garment_name']) ?>">
                 </figure>
                 <div class="info">
                     <span>Added <time datetime="<?= escape($garment['timestamp']) ?>"><?= escape(date_display($garment['timestamp'])) ?></time></span>
@@ -156,13 +159,13 @@ class Garment
             ":c" => mb_substr(trim($request['garment_name']), 0, 128),
             ":d" => mb_substr(trim((string)$request['description']), 0, 1024),
             ":e" => tags_normalise($request['tags']),
-            ":f" => $request['image'],
+            ":f" => $request['media_id'] ?? null,
             ":g" => brand_lookup($request['brand']),
             ":h" => category_lookup($request['category']),
             ":i" => visibility_normalise($request['visibility'] ?? null)
         );
 
-        $sql = 'INSERT INTO `garments` (`garment_id`, `user_id`, `garment_name`, `description`, `tags`, `image`, `brand`, `category`, `visibility`)
+        $sql = 'INSERT INTO `garments` (`garment_id`, `user_id`, `garment_name`, `description`, `tags`, `media_id`, `brand`, `category`, `visibility`)
                 VALUES (:a, :b, :c, :d, :e, :f, :g, :h, :i)';
 
         $db = new Mysql();
@@ -192,11 +195,12 @@ class Garment
     public function update_garment($request = null): void
     {
         $garment_num = self::owned_num($request['user_id'] ?? 0, $request['garment_id'] ?? "");
-        if (empty($garment_num)) {
-            throw new Exception('Garment not found');
-        }
-        if (trim((string)($request['garment_name'] ?? "")) == "") {
-            throw new Exception('Garment name missing');
+        if (empty($garment_num) || trim((string)($request['garment_name'] ?? "")) == "") {
+            //don't leave an uploaded replacement photo behind
+            if (!empty($request['media_id'])) {
+                \Media::remove($request['media_id']);
+            }
+            throw new Exception(empty($garment_num) ? 'Garment not found' : 'Garment name missing');
         }
 
         $params = array(
@@ -213,6 +217,17 @@ class Garment
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
+
+        $old_media = $db->Fetch('SELECT `media_id` FROM `garments` WHERE `garment_num` = :a', array(":a" => $garment_num))[0]->media_id ?? null;
+        if (!empty($request['media_id'])) {
+            //a new photo replaces the old one
+            $db->Fetch('UPDATE `garments` SET `media_id` = :b WHERE `garment_num` = :a', array(":a" => $garment_num, ":b" => $request['media_id']));
+            if (!empty($old_media)) {
+                \Media::remove($old_media);
+            }
+        } elseif (isset($request['alt_text']) && !empty($old_media)) {
+            \Media::set_alt($old_media, $request['user_id'], $request['alt_text']);
+        }
     }
 
     /**

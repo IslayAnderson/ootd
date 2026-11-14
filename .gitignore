@@ -10,3 +10,5 @@ Project_Default.xml
 /tmp/*
 debug.php
 /Assets/stylesheets/css/*
+/storage/*
+!/storage/.htaccess

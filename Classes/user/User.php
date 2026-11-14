@@ -277,31 +277,36 @@ class User
     }
 
     /**
-     * @param string $image binary avatar
+     * @param string $media_id new avatar, the old one is removed
      * @return void
      */
-    public function set_image($image)
+    public function set_image($media_id)
     {
-        $params = array(':a' => $image, ':b' => $this->user_id);
-        $sql = "UPDATE `users` SET `image` = :a WHERE `user_id` = :b";
-
         $db = new Mysql();
+        $old = $db->Fetch("SELECT `media_id` FROM `users` WHERE `user_id` = :a", array(':a' => $this->user_id));
+
+        $params = array(':a' => $media_id, ':b' => $this->user_id);
+        $sql = "UPDATE `users` SET `media_id` = :a WHERE `user_id` = :b";
         $db->Fetch($sql, $params);
+
+        if ($old[0] != '00000' && !empty($old[0]->media_id) && $old[0]->media_id != $media_id) {
+            Media::remove($old[0]->media_id);
+        }
     }
 
     /**
      * @param $id
-     * @return string avatar as a data uri, or the default avatar
+     * @return string avatar url, or the default avatar
      */
     public function get_image($id = null)
     {
         $params = array(':a' => $id ?? $this->user_id);
-        $sql = "SELECT `image` FROM `users` WHERE `user_id` = :a";
+        $sql = "SELECT `media_id` FROM `users` WHERE `user_id` = :a";
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
 
-        return image_bin_encode($row[0] != '00000' ? $row[0]->image : null, "/Assets/images/avi.jpg");
+        return media_url($row[0] != '00000' ? $row[0]->media_id : null, "thumb", "/Assets/images/avi.jpg");
     }
 
     /**

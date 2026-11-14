@@ -50,7 +50,7 @@ class Wardrobe
             $this->wardrobe[$index]['garment_name'] = $garment->garment_name;
             $this->wardrobe[$index]['garment_description'] = $garment->description;
             $this->wardrobe[$index]['garment_tags'] = $garment->tags;
-            $this->wardrobe[$index]['garment_image'] = image_bin_encode($garment->image);
+            $this->wardrobe[$index]['garment_image'] = media_url($garment->media_id, "thumb");
             $this->wardrobe[$index]['brand'] = $garment->brand_name;
             $this->wardrobe[$index]['category'] = $garment->category_name;
             $this->wardrobe[$index]['timestamp'] = $garment->timestamp;

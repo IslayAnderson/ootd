@@ -26,7 +26,9 @@ function guest_path_allowed($path): bool
         '#^/user/[^/]+$#',
         '#^/user/[^/]+/blog/[^/]+$#',
         '#^/outfit/[^/]+$#',
-        '#^/garment/[^/]+$#'
+        '#^/garment/[^/]+$#',
+        //media checks visibility itself
+        '#^/media/[A-Za-z0-9]+/(display|thumb)$#'
     );
     foreach ($patterns as $pattern) {
         if (preg_match($pattern, $path)) {

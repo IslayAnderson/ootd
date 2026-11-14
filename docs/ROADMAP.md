@@ -29,6 +29,21 @@ Each release branch builds on the previous one, so `claude/development` always h
 release. `claude/main` is promoted from `claude/development` and runs on staging; nothing is merged
 into `main`. After a promotion, an admin runs the upgrade at `/install.php` on staging.
 
+### Staging
+
+`https://ootd.islayanderson.co.uk`, on the owner's Plesk server (PHP 8.3, MariaDB 10.6), runs
+`claude/main`. Its database is test data. Until pushes to GitHub are approved (DECISIONS Q1),
+a release reaches staging like this:
+
+1. Rehearse: restore the latest staging backup into a scratch database on the server and run
+   `bin/migrate.php` against a copy of the code there, twice (the second run must change nothing).
+2. Back up `.env`, the database and the site folder into `/root/ootd-backups`.
+3. Copy the `claude/main` tree (`git archive`) over the site folder **without deleting**: the
+   server has files that aren't in the repo (DECISIONS Q6). `.env`, `tmp/`, `vendor/` and
+   `storage/` are never overwritten. Files stay owned by the subscription user, and the site
+   folder itself keeps the `psaserv` group.
+4. Run `php bin/migrate.php` as the subscription user and check the public pages and error log.
+
 | Release | Status |
 | --- | --- |
 | 0.1.1 | Done, merged to `claude/development` |
@@ -40,6 +55,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.6.1 | Done, merged to `claude/development` |
 | 0.7.0 | Done, merged to `claude/development` |
 | 0.7.1 | Done, merged to `claude/development` |
+| 0.8.0 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -154,6 +170,25 @@ early version of the app). Schema 4.
   post's date when it's edited; keeps an early-design `invites` table as `invites_legacy` and
   creates the current one.
 - `.env` values with `=`, `;`, `!` or quotes (real passwords) load correctly.
+
+### 0.8.0 — Media store ✅
+
+Second release of the [federation roadmap](FEDERATION.md). Schema 5: the upgrade moves every
+existing image into the store (`storage/` must be writable by PHP).
+
+- `media` table and a `Storage` interface with two drivers: local disk (`storage/`, or
+  `STORAGE_PATH`) and S3-compatible (`MEDIA_DRIVER=s3` plus `S3_*` settings, signed with AWS
+  Signature V4; checked against AWS's published example, not yet against a live bucket).
+- Each upload is re-encoded into a 1600px display size and a 480px thumbnail. Re-encoding
+  removes EXIF, including GPS location; the EXIF rotation is applied first so phone photos stay
+  upright. Photos become JPEG; images with transparency (cut-out garments) stay PNG.
+- Images are served from `/media/<id>/<display|thumb>`, which checks the visibility of the post
+  using them: public posts' images are cacheable by anyone, others only privately. Avatars are
+  always visible. `storage/` itself is closed to the web.
+- "Describe the photo" (alt text) on every upload, editable later; used as the image's `alt`.
+- Outfit and garment photos can be replaced from their edit forms; the old files are deleted.
+- Pages no longer inline images as base64, so they're much smaller.
+- The old `image` BLOB columns are left in place, unused, so a rollback still has its images.
 
 ## Later (not started)
 

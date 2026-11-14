@@ -15,7 +15,7 @@ require $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 use Dotenv\Dotenv;
 
 //bump this and add to $columns / $migrations below whenever the schema changes
-$schema_version = 4;
+$schema_version = 5;
 
 /**
  * @return bool true once the installer has run, installs from before 0.1.1 never set the "installed" setting
@@ -280,6 +280,10 @@ $columns = array(
         "tags" => "varchar(512) NULL"
     )
 );
+//0.8.0: photos live in the media table
+foreach (array("users", "garments", "outfits") as $media_table) {
+    $columns[$media_table]["media_id"] = "varchar(64) NULL";
+}
 //0.7.0: who can see each post, plus edit and soft delete
 foreach (array("garments", "outfits", "blogs") as $post_table) {
     $columns[$post_table]["visibility"] = "varchar(16) NOT NULL DEFAULT 'members'";
@@ -324,6 +328,10 @@ $migrations = array(
         "ALTER TABLE `wears` MODIFY `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP",
         //early blogs tables capped content at 4096 characters
         "ALTER TABLE `blogs` MODIFY `title` varchar(256) NULL, MODIFY `excerpt` varchar(1024) NULL, MODIFY `content` text NULL"
+    ),
+    5 => array(
+        //images move out of BLOB columns, see media_migrate_blobs()
+        "media_migrate_blobs"
     )
 );
 
@@ -867,6 +875,85 @@ function wears_create_table()
     return wears_check_table();
 }
 
+function media_check_table()
+{
+    $sql = "SHOW TABLES LIKE 'media';";
+
+    $db = new Mysql();
+    $table = $db->Fetch($sql, null);
+
+    $table = (array)$table[0];
+
+    if ($table != '00000') {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (media)'] ?? null) == "media") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+function media_create_table()
+{
+    $sql = "CREATE TABLE media(
+        media_num int(11) AUTO_INCREMENT,
+        media_id varchar(64) NOT NULL,
+        user_id int(11) NOT NULL,
+        mime varchar(32) NOT NULL,
+        extension varchar(8) NOT NULL,
+        width int(11) NULL,
+        height int(11) NULL,
+        bytes int(11) NULL,
+        alt_text varchar(1500) NULL,
+        remote_url varchar(2048) NULL,
+        timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        deleted_at timestamp NULL DEFAULT NULL,
+        PRIMARY KEY(media_num),
+        UNIQUE KEY media_id (media_id)
+    );";
+
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+
+    return media_check_table();
+}
+
+/**
+ * schema 5: move every image out of its BLOB column into the media store. The BLOB columns are left
+ * in place (unused) until a later release drops them, so a rollback to 0.7.x still has its images.
+ */
+function media_migrate_blobs()
+{
+    $tables = array(
+        "users" => array("key" => "user_id", "owner" => "user_id"),
+        "garments" => array("key" => "garment_num", "owner" => "user_id"),
+        "outfits" => array("key" => "outfit_num", "owner" => "user")
+    );
+    foreach ($tables as $table => $columns) {
+        $db = new Mysql();
+        $rows = $db->Fetch("SELECT `" . $columns['key'] . "` AS id FROM `" . $table . "` WHERE `image` IS NOT NULL AND `media_id` IS NULL", null);
+        if ($rows[0] == '00000') {
+            continue;
+        }
+        $moved = 0;
+        foreach ($rows as $row) {
+            //one row at a time, images can be several MB each
+            $item = $db->Fetch("SELECT `" . $columns['owner'] . "` AS owner, `image` FROM `" . $table . "` WHERE `" . $columns['key'] . "` = :a", array(":a" => $row->id));
+            try {
+                $media_id = Media::store($item[0]->image, $item[0]->owner);
+            } catch (Exception $e) {
+                echo "<br>" . $table . " " . $row->id . ": image skipped (" . escape($e->getMessage()) . ")";
+                continue;
+            }
+            $db->Fetch("UPDATE `" . $table . "` SET `media_id` = :b WHERE `" . $columns['key'] . "` = :a", array(":a" => $row->id, ":b" => $media_id));
+            $moved++;
+        }
+        echo "<br>moved " . $moved . " " . $table . " images to the media store";
+    }
+}
+
 function column_exists($table, $column)
 {
     $params = array(':a' => $_ENV['DB_SCHEMA'], ':b' => $table, ':c' => $column);
@@ -901,7 +988,12 @@ function schema_upgrade($columns, $migrations, $schema_version)
     foreach ($migrations as $version => $statements) {
         if ($version > $current) {
             foreach ($statements as $statement) {
-                $db->Fetch($statement, null);
+                //a statement can be the name of a PHP migration function, for data moves SQL can't do
+                if (function_exists($statement)) {
+                    $statement();
+                } else {
+                    $db->Fetch($statement, null);
+                }
             }
             //saved after every step so a re-run after a failure never repeats one (schema 1 remaps permissions)
             setting_set("schema_version", $version, "int");
@@ -975,6 +1067,13 @@ if (!invites_check_table()) {
     invites_create_table();
 } else {
     echo "<br>invites table already complete";
+}
+
+//build media table
+if (!media_check_table()) {
+    media_create_table();
+} else {
+    echo "<br>media table already complete";
 }
 
 //build wears table

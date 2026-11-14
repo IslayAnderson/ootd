@@ -14,7 +14,9 @@ try {
         "tags"            =>  $_POST['tags'] ?? "",
         "brand"           =>  $_POST['brand'] ?? "",
         "category"        =>  $_POST['category'] ?? "",
-        "visibility"      =>  $_POST['visibility'] ?? ""
+        "visibility"      =>  $_POST['visibility'] ?? "",
+        "alt_text"        =>  $_POST['alt_text'] ?? null,
+        "media_id"        =>  Media::store_upload($_FILES['image'] ?? null, $_SESSION['user_id'], $_POST['alt_text'] ?? "", false)
     );
 
     $garment->update_garment($request);
