@@ -79,7 +79,9 @@ class Garment
                     <img src="<?= $garment['garment_image'] ?>" alt="<?= escape($garment['garment_name']) ?>">
                 </figure>
                 <div class="info">
-                    <span>Added: <time datetime="<?= escape($garment['timestamp']) ?>"><?= escape(substr((string)$garment['timestamp'], 0, 10)) ?></time></span>
+                    <span>Added: <time datetime="<?= escape($garment['timestamp']) ?>"><?= escape(substr((string)$garment['timestamp'], 0, 10)) ?></time></span>,
+                    <?php $last_worn = \Insights::last_worn($garment['garment_num']); ?>
+                    <span>Last worn: <?php if ($last_worn): ?><time datetime="<?= escape($last_worn) ?>"><?= escape($last_worn) ?></time><?php else: ?>never<?php endif; ?></span>
                     <?php if (!$is_profile): ?>
                         <span>by <a href="/user/<?= escape($garment['username']) ?>"><?= escape($garment['username']) ?></a></span>
                     <?php endif; ?>
@@ -94,6 +96,13 @@ class Garment
                         <span>#<?= escape($tag) ?></span>
                     <?php endforeach; ?>
                 </div>
+                <?php if ($garment['user'] == ($_SESSION['user_id'] ?? null)): ?>
+                    <form action="/API/wear/create.php" method="post" class="wear">
+                        <?php CSRF_input(); ?>
+                        <input type="hidden" name="garment_num" value="<?= escape($garment['garment_num']) ?>">
+                        <button type="submit">Wore this today</button>
+                    </form>
+                <?php endif; ?>
             </article>
         <?php
         endforeach;

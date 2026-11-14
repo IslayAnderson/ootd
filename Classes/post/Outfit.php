@@ -45,6 +45,7 @@ class Outfit
         $this->outfit_id = $row[0]->outfit_id;
         $this->timestamp = $row[0]->timestamp;
         $this->user = array(
+            "user_id" => $row[0]->user,
             "username" => $row[0]->username,
             "image" => image_bin_encode($row[0]->user_image, "/Assets/images/avi.jpg"),
         );
@@ -116,6 +117,13 @@ class Outfit
             </div>
             <div class="description">
                 <p><?= escape($this->description) ?></p>
+                <?php if ($this->user['user_id'] == ($_SESSION['user_id'] ?? null)): ?>
+                    <form action="/API/wear/create.php" method="post" class="wear">
+                        <?php CSRF_input(); ?>
+                        <input type="hidden" name="outfit_num" value="<?= escape($this->outfit_num) ?>">
+                        <button type="submit">Wore this today</button>
+                    </form>
+                <?php endif; ?>
             </div>
             <div class="album">
                 <figure>
