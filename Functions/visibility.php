@@ -3,10 +3,12 @@
  * Who can see a garment, outfit or blog. Stored in each table's `visibility` column.
  * public: anyone, including people who aren't signed in (and, later, other servers)
  * members: anyone signed in to this instance, which is how every post behaved before 0.7.0
+ * followers: the owner's accepted followers (0.9.0)
  * private: only the owner
  */
 const VISIBILITY_PUBLIC = "public";
 const VISIBILITY_MEMBERS = "members";
+const VISIBILITY_FOLLOWERS = "followers";
 const VISIBILITY_PRIVATE = "private";
 
 /**
@@ -17,6 +19,7 @@ function visibility_options(): array
     return array(
         VISIBILITY_PUBLIC => "Public",
         VISIBILITY_MEMBERS => "Members",
+        VISIBILITY_FOLLOWERS => "Followers",
         VISIBILITY_PRIVATE => "Only me"
     );
 }
@@ -44,7 +47,13 @@ function can_view($owner_id, $visibility): bool
     if ($visibility == VISIBILITY_PUBLIC) {
         return true;
     }
-    return $visibility == VISIBILITY_MEMBERS && !empty($viewer);
+    if (empty($viewer)) {
+        return false;
+    }
+    if ($visibility == VISIBILITY_FOLLOWERS) {
+        return Follow::state($viewer, $owner_id) === Follow::ACCEPTED;
+    }
+    return $visibility == VISIBILITY_MEMBERS;
 }
 
 /**
@@ -61,8 +70,13 @@ function visibility_where($table, $owner_column): string
     if ($viewer > 0) {
         $visible[] = "'" . VISIBILITY_MEMBERS . "'";
     }
-    return "(" . $table . ".`deleted_at` IS NULL AND (" . $table . ".`visibility` IN (" . implode(", ", $visible) . ")"
-        . ($viewer > 0 ? " OR " . $table . ".`" . $owner_column . "` = " . $viewer : "") . "))";
+    $or = "";
+    if ($viewer > 0) {
+        $or = " OR " . $table . ".`" . $owner_column . "` = " . $viewer
+            . " OR (" . $table . ".`visibility` = '" . VISIBILITY_FOLLOWERS . "' AND " . $table . ".`" . $owner_column . "` IN"
+            . " (SELECT `followed_id` FROM `follows` WHERE `follower_id` = " . $viewer . " AND `state` = 'accepted'))";
+    }
+    return "(" . $table . ".`deleted_at` IS NULL AND (" . $table . ".`visibility` IN (" . implode(", ", $visible) . ")" . $or . "))";
 }
 
 /**

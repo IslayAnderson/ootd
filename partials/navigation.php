@@ -10,6 +10,8 @@ $signed_in = !empty($_SESSION['user_id']);
             <li><a href="/outfits">Outfits</a></li>
             <li><a href="/insights">Insights</a></li>
             <li><a href="/account">Account</a></li>
+            <?php $unread = Notification::unread_count($_SESSION['user_id']); ?>
+            <li><a href="/notifications">Notifications<?php if ($unread > 0): ?> <span class="count"><?= $unread ?></span><?php endif; ?></a></li>
             <?php if (is_admin()): ?>
                 <li><a href="/admin">Admin</a></li>
             <?php endif; ?>

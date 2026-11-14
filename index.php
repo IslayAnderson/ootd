@@ -75,6 +75,9 @@ switch ($request[0]) {
     case '/outfits':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfits.php';
         break;
+    case '/notifications':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/notifications.php';
+        break;
     case '/insights':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/insights.php';
         break;
