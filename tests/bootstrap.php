@@ -10,3 +10,5 @@ foreach (array("visibility", "guest", "url", "environment", "escape", "settings"
 require_once $root . "/Classes/media/Storage.php";
 require_once $root . "/Classes/media/StorageS3.php";
 require_once $root . "/Classes/social/Follow.php";
+require_once $root . "/Classes/federation/HttpSignature.php";
+require_once $root . "/Classes/federation/SafeHttp.php";

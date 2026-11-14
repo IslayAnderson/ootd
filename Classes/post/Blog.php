@@ -177,6 +177,8 @@ class Blog
         $db = new Mysql();
         $db->Fetch($sql, $params);
 
+        \Federation::changed("blog", $blog_id, "create");
+
         return $blog_id;
     }
 
@@ -239,7 +241,9 @@ class Blog
                 WHERE `blog_num` = :a';
 
         $db = new Mysql();
+        $was = $db->Fetch("SELECT `visibility` FROM `blogs` WHERE `blog_num` = :a", array(":a" => $blog_num));
         $db->Fetch($sql, $params);
+        \Federation::changed("blog", $request['blog_id'], "update", $was[0]->visibility ?? null);
     }
 
     /**
@@ -257,7 +261,9 @@ class Blog
 
         $sql = 'UPDATE `blogs` SET `deleted_at` = NOW() WHERE `blog_num` = :a';
         $db = new Mysql();
+        $was = $db->Fetch("SELECT `visibility` FROM `blogs` WHERE `blog_num` = :a", array(":a" => $blog_num));
         $db->Fetch($sql, array(":a" => $blog_num));
+        \Federation::changed("blog", $blog_id, "delete", $was[0]->visibility ?? null);
     }
 
 }

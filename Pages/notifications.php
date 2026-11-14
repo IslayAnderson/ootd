@@ -15,6 +15,9 @@ $notifications = Notification::latest($_SESSION['user_id']);
                 <li class="<?= $notification->read_at === null ? "unread" : "" ?>">
                     <?php if (!empty($notification->actor)): ?>
                         <a href="/user/<?= escape($notification->actor) ?>"><?= escape($notification->actor) ?></a>
+                    <?php elseif (!empty($notification->object)): ?>
+                        <?php //someone on another server, by handle ?>
+                        <strong><?= escape($notification->object) ?></strong>
                     <?php else: ?>
                         Someone
                     <?php endif; ?>

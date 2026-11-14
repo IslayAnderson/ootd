@@ -63,6 +63,23 @@ title_update("account");
         </label>
         <button type="submit" class="secondary">Save</button>
     </form>
+    <?php $remote_requests = Follow::remote_requests($user->get_user_id()); ?>
+    <?php if (count($remote_requests) > 0): ?>
+        <h3>Requests from other servers</h3>
+        <ul class="requests">
+            <?php foreach ($remote_requests as $request): ?>
+                <li>
+                    <a href="<?= escape($request->url ?: $request->ap_id) ?>" rel="nofollow noopener" target="_blank">@<?= escape($request->username) ?>@<?= escape($request->host) ?></a>
+                    <form action="/API/follow/respond_remote.php" method="post">
+                        <?php CSRF_input(); ?>
+                        <input type="hidden" name="actor" value="<?= (int)$request->actor_num ?>">
+                        <button type="submit" name="answer" value="accept">Accept</button>
+                        <button type="submit" name="answer" value="decline" class="secondary">Decline</button>
+                    </form>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
     <?php $requests = Follow::requests($user->get_user_id()); ?>
     <?php if (count($requests) > 0): ?>
         <h3>Requests</h3>

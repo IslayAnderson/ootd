@@ -32,6 +32,7 @@ server (add `--app-url=https://your.site` the first time on installs from before
 'APP_URL' the site's address, e.g. `https://ootd.example`, set by the installer; public links are built from it, so don't change it once the site is shared
 'MAIL_HOST' 'MAIL_PORT' 'MAIL_ENCRYPTION' 'MAIL_USER' 'MAIL_PASS' 'MAIL_FROM' 'MAIL_FROM_NAME' SMTP for password resets and invites; without them email goes to `tmp/mail.log`
 'CSS_BUILT' `1` when the CSS was compiled at build time (Docker)
+'AP_ALLOW_HTTP' 'AP_ALLOW_PRIVATE' local federation testing only: allow http:// and private addresses for outgoing requests. Never on a public server
 no defaults are assumed
 
 ## Background jobs

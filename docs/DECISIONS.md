@@ -50,6 +50,12 @@ needs an answer before the work that depends on it).
 | D26 | 0.10.0 | `/health` is public but only says ok or fail per check; details are on the command line. | Monitors need no login; versions and paths aren't disclosed. | assumed |
 | D27 | 0.10.0 | The old image BLOB columns are dropped in schema 7, but only from a table where every image was moved. | Planned in D11. A rollback to 0.7.x would now need a backup. | assumed |
 | D28 | 0.10.0 | Docker: one Apache + PHP image for web and worker, MariaDB 11.4, CSS compiled at build. | Simplest image that honours the same `.htaccess` as PHP hosts; one image keeps self-host and cloud identical (R4). | assumed |
+| D29 | 0.11.0 | An account's ActivityPub id is its profile address, `https://host/user/<name>`. `/@name` keeps redirecting there (D5). | One address for people and servers; content negotiation picks HTML or JSON. Usernames can't change without breaking follows, which is already true. | assumed |
+| D30 | 0.11.0 | Federation is on by default, with a switch in `/admin`. Turning it off makes every federation address answer 404. | Public posts are already public on the web; federation only sends them to people who chose to follow. | assumed |
+| D31 | 0.11.0 | Followers-only posts are delivered to followers' servers but never served to anyone who asks for them; their photo links carry a key so those servers can fetch them. | Without the key, Mastodon couldn't show the photo; with it, anyone the link is passed to can see that one photo, the same as on Mastodon itself. | assumed |
+| D32 | 0.11.0 | Profiles federate with the username as the display name, no bio, and `discoverable: false`. | Real names stay inside the instance (D3); appearing in other servers' directories should be the user's choice (a later setting). | assumed |
+| D33 | 0.11.0 | A delivery the other server refuses (4xx other than 429) isn't retried; 5xx, 429 and timeouts are, with the job back-off. | Refusals don't change on retry; outages do. | assumed |
+| D34 | 0.11.0 | Signed requests are accepted up to 12 hours old and 1 hour in the future. | Matches Mastodon, whose retries keep the original signature. | assumed |
 
 ## Questions
 
@@ -64,3 +70,4 @@ needs an answer before the work that depends on it).
 | Q7 | May Claude add a cron job on staging for `bin/cron.php` (every minute, as `ide`)? | 0.9.0's background jobs only run when something runs them. Not added, since it's a standing change to your server: a Plesk scheduled task or `crontab -u ide` line `* * * * * /opt/plesk/php/8.3/bin/php /var/www/vhosts/islayanderson.co.uk/ootd.Islayanderson.co.uk/bin/cron.php`. Until then nothing is purged, which is harmless. |
 | Q8 | Should OOTD serve its own fonts and charting library instead of Google Fonts and cdnjs? | AUDIT F15. Self-hosting means committing the font files (Newsreader and Inter Tight are under the SIL Open Font License) and Chartist. It removes the last third-party requests, which matters more once strangers can sign up. |
 | Q9 | Which SMTP account should staging use? | Email works from 0.10.0 but staging has no `MAIL_*` settings, so reset and invite emails go to `tmp/mail.log` there. Brevo's SMTP relay would reuse the account the old code used. |
+| Q10 | Can you follow a staging account from a real Mastodon account? | Federation is tested against a simulated server, not a real one. Following `@islay@ootd.islayanderson.co.uk` from Mastodon, then posting a public outfit on staging, would confirm it end to end. Note it makes staging's public posts visible on that Mastodon server. |

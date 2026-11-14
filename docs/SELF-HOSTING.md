@@ -112,6 +112,19 @@ Release notes are in [ROADMAP.md](ROADMAP.md).
 - `php bin/ootd health` prints the same checks with details.
 - `/admin` → Jobs lists failed jobs and can retry them.
 
+## Federation
+
+From 0.11.0 every account has a Fediverse handle, `@username@your.host`, shown on its profile.
+People on Mastodon and other ActivityPub servers can search for it, follow it and see its public
+and followers-only posts. Members and Only me posts never leave your server.
+
+- It needs the site on HTTPS at its final address (`APP_URL`): other servers only talk https, and
+  the address is part of every account's identity.
+- Delivery happens in background jobs, so the worker or cron job must be running.
+- `/admin` → Settings → **Federation** turns it off.
+- `/.well-known/` must reach OOTD. Some hosts keep that folder for certificates; only
+  `/.well-known/acme-challenge/` is theirs.
+
 ## Your users' data
 
 Every account can download its data from `/account` → **Your data**: a zip of JSON files and

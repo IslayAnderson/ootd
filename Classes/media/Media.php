@@ -189,6 +189,24 @@ class Media
     }
 
     /**
+     * Can other servers be given this image? Avatars, and photos of public or followers-only posts
+     * (followers-only posts are delivered to followers' servers, which fetch the photo themselves).
+     *
+     * @param object $media row from get()
+     * @return bool
+     */
+    public static function federated($media): bool
+    {
+        $db = new Mysql();
+        $row = $db->Fetch("SELECT `user_id` FROM `users` WHERE `media_id` = :a", array(":a" => $media->media_id));
+        if ($row[0] != '00000') {
+            return true;
+        }
+        $row = $db->Fetch("SELECT `visibility` FROM `outfits` WHERE `media_id` = :a AND `deleted_at` IS NULL", array(":a" => $media->media_id));
+        return $row[0] != '00000' && in_array($row[0]->visibility, array(VISIBILITY_PUBLIC, VISIBILITY_FOLLOWERS), true);
+    }
+
+    /**
      * @param string $media_id
      * @param int $user_id must own the media
      * @param string $alt_text

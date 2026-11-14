@@ -1,6 +1,16 @@
 <?php
 ini_set('output_handler', null);
 
+//ActivityPub, WebFinger and NodeInfo skip the session and page entirely: always for the federation-only
+//addresses, and for profiles, outfits and blog posts when the client asks for ActivityStreams JSON
+$early_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$wants_activity = (bool)preg_match('#application/(activity\+json|ld\+json)#', $_SERVER['HTTP_ACCEPT'] ?? "");
+if (preg_match('#^/(\.well-known/(webfinger|host-meta|nodeinfo)|nodeinfo/2\.1|actor(/inbox|/outbox)?|inbox|user/[^/]+/(inbox|outbox|followers|following))$#', $early_path)
+    || ($wants_activity && preg_match('#^/(user/[^/]+(/blog/[^/]+)?|outfit/[^/]+)$#', $early_path))) {
+    require $_SERVER['DOCUMENT_ROOT'] . '/Pages/activitypub.php';
+    exit();
+}
+
 require $_SERVER['DOCUMENT_ROOT'] . "/init.php";
 
 ob_start("meta_replace");

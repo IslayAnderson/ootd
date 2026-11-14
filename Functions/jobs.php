@@ -47,3 +47,19 @@ function job_mail($payload)
 {
     Mailer::send($payload['to'] ?? "", $payload['subject'] ?? "", $payload['body'] ?? "");
 }
+
+/**
+ * ActivityPub: work out and queue what a post change sends to followers (Federation::changed)
+ */
+function job_ap_publish($payload)
+{
+    Federation::publish($payload);
+}
+
+/**
+ * ActivityPub: POST one signed activity to one inbox
+ */
+function job_ap_deliver($payload)
+{
+    Federation::deliver($payload);
+}
