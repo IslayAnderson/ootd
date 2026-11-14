@@ -236,12 +236,12 @@ class Outfit
             <div class="album">
                 <figure>
                     <img loading="lazy" src="<?= $this->image ?>" class="primary"
-                         alt="<?= escape($this->image_alt ?: ($this->description ?: "Outfit by " . $this->user['username'])) ?>">
+                         alt="<?= escape($this->image_alt ?: (plain_text($this->description) ?: "Outfit by " . $this->user['username'])) ?>">
                 </figure>
             </div>
             <div class="description">
                 <?php if (!empty($this->description)): ?>
-                    <p><?= escape($this->description) ?></p>
+                    <p><?= text_html($this->description) ?></p>
                 <?php endif; ?>
                 <?php if ($this->user['user_id'] == ($_SESSION['user_id'] ?? null)): ?>
                     <form action="/API/wear/create.php" method="post" class="wear">

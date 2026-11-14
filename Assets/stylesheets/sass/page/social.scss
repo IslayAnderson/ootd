@@ -167,10 +167,12 @@ section.header .address {
   white-space: nowrap;
 }
 
+//search on the feed and /search: an underlined field like the other forms, the button beside it
 form.search {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: flex-end;
+  gap: 0.5rem 1rem;
   margin: 1rem 0;
 
   label {
@@ -180,6 +182,15 @@ form.search {
   input[type="search"] {
     flex: 1 1 12rem;
     min-width: 0;
+    margin-bottom: 0;
+
+    &::-webkit-search-decoration {
+      -webkit-appearance: none;
+    }
+  }
+
+  button {
+    flex: 0 0 auto;
   }
 }
 

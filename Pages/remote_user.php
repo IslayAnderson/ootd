@@ -32,7 +32,7 @@ title_update(RemoteActor::display($actor));
 <section class="header">
     <p class="kicker">From <?= escape(RemoteActor::blog_name((string)$actor->host)) ?></p>
     <div class="avatar">
-        <img src="/Assets/images/avi.jpg" alt="">
+        <img src="<?= asset_url("/Assets/images/avi.jpg") ?>" alt="">
     </div>
     <h1><?= escape($actor->name ?: $actor->username) ?></h1>
     <p class="handle" title="Their address: <?= escape(RemoteActor::address($actor)) ?>"><?= escape(RemoteActor::display($actor)) ?></p>
