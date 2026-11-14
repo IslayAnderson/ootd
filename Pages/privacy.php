@@ -4,7 +4,7 @@ title_update("privacy");
 <section class="header">
     <p class="kicker">The small print</p>
     <h1>Privacy</h1>
-    <p class="byline">What OOTD keeps about you, and why.</p>
+    <p class="byline">What <?= escape(instance_name()) ?> keeps about you, and why.</p>
 </section>
 <section class="privacy">
     <h2>What we store</h2>
@@ -16,7 +16,7 @@ title_update("privacy");
     </ul>
 
     <h2>Cookies</h2>
-    <p>OOTD sets one cookie, a session cookie that keeps you logged in. There are no tracking or advertising cookies.</p>
+    <p>This blog sets one cookie, a session cookie that keeps you logged in. There are no tracking or advertising cookies.</p>
 
     <h2>Who can see it</h2>
     <p>Each post has its own setting: <strong>Public</strong> (anyone, including people who aren&rsquo;t signed in),
@@ -26,7 +26,7 @@ title_update("privacy");
 
     <?php if (Federation::enabled()): ?>
     <h2>Other blogs</h2>
-    <p>People on other blogs, including other OOTD blogs and Mastodon and other Fediverse servers, can follow you by
+    <p>People on other blogs, including other TREAT blogs and Mastodon and other Fediverse servers, can follow you by
         your address (your username @ this blog&rsquo;s domain). Your Public and Followers posts, likes and comments on
         them, username and profile photo are sent to the blogs of people who follow you, and are then held by those blogs
         under their own policies. Members and Only me posts never leave <?= escape(instance_name()) ?>.

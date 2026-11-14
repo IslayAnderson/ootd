@@ -85,6 +85,7 @@ needs an answer before the work that depends on it).
 | D60 | 0.14.1 | The owner isn't emailed until the blog answers over https with a valid certificate, waiting up to 6 hours. Certificates come from Plesk (SSL It! "Keep websites secured"), not from OOTD. | The reset link and federation both need https. The XML API can't order Let's Encrypt certificates, and Plesk already renews them. | assumed |
 | D61 | 0.14.4 | Moving an install changes its federated identity; the old address only redirects. No ActivityPub `Move` is sent yet (planned with `also_known_as`/`moved_to` in 1.0.0). | Staging's followers elsewhere are test accounts. Other servers don't follow redirects for signed requests, so they'd need a `Move` to carry followers over. | assumed |
 | D62 | 0.14.5 | Another blog's address on a different domain is believed only when that domain's WebFinger points back at the same actor; otherwise its server's own host is shown. | Anyone can write any subject into their WebFinger; checking both ways is what Mastodon does, and stops a blog passing its people off as someone else's domain. | assumed |
+| D63 | 0.14.6 | The rebrand to TREAT blog covers what people see; code, repository, CLI, database names, log prefixes and the federation vocabulary (`ootd:` terms, nodeinfo software name `ootd`) keep "ootd". | Other blogs recognise each other and read garments by those names; renaming them would break blogs already running. Nobody using the site sees them. | assumed |
 
 ## Questions
 

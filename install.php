@@ -7,7 +7,7 @@ if (($_GET['install'] ?? "") != "complete" && file_exists(__DIR__ . '/.env') && 
     ?>
     <div class="login">
         <form action="/install_actions.php" method="post">
-            <h2>OOTD is installed</h2>
+            <h2>TREAT blog is installed</h2>
             <p>Log in as an admin first, then run the upgrade to bring the database up to date.</p>
             <button type="submit">Upgrade database</button>
         </form>

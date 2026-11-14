@@ -1,6 +1,6 @@
 <?php
 /**
- * The site's logo (top bar, login page). Settings → Logo picks the OOTD wordmark, an uploaded
+ * The site's logo (top bar, login page). Settings → Logo picks the TREAT wordmark, an uploaded
  * image (logo_media) or the blog name set in type. An uploaded image that is missing falls back
  * to the wordmark.
  *
@@ -19,5 +19,8 @@ function site_logo($class = ""): string
     if ($style == "image" && $media_id !== "" && Media::get($media_id)) {
         return '<img class="' . escape($class) . '" alt="' . escape($name) . '" src="' . escape(media_url($media_id, "display")) . '">';
     }
-    return '<img class="' . escape($class) . '" alt="' . escape($name) . '" src="' . asset_url("/Assets/images/logo.svg") . '">';
+    //the wordmark is set in type (Inter Tight), so it stays sharp at any size
+    return '<span class="' . escape($class) . ' site-logo--wordmark" role="img" aria-label="' . escape($name) . '">' . WORDMARK . '</span>';
 }
+
+const WORDMARK = "TREAT";
