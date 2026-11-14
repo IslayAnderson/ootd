@@ -8,6 +8,8 @@ if (empty($user_id)) {
     return;
 }
 $user = new User($user_id);
+//their profile and articles wear their own theme, when they have one
+theme_for_user($user_id);
 
 // /user/<username>/blog/<blog_id>
 if (($path[3] ?? "") == "blog") {

@@ -78,6 +78,7 @@ To upgrade: `git pull`, then `docker compose --env-file .env.docker up -d --buil
 | `ACCOUNT_DOMAIN` | Addresses use this domain instead of the site's (`name@example.com` for a site at `blog.example.com`). See [Addresses on another domain](#addresses-on-another-domain). Set it before the site is shared. |
 | `FRAME_ANCESTORS` | Sites allowed to show this one in a frame, besides itself, e.g. `"https://example.com https://www.example.com"`. Default: none (only itself). |
 | `OLD_HOSTS` | Addresses the site used to have, comma-separated and quoted, e.g. `"ootd.old.example, old.example"`. They redirect (301) to the same page at `APP_URL`. |
+| `GOOGLE_FONTS_URL` | Tests only: where theme font names are checked, instead of `https://fonts.googleapis.com/css2`. |
 | `CSS_BUILT` | Set to `1` when the CSS is compiled at build time (the Docker image does this). |
 
 ## Photos on Cloudflare R2
@@ -247,6 +248,22 @@ Cloudflare (SSL mode Full or Flexible).
 
 Admins see every blog made from here in `/admin` → **Cloud blogs**, where a failed build can be
 retried and a blog suspended, resumed or deleted.
+
+## Themes
+
+Admins set the blog's look in **Admin → Theme**: colours, a Google Font for headlines and text,
+another for labels, and extra CSS. Members can do the same for their own pages under
+**Account → Your theme**. The menus and footer always keep the blog's look.
+
+Extra CSS is checked, not used as typed: only some parts of the page and some properties can be
+styled, and anything else is left out (the form says what). Background images
+(`url("https://…")`) are downloaded once when the theme is saved, checked to be nothing but a
+PNG, JPEG, GIF or WebP up to 2 MB, and served from this blog, so visitors never load them from
+elsewhere. That needs the server to make outgoing https requests, like federation does.
+
+Choosing a Google Font means visitors' browsers fetch it from Google; `/privacy` says so
+automatically while any theme uses one. Leave the font boxes empty to keep everything served
+from the blog.
 
 ## Your users' data
 

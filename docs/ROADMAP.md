@@ -524,50 +524,42 @@ Schema 15.
 - Includes the owner's login wording ("The TREATwork").
 - Tests: t131 updated (3 new checks).
 
-### 0.15.0 — Themes (planned)
+### 0.15.0 — Themes ✅
 
-Goal: blog admins and members can make their pages look like theirs without being able to break
-or attack the site. Shape agreed with the owner (D66–D69):
+Blog admins and members can make their pages look like theirs without being able to break or
+attack the site (D66–D70).
 
-- The colours in `variables.scss` become CSS custom properties (`--ink`, `--paper`, `--soft-ink`,
-  `--rule`, `--accent`, `--serif`, `--sans`). The compiled stylesheet stays the same for everyone;
-  a theme only sets those properties in one small server-built `:root{…}` block.
-- **Colour pickers** for background, text, muted text, rules and accent: stored only if they
-  match `#rrggbb`, with a readable-contrast check before saving.
-- **Limited CSS:** an optional box that is parsed, not pasted. Only listed selectors (e.g.
-  `.site-logo`, `h1`, `h2`, `.post`, `.kicker`) and listed properties (colours, borders,
-  border-radius, font-weight, letter-spacing, text-transform, text-align, margins and padding)
-  are kept, plus `background-image` with `url()` (below); values must fit a strict grammar.
-  `@import`, `@font-face`, `expression`,
-  attribute selectors, `content` and anything else is dropped, and the cleaned result is what's
-  saved and shown back. Sent with a CSP that blocks other style and image sources.
-- **Images in `url()`** (D70): checked when the theme is saved, then copied into the blog's
-  media store. The saved CSS points at that copy, so visitors' browsers never contact the
-  original site, and it can't be swapped for something else after the check. The fetch:
-  - `https://` only. The host must resolve to a public address (no private, loopback,
-    link-local or this server's own IPs). The connection is pinned to the checked IP, and
-    redirects are each checked the same way (3 at most).
-  - Suspicious headers fail it: a `Content-Type` other than `image/png`, `image/jpeg`,
-    `image/gif` or `image/webp` (no SVG: it can carry script), `Content-Disposition: attachment`,
-    `Set-Cookie`, `Refresh`, an unexpected `Content-Encoding`, or a `Content-Length` over 2 MB.
-    The download stops at 2 MB whatever the headers say.
-  - The body must be only an image: its magic bytes must match the declared type, it must
-    decode as an image, and it is re-encoded. That strips metadata and anything appended after
-    the image (polyglot files) before storing.
-  - Anything that fails is dropped from the CSS, and the admin is told which link and why.
-- **Fonts:** any Google Font for headings and body. The name must match
-  `^[A-Za-z0-9 ]{1,40}$` and is checked against Google's list when saved; the stylesheet link is
-  built by the server and CSP allows only `fonts.googleapis.com` / `fonts.gstatic.com`. The
-  privacy page says visitors' browsers contact Google when a Google Font is set (AUDIT F15).
+- The colours and fonts in `variables.scss` are CSS custom properties (`--paper`, `--ink`,
+  `--soft-ink`, `--line`, `--accent`, `--serif`, `--sans`; the greys follow the theme with
+  `color-mix`). The compiled stylesheet is the same for everyone; a theme only adds one small
+  `<style>` block that the server writes into the head (`Functions/theme.php`). Buttons use
+  `--accent`. The TREAT wordmark keeps Inter Tight whatever the theme.
+- **Admin → Theme** sets the blog's; **Account → Your theme** sets a person's, used on their
+  profile, articles, outfits and garments. The top bar, menu and footer keep the blog's look, and
+  login, admin and every other page never show a person's theme.
+- **Colours:** five pickers. Only `#rrggbb` is stored, and text, muted text and buttons must have
+  4.5:1 contrast with the background, or they stay as they were.
+- **Fonts:** any Google Font by name (letters, digits and spaces, at most 40), checked against
+  Google when saved. The stylesheet link is built by the server. `/privacy` says Google Fonts are
+  used, only while any theme uses one.
+- **Extra CSS** (`ThemeCss`): read rule by rule and rebuilt from allowlisted selectors (people get
+  fewer: no `body`, bars, footer or logo), properties and value grammar. @-rules, comments,
+  backslash escapes, attribute selectors, `content`, `expression` and anything unknown are
+  dropped. A person's rules are scoped to their page's content. The admin or person is told what
+  was left out and why.
+- **Images in `url()`** (`ThemeImage`, background-image only, 5 per save): fetched once when saved
+  over `SafeHttp` (https, public IPs only and not this server, pinned, redirects re-checked).
+  Rejected on suspicious headers: a type other than PNG, JPEG, GIF or WebP (no SVG),
+  `Content-Disposition: attachment`, `Set-Cookie`, `Refresh`, any `Content-Encoding`, or over
+  2 MB. The body must start with that format's signature, sniff as the same type, end where the
+  format ends (no polyglots) and decode. Then it's re-encoded into the media store, and the CSS
+  points at the copy, which is public. Images a theme stops using are deleted.
+- `Content-Security-Policy` adds `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' data: https://fonts.gstatic.com`.
 - **No dark mode** for now.
-- **Who:** the blog admin sets the blog's theme in `/admin`; each person can set their own for
-  their profile, outfit, garment and article pages (falling back to the blog's). The site's
-  navigation and admin pages keep the blog's theme, so nobody can make a page that impersonates
-  the login or admin screens.
-- Cloud blogs get the same settings; the hub can't change a blog's theme.
-- Tests: hostile CSS and font names (escaping `</style>`, `url(` to private IPs, redirects to
-  them, SVG, HTML served as `image/png`, oversized and image+zip polyglot files, `@import`, unicode escapes,
-  comments) are all stripped.
+- Schema 16: new `themes` table.
+- Tests: `tests/Unit/ThemeTest.php` (14 tests: hostile CSS, scoping, headers, polyglots,
+  contrast, font names, own-IP) and t150 (51 checks against a fake image and font host).
 
 ## Later (not started)
 
@@ -582,3 +574,5 @@ Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.
 - Only recompile SCSS when the admin "Re-compile SASS" setting is on.
 - PHPUnit tests (already a dev dependency).
 - Self-host the Google Fonts (Newsreader, Inter Tight) if the site should make no third-party requests (AUDIT F15).
+- One CSRF token per session instead of per user, so signing in on a second device doesn't sign the first out on its next form (AUDIT F27).
+- Dark mode for themes (D68).

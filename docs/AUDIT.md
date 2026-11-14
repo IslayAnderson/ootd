@@ -117,6 +117,7 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | F24 | Low | The installer's older table checks read a missing array key on an empty database, so a fresh install printed PHP warnings (the result was still right). | 0.10.0 |
 | F25 | Low | `Classes/classes.php` ran `eval("use X;")` for every class. A `use` inside `eval` does nothing, and each one raised a warning, which filled the command-line output. | 0.10.0 |
 | F26 | Medium | `composer audit`: TinyMCE 7.6 had XSS advisories and PHPUnit 11.5.3 an unsafe-deserialisation one. Updated to TinyMCE 7.9.3 and PHPUnit 11.5.58. One TinyMCE advisory remains (media plugin, fixed in 8.9.3); OOTD doesn't load that plugin and sanitises rich text on the server, see DECISIONS D24. | 0.10.0 |
+| F27 | Low | The CSRF token is stored per user (`users.csrf`) and replaced whenever any of that user's sessions makes a new one. Someone signed in on two devices has the older one's next form refused, which also signs that device out. Found while testing 0.15.0. | — (on the Later list) |
 
 ### Status on `claude/development`
 

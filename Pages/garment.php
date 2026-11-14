@@ -10,6 +10,7 @@ if (count($garment->garments) == 0) {
 }
 
 $item = $garment->garments[0];
+theme_for_user($item['user']);
 title_update($item['garment_name']);
 ?>
 <section class="garment">

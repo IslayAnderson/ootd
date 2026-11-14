@@ -2,7 +2,7 @@
 // Unit tests load only the code they exercise; nothing here touches the database.
 $root = dirname(__DIR__);
 require $root . "/vendor/autoload.php";
-foreach (array("visibility", "guest", "url", "environment", "escape", "settings", "version") as $file) {
+foreach (array("visibility", "guest", "url", "environment", "escape", "settings", "version", "frames", "theme") as $file) {
     if (file_exists($root . "/Functions/" . $file . ".php")) {
         require_once $root . "/Functions/" . $file . ".php";
     }
@@ -17,3 +17,5 @@ require_once $root . "/Classes/federation/Inbox.php";
 require_once $root . "/Classes/federation/RemoteActor.php";
 require_once $root . "/Classes/federation/RemotePost.php";
 require_once $root . "/Classes/mail/Mailer.php";
+require_once $root . "/Classes/theme/ThemeCss.php";
+require_once $root . "/Classes/theme/ThemeImage.php";
