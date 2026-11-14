@@ -450,6 +450,15 @@ Schema 13. Off until the keys below are in `.env` (SELF-HOSTING.md, "Cloud blogs
 - Tests: 16 new checks (Plesk DNS, waiting, certificate arriving, giving up, retry, delete), and
   the 49 from 0.14.0 still pass.
 
+### 0.14.2 — Cloud blogs on the real Plesk ✅
+
+- The setup script is called over https at this server's own IP (certificate not checked: the blog
+  has no real one yet, and the request never leaves the server), so plans that redirect http to
+  https work.
+- SELF-HOSTING: the API key is limited to an IP, so `PLESK_API_URL` must use the server's public
+  IP, not 127.0.0.1 (calls to 127.0.0.1 come from 127.0.0.1 and the key is refused). "Keep websites
+  secured" is a plan item, added with the XML API's `service-plan add-plan-item`.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
