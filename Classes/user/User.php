@@ -323,6 +323,9 @@ class User
         //Compare sated input with stored hash
         if (!empty($pwd_hashed) && password_verify($pwd_salted, $pwd_hashed)) {
 
+            //new session id on login to prevent session fixation, stored so it can be reset from /admin
+            session_regenerate_id(true);
+
             //Update Session id in the database
             $params = array(':a' => session_id(), ':b' => $request['email']);
 
@@ -340,8 +343,6 @@ class User
             $this->set_email($request['email']);
             $this->set_password($pwd_hashed);
 
-            //new session id on login to prevent session fixation
-            session_regenerate_id(true);
             $_SESSION['user_id'] = $user_id;
             //the pre-login token was never stored against the user, init.php makes a new one
             unset($_SESSION['CSRF']);
@@ -380,6 +381,82 @@ class User
         session_destroy();
         header("location: /login");
         exit();
+    }
+
+    /**
+     * End another user's session without touching the current one
+     *
+     * @param $user_id
+     * @return void
+     */
+    public function reset_session($user_id)
+    {
+        $params = array(':a' => null, ':b' => $user_id);
+        $sql = "UPDATE `users` SET `session`= :a, `csrf`= :a WHERE `user_id` = :b;";
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+    }
+
+    /**
+     * @param $user_id
+     * @param int $permission see Functions/permission.php
+     * @return void
+     * @throws Exception
+     */
+    public function set_permission($user_id, $permission)
+    {
+        if (!in_array((int)$permission, array(PERMISSION_ADMIN, PERMISSION_MODERATOR, PERMISSION_USER), true)) {
+            throw new Exception('Unknown permission');
+        }
+
+        $params = array(':a' => (int)$permission, ':b' => $user_id);
+        $sql = "UPDATE `users` SET `permission`= :a WHERE `user_id` = :b;";
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+    }
+
+    /**
+     * @param $current
+     * @param $new
+     * @return void
+     * @throws Exception
+     */
+    public function change_password($current, $new)
+    {
+        $pwd_hashed = $this->get_password(array("id" => $this->user_id));
+        if (empty($pwd_hashed) || !password_verify(hash_hmac("sha256", (string)$current, $_ENV['PWD_SEED']), $pwd_hashed)) {
+            throw new Exception('Current password is wrong');
+        }
+        if (strlen((string)$new) < 8) {
+            throw new Exception('New password must be at least 8 characters');
+        }
+
+        $params = array(
+            ':a' => password_hash(hash_hmac("sha256", $new, $_ENV['PWD_SEED']), PASSWORD_ARGON2ID),
+            ':b' => $this->user_id
+        );
+        $sql = "UPDATE `users` SET `password`= :a WHERE `user_id` = :b;";
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+    }
+
+    /**
+     * @return array every user, for the admin user table
+     */
+    public static function all_users(): array
+    {
+        $sql = "SELECT users.user_id, users.username, users.email, users.first_name, users.last_name, users.permission,
+                       users.session IS NOT NULL AS has_session, permissions.permission AS permission_name
+                FROM `users` LEFT JOIN `permissions` ON users.permission = permissions.permission_id
+                ORDER BY users.user_id";
+
+        $db = new Mysql();
+        $row = $db->Fetch($sql, null);
+
+        return $row[0] != '00000' ? $row : array();
     }
 
     /**

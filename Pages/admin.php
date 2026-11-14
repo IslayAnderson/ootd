@@ -23,8 +23,8 @@ title_update("admin");
                 </span>
             </h2>
         </div>
-        <div class="accordion__section-content">
-            Nothing to moderate
+        <div class="accordion__section-content scroll">
+            <?php require $_SERVER['DOCUMENT_ROOT']."/partials/moderation.php"; ?>
         </div>
     </div>
 

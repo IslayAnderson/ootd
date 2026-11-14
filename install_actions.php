@@ -10,7 +10,7 @@ require $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 use Dotenv\Dotenv;
 
 //bump this and add to $columns / $migrations below whenever the schema changes
-$schema_version = 1;
+$schema_version = 2;
 
 /**
  * @return bool true once the installer has run, installs from before 0.1.1 never set the "installed" setting
@@ -218,6 +218,10 @@ $settings = array(
     "schema_version" => array(
         "type" => "int",
         "value" => $fresh_install ? $schema_version : 0
+    ),
+    "recompile_sass" => array(
+        "type" => "bool",
+        "value" => 1
     )
 );
 
@@ -249,6 +253,10 @@ $migrations = array(
         "ALTER TABLE `users` ALTER COLUMN `permission` SET DEFAULT 3",
         "ALTER TABLE `garments` MODIFY `image` mediumblob NULL",
         "ALTER TABLE `outfits` MODIFY `image` mediumblob NULL"
+    ),
+    2 => array(
+        //session ids are checked against this on every request since 0.4.0
+        "ALTER TABLE `users` MODIFY `session` varchar(128) NULL"
     )
 );
 
@@ -577,7 +585,7 @@ function users_create_table()
         first_name varchar(64),
         last_name varchar(64),
         permission int(11) DEFAULT 3,
-        session	varchar(32) NULL,
+        session	varchar(128) NULL,
         csrf varchar(256),
         image mediumblob NULL,
         PRIMARY KEY(user_id)
@@ -714,6 +722,44 @@ function blogs_create_table()
     return blogs_check_table();
 }
 
+function invites_check_table()
+{
+    $sql = "SHOW TABLES LIKE 'invites';";
+
+    $db = new Mysql();
+    $table = $db->Fetch($sql, null);
+
+    $table = (array)$table[0];
+
+    if ($table != '00000') {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (invites)'] ?? null) == "invites") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+function invites_create_table()
+{
+    $sql = "CREATE TABLE invites(
+        invite_num int(11) AUTO_INCREMENT,
+        email varchar(128) NOT NULL,
+        code varchar(128) NULL,
+        state varchar(16) NOT NULL DEFAULT 'requested',
+        used_by int(11) NULL,
+        timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(invite_num)
+    );";
+
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+
+    return invites_check_table();
+}
+
 function column_exists($table, $column)
 {
     $params = array(':a' => $_ENV['DB_SCHEMA'], ':b' => $table, ':c' => $column);
@@ -805,6 +851,13 @@ if (!blogs_check_table()) {
     blogs_create_table();
 } else {
     echo "<br>blogs table already complete";
+}
+
+//build invites table
+if (!invites_check_table()) {
+    invites_create_table();
+} else {
+    echo "<br>invites table already complete";
 }
 
 //build permissions table
