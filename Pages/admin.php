@@ -1,4 +1,6 @@
-<?php ?>
+<?php
+title_update("admin");
+?>
 <div class="accordion" >
     <div class="accordion__section">
         <div class="accordion__section-header">

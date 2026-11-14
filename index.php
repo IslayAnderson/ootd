@@ -1,8 +1,9 @@
 <?php
 ini_set('output_handler', null);
-ob_start();
 
-require "./init.php";
+require $_SERVER['DOCUMENT_ROOT'] . "/init.php";
+
+ob_start("meta_replace");
 
 
 //check if init has been run (set it global memory I guess) and run init
@@ -42,7 +43,12 @@ switch ($request[0]) {
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/wardrobe.php';
         break;
     case '/admin':
-        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/admin.php';
+        if (is_admin()) {
+            require $_SERVER['DOCUMENT_ROOT'] . '/Pages/admin.php';
+        } else {
+            http_response_code(403);
+            require $_SERVER['DOCUMENT_ROOT'] . '/Pages/403.php';
+        }
         break;
     case '/account':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/account.php';

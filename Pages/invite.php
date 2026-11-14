@@ -1,4 +1,6 @@
-<?php ?>
+<?php
+title_update("signup");
+?>
 <div class="signup">
     <form action="/API/user/create.php" method="post">
         <div class="description">

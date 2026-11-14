@@ -57,32 +57,32 @@ class Outfit
     public function render_outfit($is_profile = false): void
     {
         ?>
-        <article dataset-outfit-id="<?= $this->outfit_id ?>">
+        <article dataset-outfit-id="<?= escape($this->outfit_id) ?>">
             <div class="info">
-                <time datetime="<?= $this->timestamp ?>"><?= $this->timestamp ?></time>
+                <time datetime="<?= escape($this->timestamp) ?>"><?= escape($this->timestamp) ?></time>
                 <?php if (!$is_profile): ?>
                     <div class="profile">
-                        <a href="/user/<?= $this->user['username'] ?>">
-                            <span class="username"><?= $this->user['username'] ?></span>
+                        <a href="/user/<?= escape($this->user['username']) ?>">
+                            <span class="username"><?= escape($this->user['username']) ?></span>
                             <img loading="lazy" src="<?= $this->user['image'] ?>">
                         </a>
                     </div>
                 <?php endif; ?>
             </div>
             <div class="description">
-                <p><?= $this->description ?></p>
+                <p><?= escape($this->description) ?></p>
             </div>
             <div class="album">
                 <figure>
                     <img loading="lazy" src="<?= $this->image ?>" class="primary">
                     <?php foreach ($this->garments as $garment): ?>
-                        <a href="/garment/<?= $garment['garment_id'] ?>"
-                           title="<?= $garment['garment_name'] ?>"
-                           dataset-garment-id="<?= $garment['garment_id'] ?>"
+                        <a href="/garment/<?= escape($garment['garment_id']) ?>"
+                           title="<?= escape($garment['garment_name']) ?>"
+                           dataset-garment-id="<?= escape($garment['garment_id']) ?>"
                         >
                             <img loading="lazy"
                                  src="<?= $garment['image'] ?>"
-                                 alt="<?= $garment['garment_name'] ?>"
+                                 alt="<?= escape($garment['garment_name']) ?>"
                                  class=""
                             >
                         </a>

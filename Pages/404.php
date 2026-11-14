@@ -1,7 +1,8 @@
-<h1>404</h1>
-<?php 
-print_r($_SERVER);
-$_SESSION['404']=true;
+<?php
+title_update("not found");
 ?>
-<br>
-<?php print_r($_SESSION);
+<section class="header" style="border-top: unset;">
+    <h1>404</h1>
+    <p>There's nothing here.</p>
+    <a href="/feed">Back to the feed</a>
+</section>

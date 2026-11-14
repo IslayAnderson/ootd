@@ -1,12 +1,18 @@
 <?php
-$username = explode("/", $_SERVER['REQUEST_URI'])[2];
+$username = explode("/", parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))[2] ?? "";
 $user_id = unserialize($_SESSION['user'])->get_user_id_from_username($username);
+if (empty($user_id)) {
+    http_response_code(404);
+    require $_SERVER['DOCUMENT_ROOT'] . '/Pages/404.php';
+    return;
+}
 $user = new User($user_id);
+title_update($user->username);
 ?>
 <section class="header" style="border-top: unset;">
     <h1>Account</h1>
-    <h2><?= $user->get_username($user->user_id) ?></h2>
-    <h3><?= $user->first_name . " " . $user->last_name ?></h3>
+    <h2><?= escape($user->get_username($user->user_id)) ?></h2>
+    <h3><?= escape($user->first_name . " " . $user->last_name) ?></h3>
 </section>
 <section class="blog">
     <h2>Blogs</h2>
@@ -27,13 +33,19 @@ $user = new User($user_id);
     $params = array(":a" => $user->get_user_id()); //todo: sanitize this
     $sql = "SELECT `outfit_num` FROM `outfits` 
                     join `users` on outfits.user = users.user_id
-                    where users.user_id = :a order by timestamp limit 30";
+                    where users.user_id = :a order by outfits.timestamp DESC limit 30";
     $db = new Mysql();
     $row = $db->Fetch($sql, $params);
 
-    foreach ($row as $outfit) {
-        $post = new Post\Outfit($outfit->outfit_num);
-        $post->render_outfit(true);
+    if ($row[0] != '00000') {
+        foreach ($row as $outfit) {
+            $post = new Post\Outfit($outfit->outfit_num);
+            $post->render_outfit(true);
+        }
+    } else {
+        ?>
+        <p>Nothing to be found</p>
+        <?php
     }
     ?>
 </section>
@@ -46,12 +58,13 @@ $user = new User($user_id);
         ?>
     </div>
 </section>
+<?php //just for demo
+$sql = "SELECT * FROM `garments` where garment_num = 8";
+$db = new Mysql();
+$jacket = $db->Fetch($sql, null);
+if ($jacket[0] != '00000'):
+?>
 <section>
-    <?php //just for demo
-    $sql = "SELECT * FROM `garments` where garment_num = 8";
-    $db = new Mysql();
-    $jacket = $db->Fetch($sql, null);
-    ?>
     <div style="float:right;position: relative;margin-right: 3rem;margin-top: 2rem;transform: rotate(-15deg);z-index: 4;width: 18%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="
     position: absolute;
@@ -62,13 +75,13 @@ $user = new User($user_id);
         </svg>
         <img loading="lazy"
              src="<?= image_bin_encode($jacket[0]->image) ?>"
-             alt="<?= $jacket[0]->description ?>"
+             alt="<?= escape($jacket[0]->description) ?>"
              class=""
         >
     </div>
     <h2>Stats</h2>
     <h3>Daily insights:</h3>
-    <p>You haven't worn, "<?= $jacket[0]->garment_name ?>" in 6 months.</p>
+    <p>You haven't worn, "<?= escape($jacket[0]->garment_name) ?>" in 6 months.</p>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.4/chartist.min.js"
             integrity="sha512-9rxMbTkN9JcgG5euudGbdIbhFZ7KGyAuVomdQDI9qXfPply9BJh0iqA7E/moLCatH2JD4xBGHwV6ezBkCpnjRQ=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -103,3 +116,4 @@ $user = new User($user_id);
     </script>
 
 </section>
+<?php endif; ?>
