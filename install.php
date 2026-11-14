@@ -3,7 +3,18 @@ require $_SERVER['DOCUMENT_ROOT'] . '/partials/head.php';
 ?>
 
 <?php
-if (!$_GET['install'] == "complete"):
+if (($_GET['install'] ?? "") != "complete" && file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0):
+    ?>
+    <div class="login">
+        <form action="/install_actions.php" method="post">
+            <h2>OOTD is installed</h2>
+            <p>Log in as an admin first, then run the upgrade to bring the database up to date.</p>
+            <button type="submit">Upgrade database</button>
+        </form>
+    </div>
+
+<?php
+elseif (($_GET['install'] ?? "") != "complete"):
     ?>
     <div class="login">
         <form action="/install_actions.php" method="post">
@@ -14,7 +25,7 @@ if (!$_GET['install'] == "complete"):
             <label for="user">Database User</label>
             <input type="text" placeholder="Enter Database User" name="user" required>
             <label for="password">Password</label>
-            <input type="text" placeholder="Enter Password" name="password" required>
+            <input type="password" placeholder="Enter Password" name="password" required>
 
             <button type="submit">Install</button>
         </form>
