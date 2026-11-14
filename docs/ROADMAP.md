@@ -58,6 +58,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.8.0 | Done, merged to `claude/development` |
 | 0.9.0 | Done, merged to `claude/development` |
 | 0.10.0 | Done, merged to `claude/development` |
+| 0.11.0 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -245,6 +246,34 @@ Fourth release of the [federation roadmap](FEDERATION.md). Schema 7. Self-hostin
   installer warnings on empty databases fixed (F24).
 - The old image BLOB columns are dropped (D27).
 - ActivityPub will be hand-rolled (FEDERATION decision 5).
+
+### 0.11.0 — Followable from the Fediverse ✅
+
+Fifth release of the [federation roadmap](FEDERATION.md). Schema 8. Someone on Mastodon (or any
+ActivityPub server) can now find an OOTD account by its handle, follow it, and see its posts.
+
+- **Handles**: every profile shows `@username@host`. `/.well-known/webfinger`, `host-meta` and
+  NodeInfo 2.1 make accounts and the server discoverable.
+- **Actors**: `/user/<name>` answers ActivityStreams JSON (a `Person`) when asked for it, with a
+  public key; an instance actor (`/actor`) signs the server's own requests. Keys are RSA-2048,
+  made on first use; private keys are stored encrypted with `PWD_SEED`.
+- **Posts**: public and followers-only outfits federate as `Note`s with the photo, alt text and
+  hashtags; blog posts as `Article`s. Members and Only me posts never leave the server. The
+  outbox lists public posts; follower and following collections give counts only.
+- **Being followed**: the inbox accepts signed `Follow` and `Undo`, answers `Accept`, and
+  honours "Approve new followers" (requests from other servers appear under Account → Followers).
+  Notifications show the remote handle.
+- **Delivery**: creating, editing or deleting a post queues `Create`, `Update` or `Delete` to every
+  follower's server (shared inboxes once each), signed with HTTP Signatures. Changing a post to
+  Members or Only me sends `Delete`; back to Public or Followers sends `Create`.
+- **Safety**: incoming requests must be signed by the actor they claim to be, with a matching
+  digest and a recent date. Outgoing requests go only to public https addresses, pinned to the
+  checked IP, with timeouts and a 1 MB limit.
+- Photos of followers-only posts get links with a key so followers' servers can fetch them.
+- `/admin` → Settings → **Federation** turns all of this off.
+- Federation requests skip sessions and page rendering.
+- Tests: unit tests for signatures and address checks, and an end-to-end test against a fake
+  remote server that checks OOTD's signatures independently.
 
 ## Later (not started)
 
