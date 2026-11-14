@@ -138,6 +138,8 @@ class Jobs
                 self::dispatch($type, array(), 0, true);
             }
         }
+        //cloud blogs made from here have no cron of their own (0.14.0)
+        CloudBlog::ping_due();
         //finished jobs are kept for a week for /admin, then dropped
         $db->Fetch("DELETE FROM `jobs` WHERE `done_at` < DATE_SUB(NOW(), INTERVAL 7 DAY)", null);
     }

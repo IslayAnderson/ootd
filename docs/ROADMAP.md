@@ -412,6 +412,32 @@ Schema 12.
 - Tests: 27 checks (deletion both kinds, what the other blog receives, confirmation, permissions,
   tombstone, public feed).
 
+### 0.14.0 — Cloud blogs ✅
+
+Schema 13. Off until the keys below are in `.env` (SELF-HOSTING.md, "Cloud blogs").
+
+- **Login page → Create my own blog** (`/create-blog`): anyone picks an address
+  (`name.<CLOUD_DOMAIN>`), a blog name, a username and their email. Nothing is made until they
+  click the link emailed to them (D58).
+- Limits: 2 requests a day per IP, `CLOUD_DAILY_LIMIT` new blogs a day in all (default 10), reserved
+  names (www, mail, admin, …), unconfirmed requests forgotten after 24 hours, a hidden bot field.
+- The `cloud_build` job, a step at a time so a retry carries on where it stopped (D55):
+  1. Plesk customer under the OOTD reseller (XML API, the reseller's secret key);
+  2. subscription on the **OOTD Blog** plan;
+  3. MySQL database and user;
+  4. proxied A record in Cloudflare (https from Cloudflare's certificate);
+  5. this blog's own code (one zip per version) and a one-time setup script over FTP (D56);
+  6. the setup script installs OOTD, makes the owner admin, names the blog and deletes itself;
+  7. an email to the owner with a link to choose their password (valid 7 days).
+- Each new blog's background jobs are woken every minute by a POST to its `/cron` with its own key,
+  sent from here (D57).
+- **Admin → Cloud blogs**: each blog's state and last error; retry, suspend/resume (Plesk suspends
+  the subscription), and delete (type the address; removes the subscription, customer and DNS).
+- Tests: 49 checks against stand-ins for Plesk, Cloudflare and the new blog's server (request
+  checks, email confirm, the full build, the installed blog, `/cron`, a failed build and retry,
+  suspend, resume, delete, permissions). Not yet run against the real Plesk.
+- Moderation and safety moves to 0.15.0.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

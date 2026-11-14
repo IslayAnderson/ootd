@@ -27,4 +27,10 @@ title_update("login");
         <button type="submit">Login</button>
         <p><a href="/forgot">Forgot password?</a></p>
     </form>
+    <?php if (CloudBlog::enabled()): ?>
+        <div class="create-own">
+            <p>Want an OOTD of your own?</p>
+            <a href="/create-blog" class="btn secondary">Create my own blog</a>
+        </div>
+    <?php endif; ?>
 </div>

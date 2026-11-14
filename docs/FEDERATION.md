@@ -190,7 +190,7 @@ normal photo post.
   silently.
 - Interactions: Like on outfits ("love this look") and replies as comments, with notifications.
 
-#### 0.14.0 — Moderation and safety
+#### 0.15.0 — Moderation and safety (was 0.14.0; 0.14.0 became Cloud blogs)
 
 Has to land before any instance is opened to the public, even if it means delaying 1.0.0.
 
@@ -245,7 +245,8 @@ app only needs to be configurable entirely by environment and to report its own 
 | 0.12.0 | `remote_follows`, `remote_posts`, `remote_media`; `remote_actors.outbox`/`followers`; `notifications.link` (D35) |
 | 0.13.0 | `likes`, `comments`, `remote_garments`; `remote_media.kind` (no alias tables, D44) |
 | 0.13.1 | `remote_blogs` (other blogs' names, D49) |
-| 0.14.0 | `reports`, `blocks`, `domain_blocks`; `sensitive`, `content_warning` on posts |
+| 0.14.0 | `cloud_blogs` (blogs made from the login page, D55) |
+| 0.15.0 | `reports`, `blocks`, `domain_blocks`; `sensitive`, `content_warning` on posts |
 | 1.0.0 | `users.also_known_as`, `users.moved_to` |
 
 Every change goes through the existing `$schema_version` / `$migrations` upgrade path, so a
@@ -260,7 +261,8 @@ Every change goes through the existing `$schema_version` / `$migrations` upgrade
 - **Privacy expectations.** Users joined a closed, invite-only site. Making anything public must be
   an explicit choice per post, and the upgrade must not expose old posts (decision 3).
 - **Moderation load.** Federating means receiving content from servers you don't control. Stage 3
-  can't be opened to the public without 0.14.0.
+  can't be opened to the public without 0.15.0. Cloud blogs (0.14.0) are separate installs, each
+  run by its own owner, so they don't put other people's posts on this one.
 - **Deletion isn't guaranteed.** Other servers may keep copies. Needs to be said plainly in the UI
   and privacy page.
 - **Scope.** This is roughly as much work again as everything built so far, multiplied by the

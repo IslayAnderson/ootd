@@ -91,6 +91,14 @@ function job_remote_media_purge($payload)
 }
 
 /**
+ * Cloud blogs: build a confirmed blog (Plesk, Cloudflare, upload, install)
+ */
+function job_cloud_build($payload)
+{
+    CloudBlog::build($payload);
+}
+
+/**
  * Look up another blog's name (nodeinfo)
  */
 function job_remote_blog($payload)
