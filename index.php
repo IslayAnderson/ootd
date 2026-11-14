@@ -12,6 +12,12 @@ ob_start("meta_replace");
 
 $request = explode("?", $_SERVER['REQUEST_URI']);
 
+//images are served bare, without the page around them
+if (preg_match('#^/media/[A-Za-z0-9]+/(display|thumb)$#', $request[0])) {
+    ob_end_clean();
+    require $_SERVER['DOCUMENT_ROOT'] . '/Pages/media.php';
+}
+
 // if(count(explode("API", $request)) > 1){
 //     // do some authentication
 //     require require $_SERVER['DOCUMENT_ROOT'] . $request . ".php";

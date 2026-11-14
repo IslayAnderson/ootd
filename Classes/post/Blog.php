@@ -78,12 +78,12 @@ class Blog
     {
         if (count($blog['blog_outfits']) > 0) {
             return array(
-                image_bin_encode($blog['blog_outfits'][0]->image),
+                media_url($blog['blog_outfits'][0]->media_id, "thumb"),
                 $blog['blog_title']
             );
         } elseif (count($blog['blog_garments']) > 0) {
             return array(
-                image_bin_encode($blog['blog_garments'][0]->image),
+                media_url($blog['blog_garments'][0]->media_id, "thumb"),
                 $blog['blog_garments'][0]->garment_name
             );
         }

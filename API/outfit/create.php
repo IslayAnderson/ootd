@@ -11,7 +11,7 @@ try {
         "description"   =>  $_POST['description'] ?? "",
         "tags"          =>  $_POST['tags'] ?? "",
         "garments"      =>  $_POST['garments'] ?? array(),
-        "image"         =>  image_upload($_FILES['image'] ?? null),
+        "media_id"      =>  Media::store_upload($_FILES['image'] ?? null, $_SESSION['user_id'], $_POST['alt_text'] ?? ""),
         "visibility"    =>  $_POST['visibility'] ?? ""
     );
 

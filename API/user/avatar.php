@@ -5,7 +5,7 @@ try {
     CSRF_validate($_POST['csrf'] ?? null);
 
     $user = new User($_SESSION['user_id']);
-    $user->set_image(image_upload($_FILES['image'] ?? null));
+    $user->set_image(Media::store_upload($_FILES['image'] ?? null, $_SESSION['user_id'], "Profile photo of " . $user->username));
 
     header('Location: /account?posted=avatar');
     exit();

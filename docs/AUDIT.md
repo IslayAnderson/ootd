@@ -127,7 +127,8 @@ Items marked "—" are still open.
   hidden CSRF `<img>`. *Gated behind the "Recompile sass" admin setting in 0.4.0; it defaults to
   on, so turn it off in production.*
 - Images are stored as `BLOB`s inline in each row and base64-inlined into every page; the
-  `media` table in the design diagram is the intended replacement.
+  `media` table in the design diagram is the intended replacement. *Done in 0.8.0; the unused
+  BLOB columns are still there to be dropped later.*
 - `Classes/classes.php` `eval`s `use` statements that have no effect at file scope.
 - `natxet/cssmin` and `tubalmartin/cssmin` are both required; only the latter is used.
 - `.DS_Store` is committed despite being in `.gitignore`.

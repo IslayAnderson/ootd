@@ -13,6 +13,8 @@ class Outfit
     public $user;
     public $description;
     public $image;
+    public $image_alt;
+    public $media_id;
     public $garments;
     public $garment_nums;
     public $tags;
@@ -26,9 +28,10 @@ class Outfit
 
         $params = array(":a" => $id);
         $sql = "SELECT *, 
-          users.image as user_image, 
-          outfits.image as outfit_image,
-          garments.image as garment_image, 
+          users.media_id as user_media,
+          outfits.media_id as outfit_media,
+          outfit_media.alt_text as outfit_alt,
+          garments.media_id as garment_media, 
           garments.tags as garment_tags,
           outfits.description as outfit_description,
           outfits.timestamp as outfit_timestamp,
@@ -38,6 +41,7 @@ class Outfit
           garments.visibility as garment_visibility,
           garments.description as garment_description FROM `outfits`
          JOIN `users` ON outfits.user = users.user_id
+         LEFT JOIN `media` AS outfit_media ON outfit_media.media_id = outfits.media_id
          LEFT JOIN JSON_TABLE(COALESCE(outfits.garments, '[]'), '$[*]' COLUMNS (garment_ref INT PATH '$')) AS GT ON TRUE
          LEFT JOIN `garments` ON garments.garment_num = GT.garment_ref AND garments.deleted_at IS NULL
          WHERE `outfit_num` = :a AND outfits.deleted_at IS NULL;";
@@ -55,13 +59,15 @@ class Outfit
         $this->user = array(
             "user_id" => $row[0]->user,
             "username" => $row[0]->username,
-            "image" => image_bin_encode($row[0]->user_image, "/Assets/images/avi.jpg"),
+            "image" => media_url($row[0]->user_media, "thumb", "/Assets/images/avi.jpg"),
         );
         $this->description = $row[0]->outfit_description;
         $this->tags = $row[0]->outfit_tags;
         $this->visibility = $row[0]->outfit_visibility;
         $this->garment_nums = json_decode((string)$row[0]->outfit_garments) ?: array();
-        $this->image = image_bin_encode($row[0]->outfit_image);
+        $this->media_id = $row[0]->outfit_media;
+        $this->image = media_url($row[0]->outfit_media);
+        $this->image_alt = (string)$row[0]->outfit_alt;
         $garments = array();
 
         foreach ($row as $index => $garment) {
@@ -74,7 +80,7 @@ class Outfit
                 "garment_name" => $garment->garment_name,
                 "description" => $garment->garment_description,
                 "tags" => $garment->garment_tags,
-                "image" => image_bin_encode($garment->garment_image),
+                "image" => media_url($garment->garment_media, "thumb"),
             );
         }
         $this->garments = $garments;
@@ -119,6 +125,9 @@ class Outfit
         $outfit_num = self::num_from_id($request['outfit_id'] ?? "");
         $outfit = new Outfit($outfit_num);
         if (empty($request['user_id']) || !$outfit->owned()) {
+            if (!empty($request['media_id'])) {
+                \Media::remove($request['media_id']);
+            }
             throw new Exception('Outfit not found');
         }
 
@@ -134,6 +143,16 @@ class Outfit
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
+
+        if (!empty($request['media_id'])) {
+            //a new photo replaces the old one
+            $db->Fetch('UPDATE `outfits` SET `media_id` = :b WHERE `outfit_num` = :a', array(":a" => $outfit_num, ":b" => $request['media_id']));
+            if (!empty($outfit->media_id)) {
+                \Media::remove($outfit->media_id);
+            }
+        } elseif (isset($request['alt_text']) && !empty($outfit->media_id)) {
+            \Media::set_alt($outfit->media_id, $request['user_id'], $request['alt_text']);
+        }
     }
 
     /**
@@ -163,7 +182,7 @@ class Outfit
      */
     public function create_outfit($request = null)
     {
-        if (empty($request) || empty($request['user_id']) || empty($request['image'])) {
+        if (empty($request) || empty($request['user_id']) || empty($request['media_id'])) {
             throw new Exception('Outfit photo missing');
         }
 
@@ -175,11 +194,11 @@ class Outfit
             ":c" => json_encode(Garment::owned_garments($request['user_id'], $request['garments'])),
             ":d" => mb_substr(trim((string)$request['description']), 0, 1024),
             ":e" => tags_normalise($request['tags']),
-            ":f" => $request['image'],
+            ":f" => $request['media_id'],
             ":g" => visibility_normalise($request['visibility'] ?? null)
         );
 
-        $sql = 'INSERT INTO `outfits` (`outfit_id`, `user`, `garments`, `description`, `tags`, `image`, `visibility`)
+        $sql = 'INSERT INTO `outfits` (`outfit_id`, `user`, `garments`, `description`, `tags`, `media_id`, `visibility`)
                 VALUES (:a, :b, :c, :d, :e, :f, :g)';
 
         $db = new Mysql();
@@ -214,7 +233,7 @@ class Outfit
             <div class="album">
                 <figure>
                     <img loading="lazy" src="<?= $this->image ?>" class="primary"
-                         alt="<?= escape($this->description ?: "Outfit by " . $this->user['username']) ?>">
+                         alt="<?= escape($this->image_alt ?: ($this->description ?: "Outfit by " . $this->user['username'])) ?>">
                 </figure>
             </div>
             <div class="description">
