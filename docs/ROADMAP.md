@@ -334,6 +334,32 @@ on Mastodon and other Fediverse servers and see their posts.
   pages decided email was off while the worker sent it fine. Sendmail outside `open_basedir` is now
   taken as present.
 
+### 0.13.0 — OOTD-to-OOTD extras ✅
+
+Seventh release of the [federation roadmap](FEDERATION.md). Schema 10. Two OOTD servers now see
+each other's garments, and members can love and comment on posts here and elsewhere.
+
+- **Garments travel with outfits**: an outfit's activity lists its garments (`ootd:garments`, name,
+  brand, category, photo) under a vocabulary served at `/ns`. Mastodon ignores it and sees a
+  "Wearing: …" line instead. Only garments allowed to go where the outfit goes are listed: public
+  ones, plus followers-only ones on a followers-only outfit (D43).
+- A receiving OOTD shows those garments as a strip under the post, with brand and category
+  matched to its own lists by name (D44); garment photos are copied like outfit photos.
+- Public garments are served at `/garment/<id>` (`ootd:Garment`); each profile publishes its
+  wardrobe at `/user/<name>/wardrobe` (public garments only, newest 100). Blog articles list the
+  outfits they link (`ootd:outfits`).
+- **Love this look**: a like button under outfits and under posts from elsewhere. Liking a remote
+  post sends `Like` (and `Undo` when taken back); likes from elsewhere are counted on the outfit.
+  The owner is notified either way, once per person.
+- **Comments** on outfits and on posts from elsewhere, at `/outfit/<id>` and the new
+  `/remote/<n>`. Comments on public outfits, and comments on remote posts, federate as replies;
+  replies from other servers to an outfit here, or to a stored post, appear as comments (D45).
+  The author, the post's owner and admins can delete one; deletes federate both ways. Owners are
+  notified of new comments. Members-only and followers-only outfits keep comments local.
+- Tests: an end-to-end run between two OOTD servers (48 checks: follow, garments both
+  visibilities, wardrobe, `/ns`, brand/category matching, likes and Undo, comments both ways,
+  deletes, escaping, guests).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

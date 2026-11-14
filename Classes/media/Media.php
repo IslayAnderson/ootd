@@ -198,7 +198,7 @@ class Media
     }
 
     /**
-     * Can other servers be given this image? Avatars, and photos of public or followers-only posts
+     * Can other servers be given this image? Avatars, and photos of public or followers-only outfits and garments
      * (followers-only posts are delivered to followers' servers, which fetch the photo themselves).
      *
      * @param object $media row from get()
@@ -211,8 +211,14 @@ class Media
         if ($row[0] != '00000') {
             return true;
         }
-        $row = $db->Fetch("SELECT `visibility` FROM `outfits` WHERE `media_id` = :a AND `deleted_at` IS NULL", array(":a" => $media->media_id));
-        return $row[0] != '00000' && in_array($row[0]->visibility, array(VISIBILITY_PUBLIC, VISIBILITY_FOLLOWERS), true);
+        //outfit photos, and since 0.13.0 garment photos (other OOTD servers show an outfit's garments)
+        foreach (array("outfits", "garments") as $table) {
+            $row = $db->Fetch("SELECT `visibility` FROM `" . $table . "` WHERE `media_id` = :a AND `deleted_at` IS NULL", array(":a" => $media->media_id));
+            if ($row[0] != '00000' && in_array($row[0]->visibility, array(VISIBILITY_PUBLIC, VISIBILITY_FOLLOWERS), true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

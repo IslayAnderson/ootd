@@ -270,6 +270,7 @@ class Outfit
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
+            <?php \Like::render_bar("outfit", (int)$this->outfit_num, (string)$this->outfit_id, "/outfit/" . rawurlencode($this->outfit_id)); ?>
         </article>
         <?php
     }

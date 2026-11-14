@@ -11,7 +11,8 @@ class Notification
         "follow_request" => "asked to follow you",
         "follow_accepted" => "accepted your follow request",
         "like" => "liked your post",
-        "announce" => "boosted your post"
+        "announce" => "boosted your post",
+        "reply" => "commented on your post"
     );
 
     /**

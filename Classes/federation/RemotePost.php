@@ -17,12 +17,13 @@ class RemotePost
     const MAX_CONTENT = 100000;
     const MAX_PIXELS = 50000000;
     const BACKFILL = 20;
+    const MAX_GARMENTS = 12;
 
     /**
      * @param mixed $value
      * @return array a single value or a list, as a list of ids
      */
-    private static function ids($value): array
+    public static function ids($value): array
     {
         if ($value === null) {
             return array();
@@ -128,7 +129,69 @@ class RemotePost
                         `marked_sensitive` = :i, `updated_at` = COALESCE(:k, NOW()) WHERE `post_num` = :n", $params);
         }
         self::sync_media($post_num, $object['attachment'] ?? array());
+        self::sync_garments($post_num, $object['ootd:garments'] ?? null);
         return true;
+    }
+
+    /**
+     * Garments on an outfit from another OOTD server (ootd:garments): replaced on every update.
+     * Brand and category names are matched to this server's lists; unknown names are kept as text.
+     *
+     * @param int $post_num
+     * @param mixed $garments
+     * @return void
+     */
+    private static function sync_garments($post_num, $garments): void
+    {
+        $db = new Mysql();
+        $old = $db->Fetch("SELECT remote_media.media_id FROM `remote_garments` JOIN `remote_media` ON remote_media.remote_media_num = remote_garments.remote_media_num
+                           WHERE remote_garments.post_num = :a AND remote_media.media_id IS NOT NULL", array(":a" => (int)$post_num));
+        foreach ($old[0] != '00000' ? $old : array() as $row) {
+            Media::remove($row->media_id);
+        }
+        $db->Fetch("DELETE FROM `remote_media` WHERE `post_num` = :a AND `kind` = 'garment'", array(":a" => (int)$post_num));
+        $db->Fetch("DELETE FROM `remote_garments` WHERE `post_num` = :a", array(":a" => (int)$post_num));
+
+        $list = is_array($garments) && array_is_list($garments) ? $garments : array();
+        foreach (array_slice($list, 0, self::MAX_GARMENTS) as $position => $garment) {
+            if (!is_array($garment) || !in_array($garment['type'] ?? "", array("ootd:Garment", "Garment"), true) || !is_string($garment['name'] ?? null)) {
+                continue;
+            }
+            $brand = self::text($garment['ootd:brand'] ?? null, 100);
+            $category = self::text($garment['ootd:category'] ?? null, 100);
+            $brand_id = $brand !== null ? $db->Fetch("SELECT `brand_id` FROM `brands` WHERE LOWER(`brand_name`) = LOWER(:a) LIMIT 1", array(":a" => $brand)) : array('00000');
+            $category_id = $category !== null ? $db->Fetch("SELECT `category_id` FROM `categories` WHERE LOWER(`categories`) = LOWER(:a) AND `in_moderation` = 0 LIMIT 1", array(":a" => $category)) : array('00000');
+            $media_num = null;
+            $image = self::href(is_array($garment['image'] ?? null) ? ($garment['image']['url'] ?? null) : ($garment['image'] ?? null));
+            if ($image) {
+                $db->Fetch("INSERT INTO `remote_media` (`post_num`, `position`, `remote_url`, `alt_text`, `kind`) VALUES (:a, :b, :c, :d, 'garment')",
+                    array(":a" => (int)$post_num, ":b" => $position, ":c" => $image, ":d" => self::text($garment['image']['name'] ?? null, Media::ALT_MAX) ?? $garment['name']));
+                $media_num = (int)$db->Fetch("SELECT MAX(`remote_media_num`) AS n FROM `remote_media` WHERE `post_num` = :a", array(":a" => (int)$post_num))[0]->n;
+                Jobs::dispatch("ap_media", array("remote_media_num" => $media_num));
+            }
+            $db->Fetch("INSERT INTO `remote_garments` (`post_num`, `position`, `ap_id`, `name`, `brand_name`, `category_name`, `brand_id`, `category_id`, `description`, `url`, `remote_media_num`)
+                        VALUES (:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k)", array(
+                ":a" => (int)$post_num,
+                ":b" => $position,
+                ":c" => self::text(Inbox::id($garment), 512),
+                ":d" => self::text($garment['name'], 128),
+                ":e" => $brand,
+                ":f" => $category,
+                ":g" => $brand_id[0] != '00000' ? (int)$brand_id[0]->brand_id : null,
+                ":h" => $category_id[0] != '00000' ? (int)$category_id[0]->category_id : null,
+                ":i" => self::text($garment['summary'] ?? null, 1024),
+                ":j" => self::href($garment['url'] ?? null) ?? self::href(Inbox::id($garment)),
+                ":k" => $media_num
+            ));
+        }
+    }
+
+    private static function text($value, $max): ?string
+    {
+        if (!is_string($value) || trim(strip_tags($value)) === "") {
+            return null;
+        }
+        return mb_substr(trim(strip_tags($value)), 0, $max);
     }
 
     /**
@@ -155,7 +218,7 @@ class RemotePost
         }
 
         $db = new Mysql();
-        $rows = $db->Fetch("SELECT * FROM `remote_media` WHERE `post_num` = :a ORDER BY `position`", array(":a" => (int)$post_num));
+        $rows = $db->Fetch("SELECT * FROM `remote_media` WHERE `post_num` = :a AND `kind` = 'photo' ORDER BY `position`", array(":a" => (int)$post_num));
         $have = $rows[0] != '00000' ? $rows : array();
         if (array_column($wanted, "url") === array_map(function ($row) {
                 return $row->remote_url;
@@ -168,7 +231,7 @@ class RemotePost
             }
             return;
         }
-        self::drop_media($post_num);
+        self::drop_media($post_num, "photo");
         foreach ($wanted as $position => $item) {
             $db->Fetch("INSERT INTO `remote_media` (`post_num`, `position`, `remote_url`, `alt_text`) VALUES (:a, :b, :c, :d)",
                 array(":a" => (int)$post_num, ":b" => $position, ":c" => $item['url'], ":d" => $item['alt']));
@@ -177,16 +240,23 @@ class RemotePost
         }
     }
 
-    private static function drop_media($post_num): void
+    /**
+     * @param int $post_num
+     * @param string|null $kind photo or garment, null for both
+     * @return void
+     */
+    private static function drop_media($post_num, $kind = null): void
     {
         $db = new Mysql();
-        $rows = $db->Fetch("SELECT `media_id` FROM `remote_media` WHERE `post_num` = :a AND `media_id` IS NOT NULL", array(":a" => (int)$post_num));
+        $where = "`post_num` = :a" . ($kind ? " AND `kind` = :k" : "");
+        $params = $kind ? array(":a" => (int)$post_num, ":k" => $kind) : array(":a" => (int)$post_num);
+        $rows = $db->Fetch("SELECT `media_id` FROM `remote_media` WHERE " . $where . " AND `media_id` IS NOT NULL", $params);
         if ($rows[0] != '00000') {
             foreach ($rows as $row) {
                 Media::remove($row->media_id);
             }
         }
-        $db->Fetch("DELETE FROM `remote_media` WHERE `post_num` = :a", array(":a" => (int)$post_num));
+        $db->Fetch("DELETE FROM `remote_media` WHERE " . $where, $params);
     }
 
     /**
@@ -203,6 +273,9 @@ class RemotePost
         }
         foreach ($rows as $row) {
             self::drop_media($row->post_num);
+            $db->Fetch("DELETE FROM `remote_garments` WHERE `post_num` = :a", array(":a" => $row->post_num));
+            $db->Fetch("DELETE FROM `likes` WHERE `kind` = 'remote' AND `object_num` = :a", array(":a" => $row->post_num));
+            $db->Fetch("DELETE FROM `comments` WHERE `kind` = 'remote' AND `parent_num` = :a", array(":a" => $row->post_num));
             $db->Fetch("DELETE FROM `remote_posts` WHERE `post_num` = :a", array(":a" => $row->post_num));
         }
         return count($rows);
@@ -428,6 +501,41 @@ class RemotePost
     }
 
     /**
+     * @param int $post_num
+     * @return array garments with their photo (media_id, state) and brand/category names, ours when matched
+     */
+    public static function garments($post_num): array
+    {
+        $db = new Mysql();
+        $rows = $db->Fetch("SELECT remote_garments.*, remote_media.media_id, remote_media.state,
+                                   COALESCE(brands.brand_name, remote_garments.brand_name) AS brand,
+                                   COALESCE(categories.categories, remote_garments.category_name) AS category
+                            FROM `remote_garments`
+                            LEFT JOIN `remote_media` ON remote_media.remote_media_num = remote_garments.remote_media_num
+                            LEFT JOIN `brands` ON brands.brand_id = remote_garments.brand_id
+                            LEFT JOIN `categories` ON categories.category_id = remote_garments.category_id
+                            WHERE remote_garments.post_num = :a ORDER BY remote_garments.position", array(":a" => (int)$post_num));
+        return $rows[0] != '00000' ? $rows : array();
+    }
+
+    /**
+     * @param int $viewer
+     * @param int $post_num
+     * @return object|null one post the viewer may see, in the shape latest() returns
+     */
+    public static function one($viewer, $post_num)
+    {
+        if (empty($viewer) || !Federation::enabled()) {
+            return null;
+        }
+        $db = new Mysql();
+        $rows = $db->Fetch("SELECT remote_posts.*, remote_actors.username, remote_actors.host, remote_actors.name AS actor_name, remote_actors.url AS actor_url
+                            FROM `remote_posts` JOIN `remote_actors` ON remote_actors.actor_num = remote_posts.actor_num
+                            WHERE remote_posts.post_num = :a AND " . self::visible_where($viewer), array(":a" => (int)$post_num));
+        return $rows[0] != '00000' ? $rows[0] : null;
+    }
+
+    /**
      * @param object $post row from latest()
      * @param array $media its remote_media rows
      * @param bool $is_profile leave out the author (on their profile)
@@ -438,6 +546,10 @@ class RemotePost
         $handle = "@" . $post->username . "@" . $post->host;
         $path = "/@" . rawurlencode((string)$post->username) . "@" . rawurlencode((string)$post->host);
         $content = sanitise_html((string)$post->content);
+        $photos = array_values(array_filter($media, function ($item) {
+            return ($item->kind ?? "photo") == "photo";
+        }));
+        $garments = self::garments((int)$post->post_num);
         $warning = trim(strip_tags((string)$post->summary));
         $hidden = $post->type != "Article" && ($warning !== "" || (int)$post->marked_sensitive === 1);
         ?>
@@ -463,9 +575,9 @@ class RemotePost
             <details class="content-warning">
                 <summary><?= escape($warning !== "" ? $warning : "Sensitive") ?></summary>
             <?php endif; ?>
-            <?php if (count($media) > 0): ?>
+            <?php if (count($photos) > 0): ?>
                 <div class="album">
-                    <?php foreach ($media as $item): ?>
+                    <?php foreach ($photos as $item): ?>
                         <figure>
                             <?php if ($item->state == "stored" && !empty($item->media_id)): ?>
                                 <img loading="lazy" src="<?= escape(media_url($item->media_id, "display")) ?>"
@@ -495,6 +607,25 @@ class RemotePost
             <?php if ($hidden): ?>
             </details>
             <?php endif; ?>
+            <?php if (count($garments) > 0): ?>
+                <ul class="garments">
+                    <?php foreach ($garments as $garment): ?>
+                        <li>
+                            <a href="<?= escape((string)($garment->url ?: $post->url)) ?>" rel="nofollow noopener" target="_blank"
+                               title="<?= escape(trim($garment->name . " " . ($garment->brand ? "by " . $garment->brand : ""))) ?>">
+                                <?php if ($garment->state == "stored" && !empty($garment->media_id)): ?>
+                                    <img loading="lazy" src="<?= escape(media_url($garment->media_id, "thumb")) ?>" alt="<?= escape($garment->name) ?>">
+                                <?php endif; ?>
+                                <span><?= escape($garment->name) ?></span>
+                                <?php if ($garment->brand || $garment->category): ?>
+                                    <small><?= escape(implode(" · ", array_filter(array($garment->brand, $garment->category)))) ?></small>
+                                <?php endif; ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+            <?php Like::render_bar("remote", (int)$post->post_num, (string)(int)$post->post_num, "/remote/" . (int)$post->post_num); ?>
         </article>
         <?php
     }

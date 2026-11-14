@@ -223,3 +223,81 @@ article.outfit.remote {
     cursor: pointer;
   }
 }
+
+//love this look, comments, garments from other OOTD servers (0.13.0)
+article.outfit .reactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: solid 1px $mid-grey;
+  @include kicker(0.7rem);
+
+  form {
+    margin: 0;
+  }
+
+  button, a {
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+  }
+
+  button[aria-pressed="true"] {
+    font-weight: bold;
+  }
+}
+
+article.outfit .garments small {
+  display: block;
+  color: $soft-ink;
+  font-size: 0.65rem;
+}
+
+section.comments {
+  @include band;
+  padding-bottom: 2rem;
+
+  ol {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+  }
+
+  li {
+    padding: 0.75rem 0;
+    border-bottom: solid 1px $mid-grey;
+
+    .byline {
+      @include kicker(0.65rem);
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .comment-body {
+      overflow-wrap: anywhere;
+    }
+
+    form.delete {
+      margin-top: 0.25rem;
+    }
+  }
+
+  .comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    textarea {
+      width: 100%;
+    }
+
+    button {
+      align-self: flex-start;
+    }
+  }
+}
