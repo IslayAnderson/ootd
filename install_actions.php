@@ -280,6 +280,11 @@ $settings = array(
     "default_visibility" => array(
         "type" => "choice:public|members|followers|private",
         "value" => "members"
+    ),
+    //0.11.0: talk to other servers (ActivityPub); off keeps everything on this server
+    "federation" => array(
+        "type" => "bool",
+        "value" => 1
     )
 );
 
@@ -366,7 +371,9 @@ $migrations = array(
     //password_resets is a new table; the old image BLOBs were copied to the media store in 5 (D11)
     7 => array(
         "media_drop_blobs"
-    )
+    ),
+    //actor_keys, remote_actors and remote_followers are new tables (ActivityPub)
+    8 => array()
 );
 
 function brands_check_table()
@@ -1158,6 +1165,65 @@ function password_resets_create_table()
     echo "<br>created password_resets table";
 }
 
+function table_exists($table)
+{
+    $db = new Mysql();
+    $row = $db->Fetch("SHOW TABLES LIKE '" . str_replace("'", "", $table) . "'", null);
+    return $row[0] != '00000';
+}
+
+/**
+ * ActivityPub tables (schema 8)
+ */
+function federation_create_table($table)
+{
+    $tables = array(
+        //one RSA keypair per local user, plus the instance actor (user_id NULL); private keys are encrypted with PWD_SEED
+        "actor_keys" => "CREATE TABLE actor_keys(
+            key_num int(11) NOT NULL AUTO_INCREMENT,
+            user_id int(11) NULL,
+            public_key text NOT NULL,
+            private_key text NOT NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (key_num),
+            UNIQUE KEY user_id (user_id)
+        ) CHARACTER SET utf8mb4",
+        //people on other servers, cached from their actor documents
+        "remote_actors" => "CREATE TABLE remote_actors(
+            actor_num int(11) NOT NULL AUTO_INCREMENT,
+            ap_id varchar(512) NOT NULL,
+            username varchar(128) NULL,
+            host varchar(255) NOT NULL,
+            name varchar(255) NULL,
+            url varchar(512) NULL,
+            inbox varchar(512) NULL,
+            shared_inbox varchar(512) NULL,
+            key_id varchar(512) NULL,
+            public_key text NULL,
+            fetched_at timestamp NULL DEFAULT NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (actor_num),
+            UNIQUE KEY ap_id (ap_id(255)),
+            KEY key_id (key_id(255))
+        ) CHARACTER SET utf8mb4",
+        //remote people following local users
+        "remote_followers" => "CREATE TABLE remote_followers(
+            remote_follow_num int(11) NOT NULL AUTO_INCREMENT,
+            user_id int(11) NOT NULL,
+            actor_num int(11) NOT NULL,
+            state varchar(16) NOT NULL DEFAULT 'pending',
+            follow_id varchar(512) NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (remote_follow_num),
+            UNIQUE KEY pair (user_id, actor_num),
+            KEY actor_num (actor_num)
+        ) CHARACTER SET utf8mb4"
+    );
+    $db = new Mysql();
+    $db->Fetch($tables[$table], null);
+    echo "<br>created " . $table . " table";
+}
+
 function column_exists($table, $column)
 {
     $params = array(':a' => $_ENV['DB_SCHEMA'], ':b' => $table, ':c' => $column);
@@ -1296,6 +1362,15 @@ if (!notifications_check_table()) {
     notifications_create_table();
 } else {
     echo "<br>notifications table already complete";
+}
+
+//build ActivityPub tables
+foreach (array("actor_keys", "remote_actors", "remote_followers") as $federation_table) {
+    if (!table_exists($federation_table)) {
+        federation_create_table($federation_table);
+    } else {
+        echo "<br>" . $federation_table . " table already complete";
+    }
 }
 
 //build jobs table

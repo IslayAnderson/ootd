@@ -141,3 +141,10 @@ form.settings {
     max-width: 32rem;
   }
 }
+
+//fediverse handle on profiles (0.11.0)
+section.header .handle {
+  @include kicker(0.7rem);
+  color: $soft-ink;
+  user-select: all;
+}

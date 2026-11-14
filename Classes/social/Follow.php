@@ -98,16 +98,62 @@ class Follow
 
     /**
      * @param int $user_id
-     * @return array [followers, following] counts of accepted follows
+     * @return array [followers, following] counts of accepted follows, followers include other servers
      */
     public static function counts($user_id): array
     {
         $db = new Mysql();
         $sql = "SELECT
-                  (SELECT COUNT(*) FROM `follows` WHERE `followed_id` = :a AND `state` = 'accepted') AS followers,
+                  (SELECT COUNT(*) FROM `follows` WHERE `followed_id` = :a AND `state` = 'accepted')
+                  + (SELECT COUNT(*) FROM `remote_followers` WHERE `user_id` = :c AND `state` = 'accepted') AS followers,
                   (SELECT COUNT(*) FROM `follows` WHERE `follower_id` = :b AND `state` = 'accepted') AS following";
-        $row = $db->Fetch($sql, array(":a" => (int)$user_id, ":b" => (int)$user_id));
+        $row = $db->Fetch($sql, array(":a" => (int)$user_id, ":b" => (int)$user_id, ":c" => (int)$user_id));
         return array((int)$row[0]->followers, (int)$row[0]->following);
+    }
+
+    /**
+     * @param int $user_id
+     * @return array pending requests from other servers: actor_num, username, host, ap_id, url
+     */
+    public static function remote_requests($user_id): array
+    {
+        $sql = "SELECT remote_actors.actor_num, remote_actors.username, remote_actors.host, remote_actors.ap_id, remote_actors.url
+                FROM `remote_followers` JOIN `remote_actors` ON remote_actors.actor_num = remote_followers.actor_num
+                WHERE remote_followers.user_id = :a AND remote_followers.state = 'pending'
+                ORDER BY remote_followers.timestamp ASC";
+        $db = new Mysql();
+        $row = $db->Fetch($sql, array(":a" => (int)$user_id));
+        return $row[0] != '00000' ? $row : array();
+    }
+
+    /**
+     * Accept or decline a request from another server, and tell that server
+     *
+     * @param int $user_id
+     * @param int $actor_num
+     * @param bool $accept
+     * @return void
+     */
+    public static function respond_remote($user_id, $actor_num, $accept): void
+    {
+        $db = new Mysql();
+        $row = $db->Fetch("SELECT remote_followers.follow_id, remote_actors.* FROM `remote_followers`
+                           JOIN `remote_actors` ON remote_actors.actor_num = remote_followers.actor_num
+                           WHERE remote_followers.user_id = :a AND remote_followers.actor_num = :b AND remote_followers.state = 'pending'",
+            array(":a" => (int)$user_id, ":b" => (int)$actor_num));
+        if ($row[0] == '00000') {
+            return;
+        }
+        $actor = $row[0];
+        $user = $db->Fetch("SELECT `user_id`, `username` FROM `users` WHERE `user_id` = :a", array(":a" => (int)$user_id))[0];
+        if ($accept) {
+            $db->Fetch("UPDATE `remote_followers` SET `state` = 'accepted' WHERE `user_id` = :a AND `actor_num` = :b", array(":a" => (int)$user_id, ":b" => (int)$actor_num));
+        } else {
+            $db->Fetch("DELETE FROM `remote_followers` WHERE `user_id` = :a AND `actor_num` = :b", array(":a" => (int)$user_id, ":b" => (int)$actor_num));
+        }
+        if (!empty($actor->follow_id)) {
+            \Inbox::answer($user, $actor, $actor->follow_id, $accept ? "Accept" : "Reject");
+        }
     }
 
     /**

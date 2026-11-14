@@ -153,6 +153,7 @@ class Outfit
         } elseif (isset($request['alt_text']) && !empty($outfit->media_id)) {
             \Media::set_alt($outfit->media_id, $request['user_id'], $request['alt_text']);
         }
+        \Federation::changed("outfit", $outfit->outfit_id, "update", $outfit->visibility);
     }
 
     /**
@@ -173,6 +174,7 @@ class Outfit
         $sql = 'UPDATE `outfits` SET `deleted_at` = NOW() WHERE `outfit_num` = :a';
         $db = new Mysql();
         $db->Fetch($sql, array(":a" => $outfit->outfit_num));
+        \Federation::changed("outfit", $outfit->outfit_id, "delete", $outfit->visibility);
     }
 
     /**
@@ -203,6 +205,7 @@ class Outfit
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
+        \Federation::changed("outfit", $outfit_id, "create");
 
         return $outfit_id;
     }

@@ -8,6 +8,10 @@ $variant = $path[3] ?? "display";
 session_write_close();
 
 list($allowed, $public) = $media ? Media::access($media) : array(false, false);
+//links handed to other servers carry a key, so followers-only photos can be fetched by their servers
+if ($media && !$allowed && hash_equals(media_share_key($media->media_id), (string)($_GET['k'] ?? "")) && Media::federated($media)) {
+    $allowed = true;
+}
 $contents = $allowed ? media_storage()->get($media->media_id . "/" . $variant . "." . $media->extension) : null;
 
 if ($contents === null) {

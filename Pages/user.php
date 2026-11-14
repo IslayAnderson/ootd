@@ -23,6 +23,9 @@ title_update($user->username);
         <img src="<?= $user->get_image() ?>" alt="<?= escape($user->username) ?>">
     </div>
     <h1><?= escape($user->get_username($user->user_id)) ?></h1>
+    <?php if (Federation::enabled()): ?>
+        <p class="handle" title="Follow from Mastodon or any other Fediverse app with this handle">@<?= escape($user->username) ?>@<?= escape(Federation::domain()) ?></p>
+    <?php endif; ?>
     <?php if (!empty($_SESSION['user_id'])): ?>
         <?php //real names stay inside the instance, guests only see the username ?>
         <p class="byline"><?= escape($user->first_name . " " . $user->last_name) ?></p>
