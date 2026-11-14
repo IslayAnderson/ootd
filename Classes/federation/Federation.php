@@ -53,8 +53,29 @@ class Federation
      */
     public static function domain(): string
     {
+        //ACCOUNT_DOMAIN: addresses are name@example.com while the site runs at blog.example.com
+        //(example.com must send /.well-known/webfinger here; SELF-HOSTING, "Addresses on another domain")
+        $account = strtolower(trim((string)($_ENV['ACCOUNT_DOMAIN'] ?? ""), " ./"));
+        return $account !== "" ? $account : self::web_domain();
+    }
+
+    /**
+     * @return string the host (and port) of APP_URL, where actors and pages live
+     */
+    public static function web_domain(): string
+    {
         $parts = parse_url(app_url());
         return $parts['host'] . (isset($parts['port']) ? ":" . $parts['port'] : "");
+    }
+
+    /**
+     * @param string $host
+     * @return bool an address on this host is someone here
+     */
+    public static function is_own_domain($host): bool
+    {
+        $host = strtolower((string)$host);
+        return $host !== "" && ($host === strtolower(self::domain()) || $host === strtolower(self::web_domain()));
     }
 
     /**

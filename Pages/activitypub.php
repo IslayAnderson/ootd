@@ -69,7 +69,7 @@ try {
     if ($path == "/.well-known/webfinger") {
         $resource = (string)($_GET['resource'] ?? "");
         $username = null;
-        if (preg_match('/^acct:([^@]+)@(.+)$/i', $resource, $m) && strtolower($m[2]) == strtolower(Federation::domain())) {
+        if (preg_match('/^acct:([^@]+)@(.+)$/i', $resource, $m) && Federation::is_own_domain($m[2])) {
             $username = $m[1];
         } elseif (strpos($resource, absolute_url("/user/")) === 0) {
             $username = rawurldecode(substr($resource, strlen(absolute_url("/user/"))));

@@ -87,6 +87,7 @@ class RemoteActor
                     ON DUPLICATE KEY UPDATE `username` = VALUES(`username`), `host` = VALUES(`host`), `name` = VALUES(`name`), `url` = VALUES(`url`),
                       `inbox` = VALUES(`inbox`), `shared_inbox` = VALUES(`shared_inbox`), `key_id` = VALUES(`key_id`),
                       `public_key` = VALUES(`public_key`), `outbox` = VALUES(`outbox`), `followers` = VALUES(`followers`), `fetched_at` = NOW()", $params);
+        self::check_account_host($document);
     }
 
     /**
@@ -148,11 +149,12 @@ class RemoteActor
         $handle = self::parse_handle($query);
         if ($handle) {
             list($name, $host) = $handle;
-            if ($host === strtolower(Federation::domain())) {
+            if (Federation::is_own_domain($host)) {
                 return null;
             }
             $db = new Mysql();
-            $row = $db->Fetch("SELECT `ap_id` FROM `remote_actors` WHERE `username` = :a AND `host` = :b", array(":a" => $name, ":b" => explode(":", $host)[0]));
+            $row = $db->Fetch("SELECT `ap_id` FROM `remote_actors` WHERE `username` = :a AND (`host` = :b OR `account_host` = :c) ORDER BY `account_host` = :c DESC LIMIT 1",
+                array(":a" => $name, ":b" => explode(":", $host)[0], ":c" => $host));
             if ($row[0] != '00000') {
                 return self::get($row[0]->ap_id);
             }
@@ -182,17 +184,7 @@ class RemoteActor
      */
     public static function webfinger($name, $host): ?string
     {
-        $scheme = !empty($_ENV['AP_ALLOW_HTTP']) && preg_match('/^(127\.|localhost)/', $host) ? "http" : "https";
-        $url = $scheme . "://" . $host . "/.well-known/webfinger?resource=" . rawurlencode("acct:" . $name . "@" . $host);
-        try {
-            list($status, $body) = SafeHttp::get($url, array("Accept" => "application/jrd+json, application/json"));
-        } catch (Exception $e) {
-            return null;
-        }
-        $document = json_decode((string)$body, true);
-        if ($status != 200 || !is_array($document)) {
-            return null;
-        }
+        $document = self::webfinger_document($name, $host);
         foreach ($document['links'] ?? array() as $link) {
             if (($link['rel'] ?? "") == "self" && is_string($link['href'] ?? null)
                 && preg_match('#^application/(activity\+json|ld\+json)#', (string)($link['type'] ?? ""))) {
@@ -200,6 +192,59 @@ class RemoteActor
             }
         }
         return null;
+    }
+
+    /**
+     * The domain in someone's address when it isn't their server's: their server's WebFinger names
+     * name@other.domain, and other.domain's WebFinger points back at the same actor. Checked weekly.
+     *
+     * @param array $document actor JSON, already stored
+     * @return void
+     */
+    private static function check_account_host($document): void
+    {
+        $db = new Mysql();
+        $row = $db->Fetch("SELECT `account_checked_at` FROM `remote_actors` WHERE `ap_id` = :a AND `account_checked_at` > DATE_SUB(NOW(), INTERVAL 7 DAY)",
+            array(":a" => $document['id']));
+        if ($row[0] != '00000') {
+            return;
+        }
+        $name = (string)($document['preferredUsername'] ?? "");
+        $parts = parse_url($document['id']);
+        $host = strtolower($parts['host'] ?? "") . (isset($parts['port']) ? ":" . $parts['port'] : "");
+        $account = null;
+        if ($name !== "" && $host !== "") {
+            $first = self::webfinger_document($name, $host);
+            if (preg_match('/^acct:([^@]+)@([a-z0-9.\-]{1,253}(?::[0-9]{1,5})?)$/i', (string)($first['subject'] ?? ""), $m)
+                && strtolower($m[2]) !== $host && !Federation::is_own_domain($m[2])) {
+                $back = self::webfinger_document($m[1], strtolower($m[2]));
+                foreach ($back['links'] ?? array() as $link) {
+                    if (($link['rel'] ?? "") == "self" && ($link['href'] ?? null) === $document['id']) {
+                        $account = mb_substr(strtolower($m[2]), 0, 260);
+                    }
+                }
+            }
+        }
+        $db->Fetch("UPDATE `remote_actors` SET `account_host` = :b, `account_checked_at` = NOW() WHERE `ap_id` = :a",
+            array(":a" => $document['id'], ":b" => $account));
+    }
+
+    /**
+     * @param string $name
+     * @param string $host
+     * @return array the WebFinger answer for name@host, empty when there's none
+     */
+    private static function webfinger_document($name, $host): array
+    {
+        $scheme = !empty($_ENV['AP_ALLOW_HTTP']) && preg_match('/^(127\.|localhost)/', $host) ? "http" : "https";
+        $url = $scheme . "://" . $host . "/.well-known/webfinger?resource=" . rawurlencode("acct:" . $name . "@" . $host);
+        try {
+            list($status, $body) = SafeHttp::get($url, array("Accept" => "application/jrd+json, application/json"));
+        } catch (Exception $e) {
+            return array();
+        }
+        $document = json_decode((string)$body, true);
+        return $status == 200 && is_array($document) ? $document : array();
     }
 
     /**
@@ -229,7 +274,7 @@ class RemoteActor
      */
     public static function address($actor): string
     {
-        return ($actor->username ?: "unknown") . "@" . $actor->host;
+        return ($actor->username ?: "unknown") . "@" . (!empty($actor->account_host) ? $actor->account_host : $actor->host);
     }
 
     /**
@@ -371,7 +416,7 @@ class RemoteActor
         }
         list(, $name, $blog) = $m;
         $blog = trim($blog);
-        if (strcasecmp($blog, instance_name()) === 0 || strcasecmp($blog, Federation::domain()) === 0) {
+        if (strcasecmp($blog, instance_name()) === 0 || Federation::is_own_domain($blog)) {
             return $name . "@" . Federation::domain();
         }
         $db = new Mysql();
