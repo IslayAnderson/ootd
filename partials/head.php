@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>OOTD - {title_placeholder}</title>
+  <title>{instance_placeholder} - {title_placeholder}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="description" content="{description_placeholder}" />

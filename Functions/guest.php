@@ -13,9 +13,15 @@ function guest_path_allowed($path): bool
         "/signup",
         "/invite",
         "/privacy",
+        "/about",
+        "/health",
         "/API/user/auth.php",
         "/API/user/create.php",
-        "/API/user/invite.php"
+        "/API/user/invite.php",
+        "/forgot",
+        "/reset",
+        "/API/user/forgot.php",
+        "/API/user/reset.php"
     );
     if (in_array($path, $paths, true)) {
         return true;

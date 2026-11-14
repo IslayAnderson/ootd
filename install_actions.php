@@ -15,7 +15,7 @@ require $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 use Dotenv\Dotenv;
 
 //bump this and add to $columns / $migrations below whenever the schema changes
-$schema_version = 6;
+$schema_version = OOTD_SCHEMA;
 
 /**
  * @return bool true once the installer has run, installs from before 0.1.1 never set the "installed" setting
@@ -33,7 +33,7 @@ function installed()
 //an existing install is never re-configured; an admin can re-run this to upgrade the database
 $upgrading = false;
 if ($cli && !(file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0)) {
-    echo "No .env found. Install OOTD through /install.php first.\n";
+    echo "No .env found. Install OOTD with bin/ootd install or through /install.php first.\n";
     exit(1);
 }
 if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
@@ -47,8 +47,9 @@ if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
         $is_installed = true;
     }
 
-    if ($cli && !$is_installed) {
-        echo "OOTD isn't installed in this database yet. Install it through /install.php first.\n";
+    //bin/ootd install sets cli_install; bin/migrate.php only upgrades
+    if ($cli && !$is_installed && empty($GLOBALS['cli_install'])) {
+        echo "OOTD isn't installed in this database yet. Run bin/ootd install or use /install.php.\n";
         exit(1);
     }
 
@@ -79,7 +80,8 @@ if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
     }
 }
 
-if (!$upgrading):
+//the command line installer has already written .env
+if (!$upgrading && !$cli):
 
 $_SESSION['installing'] = "started";
 
@@ -253,6 +255,31 @@ $settings = array(
     "recompile_sass" => array(
         "type" => "bool",
         "value" => 1
+    ),
+    //0.10.0: instance settings, shown on /about and used across the site
+    "instance_name" => array(
+        "type" => "string",
+        "value" => "OOTD"
+    ),
+    "instance_description" => array(
+        "type" => "text",
+        "value" => "Outfit of the day: a wardrobe, a daily outfit and the people whose style you follow."
+    ),
+    "instance_rules" => array(
+        "type" => "text",
+        "value" => ""
+    ),
+    "admin_contact" => array(
+        "type" => "string",
+        "value" => ""
+    ),
+    "registration" => array(
+        "type" => "choice:closed|invite|open",
+        "value" => "invite"
+    ),
+    "default_visibility" => array(
+        "type" => "choice:public|members|followers|private",
+        "value" => "members"
     )
 );
 
@@ -262,7 +289,6 @@ $permissions = array("admin", "moderator", "user");
 //columns added since the first release, added to existing tables when missing
 $columns = array(
     "users" => array(
-        "image" => "mediumblob NULL",
         //CSRF tokens are stored against the user since 0.2.0; databases from before the column existed lack it
         "csrf" => "varchar(256) NULL"
     ),
@@ -336,7 +362,11 @@ $migrations = array(
         "media_migrate_blobs"
     ),
     //follows, notifications and jobs are new tables, created above
-    6 => array()
+    6 => array(),
+    //password_resets is a new table; the old image BLOBs were copied to the media store in 5 (D11)
+    7 => array(
+        "media_drop_blobs"
+    )
 );
 
 function brands_check_table()
@@ -349,7 +379,7 @@ function brands_check_table()
     $table = (array)$table[0];
 
     if ($table != '00000') {
-        if ($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (brands)'] == "brands") {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (brands)'] ?? null) == "brands") {
             return true;
         } else {
             return false;
@@ -418,7 +448,7 @@ function categories_check_table()
     $table = (array)$table[0];
 
     if ($table != '00000') {
-        if ($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (categories)'] == "categories") {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (categories)'] ?? null) == "categories") {
             return true;
         } else {
             return false;
@@ -492,7 +522,7 @@ function settings_check_table()
     $table = (array)$table[0];
 
     if ($table != '00000') {
-        if ($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (settings)'] == "settings") {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (settings)'] ?? null) == "settings") {
             return true;
         } else {
             return false;
@@ -577,7 +607,7 @@ function permissions_check_table()
     $table = (array)$table[0];
 
     if ($table != '00000') {
-        if ($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (permissions)'] == "permissions") {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (permissions)'] ?? null) == "permissions") {
             return true;
         } else {
             return false;
@@ -644,7 +674,7 @@ function users_check_table()
     $table = (array)$table[0];
 
     if ($table != '00000') {
-        if ($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (users)'] == "users") {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (users)'] ?? null) == "users") {
             return true;
         } else {
             return false;
@@ -666,7 +696,6 @@ function users_create_table()
         permission int(11) DEFAULT 3,
         session	varchar(128) NULL,
         csrf varchar(256),
-        image mediumblob NULL,
         PRIMARY KEY(user_id)
     );";
 
@@ -686,7 +715,7 @@ function garments_check_table()
     $table = (array)$table[0];
 
     if ($table != '00000') {
-        if ($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (garments)'] == "garments") {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (garments)'] ?? null) == "garments") {
             return true;
         } else {
             return false;
@@ -705,7 +734,6 @@ function garments_create_table()
         garment_name varchar(128) NULL,
         description varchar(1024) NULL,
         tags varchar(512) NULL,
-        image mediumblob NULL,
         brand int(11) NULL,
         category int(11) NULL,
         timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -729,7 +757,7 @@ function outfits_check_table()
     $table = (array)$table[0];
 
     if ($table != '00000') {
-        if ($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (outfits)'] == "outfits") {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (outfits)'] ?? null) == "outfits") {
             return true;
         } else {
             return false;
@@ -748,7 +776,6 @@ function outfits_create_table()
         garments varchar(1024) NULL,
         description varchar(1024) NULL,
         tags varchar(512) NULL,
-        image mediumblob NULL,
         timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY(outfit_num)
     );";
@@ -936,6 +963,9 @@ function media_migrate_blobs()
         "outfits" => array("key" => "outfit_num", "owner" => "user")
     );
     foreach ($tables as $table => $columns) {
+        if (!column_exists($table, "image")) {
+            continue;
+        }
         $db = new Mysql();
         $rows = $db->Fetch("SELECT `" . $columns['key'] . "` AS id FROM `" . $table . "` WHERE `image` IS NOT NULL AND `media_id` IS NULL", null);
         if ($rows[0] == '00000') {
@@ -955,6 +985,27 @@ function media_migrate_blobs()
             $moved++;
         }
         echo "<br>moved " . $moved . " " . $table . " images to the media store";
+    }
+}
+
+/**
+ * schema 7: drop the image BLOB columns emptied by media_migrate_blobs() (D11). A table that still
+ * has an image that wasn't moved keeps its column, so nothing is lost.
+ */
+function media_drop_blobs()
+{
+    foreach (array("users", "garments", "outfits") as $table) {
+        if (!column_exists($table, "image")) {
+            continue;
+        }
+        $db = new Mysql();
+        $left = $db->Fetch("SELECT COUNT(*) AS n FROM `" . $table . "` WHERE `image` IS NOT NULL AND `media_id` IS NULL", null);
+        if ((int)$left[0]->n > 0) {
+            echo "<br>" . $table . ".image kept: " . (int)$left[0]->n . " images weren't moved to the media store";
+            continue;
+        }
+        $db->Fetch("ALTER TABLE `" . $table . "` DROP COLUMN `image`", null);
+        echo "<br>dropped " . $table . ".image";
     }
 }
 
@@ -1081,6 +1132,32 @@ function jobs_create_table()
     return jobs_check_table();
 }
 
+function password_resets_check_table()
+{
+    $db = new Mysql();
+    $row = $db->Fetch("SHOW TABLES LIKE 'password_resets'", null);
+    return $row[0] != '00000';
+}
+
+function password_resets_create_table()
+{
+    //only a hash of the token is stored, so a database leak can't be used to reset passwords
+    $sql = "CREATE TABLE password_resets(
+        reset_num int(11) NOT NULL AUTO_INCREMENT,
+        user_id int(11) NOT NULL,
+        token_hash char(64) NOT NULL,
+        expires_at timestamp NULL DEFAULT NULL,
+        used_at timestamp NULL DEFAULT NULL,
+        timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (reset_num),
+        UNIQUE KEY token_hash (token_hash),
+        KEY user_id (user_id)
+    ) CHARACTER SET utf8mb4";
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+    echo "<br>created password_resets table";
+}
+
 function column_exists($table, $column)
 {
     $params = array(':a' => $_ENV['DB_SCHEMA'], ':b' => $table, ':c' => $column);
@@ -1153,6 +1230,10 @@ $request = array(
     "first_name" => "web",
     "last_name" => "master"
 );
+//bin/ootd install names the first admin itself
+if (!empty($GLOBALS['cli_admin'])) {
+    $request = array_merge($request, $GLOBALS['cli_admin']);
+}
 if (!users_check_table()) {
     users_create_table();
     $user->create_user($request, true);
@@ -1222,6 +1303,13 @@ if (!jobs_check_table()) {
     jobs_create_table();
 } else {
     echo "<br>jobs table already complete";
+}
+
+//build password_resets table
+if (!password_resets_check_table()) {
+    password_resets_create_table();
+} else {
+    echo "<br>password_resets table already complete";
 }
 
 //build wears table

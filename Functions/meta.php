@@ -31,6 +31,7 @@ function meta_replace($buffer)
     $title = $GLOBALS['meta']['title'] ?? "outfit of the day";
     $description = $GLOBALS['meta']['description'] ?? "outfit of the day";
 
+    $buffer = str_replace("{instance_placeholder}", escape(function_exists("setting_get") ? instance_name() : "OOTD"), $buffer);
     $buffer = str_replace("{title_placeholder}", escape($title), $buffer);
     return str_replace("{description_placeholder}", escape($description), $buffer);
 }

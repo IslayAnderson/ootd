@@ -23,3 +23,43 @@ jobs:
         run: find . -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l > /dev/null
       - name: Unit tests
         run: vendor/bin/phpunit
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: |
+          cat > .env.docker <<ENV
+          APP_URL=http://localhost:8080
+          PWD_SEED=$(openssl rand -hex 32)
+          DB_SCHEMA=ootd
+          DB_USER=ootd
+          DB_PASS=$(openssl rand -hex 16)
+          ADMIN_USERNAME=admin
+          ADMIN_EMAIL=admin@example.test
+          ADMIN_PASSWORD=ci-admin-password
+          ENV
+      - name: Build and start
+        run: docker compose --env-file .env.docker up -d --build
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8080/health && exit 0
+            sleep 3
+          done
+          docker compose --env-file .env.docker logs
+          exit 1
+      - name: Smoke test
+        run: |
+          curl -fs http://localhost:8080/login | grep -q "Login"
+          curl -fs http://localhost:8080/about | grep -q "OOTD"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/.env)" = 403
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/vendor/autoload.php)" = 403
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/Classes/user/User.php)" = 403
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/vendor/tinymce/tinymce/tinymce.min.js)" = 200
+          curl -s -c jar -o /dev/null -d "email=admin@example.test&password=ci-admin-password" http://localhost:8080/API/user/auth.php
+          curl -fs -b jar http://localhost:8080/feed | grep -q "feed"
+          docker compose --env-file .env.docker exec -T web php bin/ootd health
+          docker compose --env-file .env.docker ps
+          docker compose --env-file .env.docker logs worker | tail -5
