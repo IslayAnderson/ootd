@@ -36,6 +36,43 @@ title_update("account");
         </form>
     </details>
 </section>
+<section class="followers" id="followers">
+    <h2>Followers</h2>
+    <?php list($followers, $following) = Follow::counts($user->get_user_id()); ?>
+    <p class="follow-counts">
+        <span><strong><?= $followers ?></strong> <?= $followers == 1 ? "follower" : "followers" ?></span>
+        <span><strong><?= $following ?></strong> following</span>
+    </p>
+    <?php
+    $db = new Mysql();
+    $approve = $db->Fetch("SELECT `approve_followers` FROM `users` WHERE `user_id` = :a", array(":a" => $user->get_user_id()));
+    ?>
+    <form action="/API/user/privacy.php" method="post" class="privacy-setting">
+        <?php CSRF_input(); ?>
+        <label class="checkbox">
+            <input type="checkbox" name="approve_followers"<?= (int)($approve[0]->approve_followers ?? 0) === 1 ? " checked" : "" ?>>
+            Approve new followers before they can see followers-only posts
+        </label>
+        <button type="submit" class="secondary">Save</button>
+    </form>
+    <?php $requests = Follow::requests($user->get_user_id()); ?>
+    <?php if (count($requests) > 0): ?>
+        <h3>Requests</h3>
+        <ul class="requests">
+            <?php foreach ($requests as $request): ?>
+                <li>
+                    <a href="/user/<?= escape($request->username) ?>"><?= escape($request->username) ?></a>
+                    <form action="/API/follow/respond.php" method="post">
+                        <?php CSRF_input(); ?>
+                        <input type="hidden" name="username" value="<?= escape($request->username) ?>">
+                        <button type="submit" name="answer" value="accept">Accept</button>
+                        <button type="submit" name="answer" value="decline" class="secondary">Decline</button>
+                    </form>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</section>
 <section class="new-post">
     <h2>New <em>post</em></h2>
     <div class="post">

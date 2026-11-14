@@ -15,7 +15,7 @@ require $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 use Dotenv\Dotenv;
 
 //bump this and add to $columns / $migrations below whenever the schema changes
-$schema_version = 5;
+$schema_version = 6;
 
 /**
  * @return bool true once the installer has run, installs from before 0.1.1 never set the "installed" setting
@@ -280,6 +280,8 @@ $columns = array(
         "tags" => "varchar(512) NULL"
     )
 );
+//0.9.0: accounts can ask to approve new followers
+$columns["users"]["approve_followers"] = "tinyint(1) NOT NULL DEFAULT 0";
 //0.8.0: photos live in the media table
 foreach (array("users", "garments", "outfits") as $media_table) {
     $columns[$media_table]["media_id"] = "varchar(64) NULL";
@@ -332,7 +334,9 @@ $migrations = array(
     5 => array(
         //images move out of BLOB columns, see media_migrate_blobs()
         "media_migrate_blobs"
-    )
+    ),
+    //follows, notifications and jobs are new tables, created above
+    6 => array()
 );
 
 function brands_check_table()
@@ -954,6 +958,129 @@ function media_migrate_blobs()
     }
 }
 
+function follows_check_table()
+{
+    $sql = "SHOW TABLES LIKE 'follows';";
+
+    $db = new Mysql();
+    $table = $db->Fetch($sql, null);
+
+    $table = (array)$table[0];
+
+    if ($table != '00000') {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (follows)'] ?? null) == "follows") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+function follows_create_table()
+{
+    $sql = "CREATE TABLE follows(
+        follow_num int(11) AUTO_INCREMENT,
+        follower_id int(11) NOT NULL,
+        followed_id int(11) NOT NULL,
+        state varchar(16) NOT NULL DEFAULT 'accepted',
+        timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(follow_num),
+        UNIQUE KEY follower_followed (follower_id, followed_id),
+        KEY followed_state (followed_id, state)
+    );";
+
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+
+    return follows_check_table();
+}
+
+function notifications_check_table()
+{
+    $sql = "SHOW TABLES LIKE 'notifications';";
+
+    $db = new Mysql();
+    $table = $db->Fetch($sql, null);
+
+    $table = (array)$table[0];
+
+    if ($table != '00000') {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (notifications)'] ?? null) == "notifications") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+function notifications_create_table()
+{
+    $sql = "CREATE TABLE notifications(
+        notification_num int(11) AUTO_INCREMENT,
+        user_id int(11) NOT NULL,
+        type varchar(32) NOT NULL,
+        actor_id int(11) NULL,
+        object varchar(128) NULL,
+        read_at timestamp NULL DEFAULT NULL,
+        timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(notification_num),
+        KEY user_read (user_id, read_at)
+    );";
+
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+
+    return notifications_check_table();
+}
+
+function jobs_check_table()
+{
+    $sql = "SHOW TABLES LIKE 'jobs';";
+
+    $db = new Mysql();
+    $table = $db->Fetch($sql, null);
+
+    $table = (array)$table[0];
+
+    if ($table != '00000') {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (jobs)'] ?? null) == "jobs") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+function jobs_create_table()
+{
+    $sql = "CREATE TABLE jobs(
+        job_num int(11) AUTO_INCREMENT,
+        type varchar(64) NOT NULL,
+        payload text NULL,
+        run_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        attempts int(11) NOT NULL DEFAULT 0,
+        last_error varchar(1024) NULL,
+        locked_at timestamp NULL DEFAULT NULL,
+        lock_token varchar(64) NULL,
+        done_at timestamp NULL DEFAULT NULL,
+        failed_at timestamp NULL DEFAULT NULL,
+        timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(job_num),
+        KEY due (done_at, failed_at, run_at)
+    );";
+
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+
+    return jobs_check_table();
+}
+
 function column_exists($table, $column)
 {
     $params = array(':a' => $_ENV['DB_SCHEMA'], ':b' => $table, ':c' => $column);
@@ -1074,6 +1201,27 @@ if (!media_check_table()) {
     media_create_table();
 } else {
     echo "<br>media table already complete";
+}
+
+//build follows table
+if (!follows_check_table()) {
+    follows_create_table();
+} else {
+    echo "<br>follows table already complete";
+}
+
+//build notifications table
+if (!notifications_check_table()) {
+    notifications_create_table();
+} else {
+    echo "<br>notifications table already complete";
+}
+
+//build jobs table
+if (!jobs_check_table()) {
+    jobs_create_table();
+} else {
+    echo "<br>jobs table already complete";
 }
 
 //build wears table
