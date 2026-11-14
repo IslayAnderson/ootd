@@ -9,7 +9,7 @@
   <meta content="<?= $_SESSION['CSRF']['token'] ?>" name="csrf-token" />
   <link rel="preload" href="/Assets/fonts/newsreader-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/Assets/fonts/inter-tight-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" type="text/css" href="/Assets/stylesheets/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="<?= asset_url("/Assets/stylesheets/css/main.css") ?>" />
   <link rel="icon" href="/Assets/images/favicon.png">
 </head>
 <body>
