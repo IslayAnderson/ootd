@@ -456,6 +456,7 @@ class User
         $sql = "SELECT users.user_id, users.username, users.email, users.first_name, users.last_name, users.permission,
                        users.session IS NOT NULL AS has_session, permissions.permission AS permission_name
                 FROM `users` LEFT JOIN `permissions` ON users.permission = permissions.permission_id
+                WHERE users.deleted_at IS NULL
                 ORDER BY users.user_id";
 
         $db = new Mysql();
@@ -574,7 +575,7 @@ class User
     public function get_user_id_from_username($input)
     {
         $params = array(':a' => $input);
-        $sql = 'SELECT `user_id` FROM `users` WHERE `username` = :a';
+        $sql = 'SELECT `user_id` FROM `users` WHERE `username` = :a AND `deleted_at` IS NULL';
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
         if ($row[0] == '00000') {

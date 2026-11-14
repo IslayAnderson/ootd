@@ -75,6 +75,8 @@ needs an answer before the work that depends on it).
 | D50 | 0.13.1 | Long-form posts are called **Journal** entries in the interface; their URLs (`/user/<name>/blog/<id>`), tables and code keep "blog". | "Blog" now means the whole install. Renaming URLs would break links already shared. | assumed |
 | D51 | 0.13.3 | Uploaded logos go through the media store (PNG, JPEG or WebP, resized); SVG isn't accepted. | SVG files can carry scripts, and the media store already handles resizing and storage. The bundled wordmark stays SVG. | assumed |
 | D52 | 0.13.3 | Old HTML in plain-text fields is cleaned when shown, not rewritten in the database. | The stored text stays as written; the clean-up is the same for every reader and needs no migration. Editing and saving the post stores it without the tags. | assumed |
+| D53 | 0.13.4 | Deleted accounts stay as tombstone rows (username kept, everything personal cleared) rather than being removed. | Other blogs know the account by its username; letting someone new take it would let them inherit its follows and reputation there. Mastodon does the same. | assumed |
+| D54 | 0.13.4 | Deleting from the users tab needs the username typed, not a second click. | Both actions can't be undone and sit next to each other. | assumed |
 
 ## Questions
 

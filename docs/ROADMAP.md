@@ -395,6 +395,23 @@ Schema 11. Each install now presents itself as a blog, and other servers as othe
   line breaks become breaks, entities become characters, other tags are dropped (pages, edit
   forms, meta descriptions and what other blogs receive). Text such as "I <3 it" is left alone.
 
+### 0.13.4 — Deleting users, public feed ✅
+
+Schema 12.
+
+- **Users tab → Delete…**: type the username to confirm, then
+  - **Delete content**: their outfits, garments, journal entries, comments, wears and likes. Other
+    blogs are sent Delete for what they had (and Undo for likes). The account stays.
+  - **Delete user**: their content, then the account. Followers on other blogs are sent Delete for
+    the whole account, follows elsewhere get Undo, and local follows, notifications and resets go.
+    The row stays as a tombstone (`users.deleted_at`, no email, password, name or photo) so the
+    username can't be taken by someone else; the profile is 404 and the actor 410 Gone (D53).
+  - An admin can't delete themselves from here.
+- **Settings → Public feed**: guests can open the feed (and `/`) and see the Local tab, public
+  posts only, with a line inviting them to log in or join. Off by default.
+- Tests: 27 checks (deletion both kinds, what the other blog receives, confirmation, permissions,
+  tombstone, public feed).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

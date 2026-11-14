@@ -24,6 +24,14 @@ class GuestPathTest extends TestCase
     #[\PHPUnit\Framework\Attributes\DataProvider('refused')]
     public function testRefused($path): void
     {
-        $this->assertFalse(guest_path_allowed($path));
+        $this->assertFalse(guest_path_allowed($path, false));
+    }
+
+    public function testPublicFeed(): void
+    {
+        $this->assertTrue(guest_path_allowed("/feed", true));
+        $this->assertTrue(guest_path_allowed("/", true));
+        $this->assertFalse(guest_path_allowed("/", false));
+        $this->assertFalse(guest_path_allowed("/account", true));
     }
 }

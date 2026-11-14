@@ -97,7 +97,7 @@ body > div.accordion {
     border-bottom: solid 1px $mid-grey;
     margin: 0;
 
-    .logo-upload .current img {
+    &.logo-upload .current img {
       display: block;
       height: 2rem;
       width: auto;
@@ -113,5 +113,40 @@ body > div.accordion {
   button {
     align-self: flex-start;
     margin-top: 1rem;
+  }
+}
+
+//users tab: delete content or the whole user (0.13.4); opens below the row's other controls
+details.danger {
+  summary {
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: 18rem;
+    max-width: 70vw;
+    margin-top: 0.5rem;
+    white-space: normal;
+
+    label {
+      width: 100%;
+      font-family: $sans;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    input[type="text"] {
+      margin: 0.25rem 0 0;
+    }
+
+    p {
+      margin: 0.5rem 0 0;
+      font-size: 0.8rem;
+    }
   }
 }

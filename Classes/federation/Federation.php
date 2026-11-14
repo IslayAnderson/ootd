@@ -73,8 +73,19 @@ class Federation
     public static function local_user($username)
     {
         $db = new Mysql();
-        $row = $db->Fetch("SELECT `user_id`, `username`, `media_id`, `approve_followers` FROM `users` WHERE `username` = :a", array(":a" => (string)$username));
+        $row = $db->Fetch("SELECT `user_id`, `username`, `media_id`, `approve_followers` FROM `users` WHERE `username` = :a AND `deleted_at` IS NULL", array(":a" => (string)$username));
         return $row[0] != '00000' ? $row[0] : null;
+    }
+
+    /**
+     * @param string $username
+     * @return bool an account an admin deleted (its actor answers 410 Gone)
+     */
+    public static function deleted_user($username): bool
+    {
+        $db = new Mysql();
+        $row = $db->Fetch("SELECT 1 AS yes FROM `users` WHERE `username` = :a AND `deleted_at` IS NOT NULL", array(":a" => (string)$username));
+        return $row[0] != '00000';
     }
 
     /**
