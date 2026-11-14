@@ -25,7 +25,7 @@ class Blog
         }
         $sql = "SELECT blogs.*, users.username FROM `blogs`
                 JOIN `users` ON blogs.user = users.user_id
-                WHERE blogs.`user` = :a" . $filter . "order by blogs.`timestamp` DESC LIMIT " . (int)$limit;
+                WHERE blogs.`user` = :a AND " . visibility_where("blogs", "user") . $filter . "order by blogs.`timestamp` DESC LIMIT " . (int)$limit;
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
@@ -34,6 +34,9 @@ class Blog
         }
         foreach ($row as $index => $blog) {
             $this->blogs[$index]['blog_id'] = $blog->blog_id;
+            $this->blogs[$index]['blog_num'] = $blog->blog_num;
+            $this->blogs[$index]['visibility'] = $blog->visibility;
+            $this->blogs[$index]['outfit_nums'] = json_decode((string)$blog->outfits) ?: array();
             $this->blogs[$index]['user'] = $blog->user;
             $this->blogs[$index]['username'] = $blog->username;
             $this->blogs[$index]['blog_title'] = $blog->title;
@@ -46,7 +49,7 @@ class Blog
             $garments = json_decode((string)$blog->garments) ?: array();
             if (count($outfits) > 0) {
                 foreach ($outfits as $outfit) {
-                    $sql = "SELECT * FROM `outfits` WHERE outfit_num = :a";
+                    $sql = "SELECT * FROM `outfits` WHERE outfit_num = :a AND " . visibility_where("outfits", "user");
                     $db = new Mysql();
                     $row = $db->Fetch($sql, array(":a" => $outfit));
                     if ($row[0] != '00000') {
@@ -56,7 +59,7 @@ class Blog
             }
             if (count($garments) > 0) {
                 foreach ($garments as $garment) {
-                    $sql = "SELECT * FROM `garments` WHERE garment_num = :a";
+                    $sql = "SELECT * FROM `garments` WHERE garment_num = :a AND " . visibility_where("garments", "user_id");
                     $db = new Mysql();
                     $row = $db->Fetch($sql, array(":a" => $garment));
                     if ($row[0] != '00000') {
@@ -125,6 +128,9 @@ class Blog
                 <div class="info">
                     <time datetime="<?= escape($blog['timestamp']) ?>"><?= escape(date_display($blog['timestamp'])) ?></time>
                     <a href="/user/<?= escape($blog['username']) ?>"><?= escape($blog['username']) ?></a>
+                    <?php if ($blog['user'] == ($_SESSION['user_id'] ?? null)): ?>
+                        <span class="visibility"><?= escape(visibility_options()[$blog['visibility']] ?? "") ?></span>
+                    <?php endif; ?>
                 </div>
                 <p class="excerpt"><?= escape($blog['blog_excerpt']) ?></p>
                 <div class="content">
@@ -150,15 +156,7 @@ class Blog
         }
 
         //only the author's own outfits can be attached
-        $outfits = array();
-        foreach ((array)$request['outfits'] as $outfit_num) {
-            $sql = "SELECT `outfit_num` FROM `outfits` WHERE `user` = :a AND `outfit_num` = :b";
-            $db = new Mysql();
-            $row = $db->Fetch($sql, array(":a" => $request['user_id'], ":b" => (int)$outfit_num));
-            if ($row[0] != '00000') {
-                $outfits[] = (int)$row[0]->outfit_num;
-            }
-        }
+        $outfits = self::owned_outfits($request['user_id'], $request['outfits'] ?? array());
 
         $blog_id = md5(id_gen());
 
@@ -169,16 +167,97 @@ class Blog
             ":d" => mb_substr(trim((string)$request['excerpt']), 0, 1024),
             ":e" => sanitise_html($request['content']),
             ":f" => json_encode(array_values(array_unique($outfits))),
-            ":g" => json_encode(array())
+            ":g" => json_encode(array()),
+            ":h" => visibility_normalise($request['visibility'] ?? null)
         );
 
-        $sql = 'INSERT INTO `blogs` (`blog_id`, `user`, `title`, `excerpt`, `content`, `outfits`, `garments`)
-                VALUES (:a, :b, :c, :d, :e, :f, :g)';
+        $sql = 'INSERT INTO `blogs` (`blog_id`, `user`, `title`, `excerpt`, `content`, `outfits`, `garments`, `visibility`)
+                VALUES (:a, :b, :c, :d, :e, :f, :g, :h)';
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
 
         return $blog_id;
+    }
+
+    /**
+     * @param $user_id
+     * @param $outfit_nums
+     * @return array the outfit_nums that belong to the user
+     */
+    private static function owned_outfits($user_id, $outfit_nums): array
+    {
+        $outfits = array();
+        foreach ((array)$outfit_nums as $outfit_num) {
+            $sql = "SELECT `outfit_num` FROM `outfits` WHERE `user` = :a AND `outfit_num` = :b AND `deleted_at` IS NULL";
+            $db = new Mysql();
+            $row = $db->Fetch($sql, array(":a" => $user_id, ":b" => (int)$outfit_num));
+            if ($row[0] != '00000') {
+                $outfits[] = (int)$row[0]->outfit_num;
+            }
+        }
+        return array_values(array_unique($outfits));
+    }
+
+    /**
+     * @param $user_id
+     * @param $blog_id public blog_id
+     * @return int|null blog_num when the user owns that blog and it isn't deleted
+     */
+    public static function owned_num($user_id, $blog_id): ?int
+    {
+        $sql = "SELECT `blog_num` FROM `blogs` WHERE `blog_id` = :a AND `user` = :b AND `deleted_at` IS NULL";
+        $db = new Mysql();
+        $row = $db->Fetch($sql, array(":a" => (string)$blog_id, ":b" => (int)$user_id));
+        return $row[0] != '00000' ? (int)$row[0]->blog_num : null;
+    }
+
+    /**
+     * @param array $request user_id, blog_id, title, excerpt, content (html), outfits (outfit_nums), visibility
+     * @return void
+     * @throws Exception
+     */
+    public function update_blog($request = null): void
+    {
+        $blog_num = self::owned_num($request['user_id'] ?? 0, $request['blog_id'] ?? "");
+        if (empty($blog_num)) {
+            throw new Exception('Blog not found');
+        }
+        if (trim((string)($request['title'] ?? "")) == "") {
+            throw new Exception('Blog title missing');
+        }
+
+        $params = array(
+            ":a" => $blog_num,
+            ":b" => mb_substr(trim($request['title']), 0, 256),
+            ":c" => mb_substr(trim((string)($request['excerpt'] ?? "")), 0, 1024),
+            ":d" => sanitise_html($request['content'] ?? ""),
+            ":e" => json_encode(self::owned_outfits($request['user_id'], $request['outfits'] ?? array())),
+            ":f" => visibility_normalise($request['visibility'] ?? null)
+        );
+        $sql = 'UPDATE `blogs` SET `title` = :b, `excerpt` = :c, `content` = :d, `outfits` = :e, `visibility` = :f, `updated_at` = NOW()
+                WHERE `blog_num` = :a';
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+    }
+
+    /**
+     * @param $user_id
+     * @param $blog_id
+     * @return void
+     * @throws Exception
+     */
+    public static function delete_blog($user_id, $blog_id): void
+    {
+        $blog_num = self::owned_num($user_id, $blog_id);
+        if (empty($blog_num)) {
+            throw new Exception('Blog not found');
+        }
+
+        $sql = 'UPDATE `blogs` SET `deleted_at` = NOW() WHERE `blog_num` = :a';
+        $db = new Mysql();
+        $db->Fetch($sql, array(":a" => $blog_num));
     }
 
 }

@@ -10,7 +10,7 @@ require $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 use Dotenv\Dotenv;
 
 //bump this and add to $columns / $migrations below whenever the schema changes
-$schema_version = 2;
+$schema_version = 3;
 
 /**
  * @return bool true once the installer has run, installs from before 0.1.1 never set the "installed" setting
@@ -47,6 +47,13 @@ if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
             exit();
         }
         $upgrading = true;
+
+        //installs from before 0.7.0 have no APP_URL, take it from the address the admin is using
+        if (empty($_ENV['APP_URL'])) {
+            file_put_contents(__DIR__ . '/.env', "\nAPP_URL=" . app_url() . "\n", FILE_APPEND);
+            $_ENV['APP_URL'] = app_url();
+            echo "<br>set APP_URL to " . escape($_ENV['APP_URL']);
+        }
     }
 }
 
@@ -64,7 +71,9 @@ $env_rules = array(
     "DB_SCHEMA" => !empty($_POST['schema']) ? $_POST['schema'] : "ootd",
     "PWD_SEED" => str_split(id_gen(), 30)[1],
     //self-hosted TinyMCE is GPL, swap for a commercial key if you have one
-    "TINYMCE" => "gpl"
+    "TINYMCE" => "gpl",
+    //every public link and, later, every federated id is built from this, so it shouldn't change once set
+    "APP_URL" => filter_var($_POST['app_url'] ?? "", FILTER_VALIDATE_URL) ? rtrim($_POST['app_url'], "/") : app_url()
 );
 $env_rules_string = "";
 
@@ -244,6 +253,12 @@ $columns = array(
         "timestamp" => "timestamp DEFAULT CURRENT_TIMESTAMP"
     )
 );
+//0.7.0: who can see each post, plus edit and soft delete
+foreach (array("garments", "outfits", "blogs") as $post_table) {
+    $columns[$post_table]["visibility"] = "varchar(16) NOT NULL DEFAULT 'members'";
+    $columns[$post_table]["updated_at"] = "timestamp NULL DEFAULT NULL";
+    $columns[$post_table]["deleted_at"] = "timestamp NULL DEFAULT NULL";
+}
 
 //one-off data changes, run once each when upgrading past that version
 $migrations = array(
@@ -257,6 +272,19 @@ $migrations = array(
     2 => array(
         //session ids are checked against this on every request since 0.4.0
         "ALTER TABLE `users` MODIFY `session` varchar(128) NULL"
+    ),
+    3 => array(
+        //the connection asked for utf8mb4 incorrectly before 0.7.0 (AUDIT F16), make sure every table stores it
+        "ALTER TABLE `users` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `garments` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `outfits` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `blogs` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `brands` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `categories` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `invites` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `wears` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `settings` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "ALTER TABLE `permissions` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci"
     )
 );
 

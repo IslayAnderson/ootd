@@ -13,7 +13,8 @@ try {
         "tags"          =>  $_POST['tags'] ?? "",
         "brand"         =>  $_POST['brand'] ?? "",
         "category"      =>  $_POST['category'] ?? "",
-        "image"         =>  image_upload($_FILES['image'] ?? null, false)
+        "image"         =>  image_upload($_FILES['image'] ?? null, false),
+        "visibility"    =>  $_POST['visibility'] ?? ""
     );
 
     $garment->create_garment($request);

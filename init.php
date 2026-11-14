@@ -46,18 +46,8 @@ if (!file_exists($target_css) || setting_get("recompile_sass", 1) == 1) {
     $GLOBALS['sass_gen'] = "true";
 }
 
-//pages and API endpoints guests are allowed to reach
-$guest_paths = array(
-    "/login",
-    "/signup",
-    "/invite",
-    "/API/user/auth.php",
-    "/API/user/create.php",
-    "/API/user/invite.php"
-);
-
 if (!isset($_SESSION['user_id'])) {
-    if (!in_array(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), $guest_paths)) {
+    if (!guest_path_allowed(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))) {
         header("location: /login");
         exit();
     }

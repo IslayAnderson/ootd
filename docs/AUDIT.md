@@ -87,7 +87,7 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | B9 | Low | `partials/user_table.php` and `partials/settings.php` are static mock-ups with real-looking personal data. | 0.4.0 |
 | B10 | Low | `Pages/index.php` sends a redirect header then renders anyway. | — |
 
-### Found while building 0.1.1 – 0.6.0
+### Found while building 0.1.1 – 0.7.0
 
 | # | Sev | Finding | Fix |
 | --- | --- | --- | --- |
@@ -106,7 +106,8 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | F13 | Low *(read)* | `Mysql::Fetch()` binds every value as `PDO::PARAM_STR` and then passes `$params` to `execute()` again; works, but the bind loop is redundant. | — |
 | F14 | Medium | `Post\Outfit` selected `outfits.*` and `garments.*` together, so the garment's `timestamp` overwrote the outfit's and posts showed the wrong date. | 0.6.0 |
 | F15 | Low *(read)* | Pages load Google Fonts, and insights loads Chartist from cdnjs: third-party requests, disclosed on `/privacy`. Self-hosting would remove them. | — |
-| F16 | Low *(read)* | `Mysql` builds its DSN with `;mysql:charset=utf8mb4;`, which PDO ignores, so the connection charset is whatever the server defaults to. Should be `;charset=utf8mb4;`. | — (FEDERATION 0.7.0) |
+| F16 | Low *(read)* | `Mysql` builds its DSN with `;mysql:charset=utf8mb4;`, which PDO ignores, so the connection charset is whatever the server defaults to. Should be `;charset=utf8mb4;`. | 0.7.0 |
+| F17 | Low | The garment page showed "Last worn" to every member, so anyone could see when someone else wore something. Wears are now only shown to their owner. | 0.7.0 |
 
 ### Status on `claude/development`
 

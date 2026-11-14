@@ -12,6 +12,9 @@ title_update("account");
     <?php if (!empty($_GET['posted'])): ?>
         <p class="notice">Your <?= escape($_GET['posted']) ?> has been saved.</p>
     <?php endif; ?>
+    <?php if (!empty($_GET['deleted'])): ?>
+        <p class="notice">Your <?= escape($_GET['deleted']) ?> has been deleted.</p>
+    <?php endif; ?>
     <details class="photo">
         <summary>Change photo</summary>
         <form action="/API/user/avatar.php" method="post" enctype="multipart/form-data">
@@ -71,7 +74,7 @@ title_update("account");
                     <select name="outfits[]" multiple>
                         <?php
                         $params = array(":a" => $user->get_user_id());
-                        $sql = "SELECT `outfit_num`, `description`, `timestamp` FROM `outfits` WHERE `user` = :a order by `timestamp` DESC limit 100";
+                        $sql = "SELECT `outfit_num`, `description`, `timestamp` FROM `outfits` WHERE `user` = :a AND `deleted_at` IS NULL order by `timestamp` DESC limit 100";
                         $db = new Mysql();
                         $own_outfits = $db->Fetch($sql, $params);
                         if ($own_outfits[0] != '00000'):
@@ -83,6 +86,7 @@ title_update("account");
                         endif; ?>
                     </select>
                 </label>
+                <?php visibility_select(); ?>
                 <input type="submit" value="" title="Post" class="btn post">
             </form>
         </div>
@@ -107,6 +111,7 @@ title_update("account");
                     Outfit Photo
                     <input type="file" name="image" accept="image/*" placeholder="Pick photo..." required>
                 </label>
+                <?php visibility_select(); ?>
                 <input type="submit" value="" title="Post" class="btn post">
             </form>
         </div>
@@ -147,6 +152,7 @@ title_update("account");
                     Photo
                     <input type="file" name="image" accept="image/*">
                 </label>
+                <?php visibility_select(); ?>
                 <input type="submit" value="" title="Post" class="btn post">
             </form>
         </div>
@@ -172,7 +178,7 @@ title_update("account");
     $params = array(":a" => $user->get_user_id()); //todo: sanitize this
     $sql = "SELECT `outfit_num` FROM `outfits` 
                     join `users` on outfits.user = users.user_id
-                    where users.user_id = :a order by outfits.timestamp DESC limit 30";
+                    where users.user_id = :a AND " . visibility_where("outfits", "user") . " order by outfits.timestamp DESC limit 30";
     $db = new Mysql();
     $row = $db->Fetch($sql, $params);
 

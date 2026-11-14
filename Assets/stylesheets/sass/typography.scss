@@ -62,3 +62,19 @@ time, .kicker {
     @include display(2.2rem);
   }
 }
+
+//who can see a post, only shown to its owner
+.visibility {
+  @include kicker(0.6rem);
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border: $rule;
+}
+
+a.permalink {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

@@ -121,7 +121,7 @@ class Insights
         $params = array(":a" => $this->user_id);
         $sql = "SELECT garments.garment_id, garments.garment_name, garments.image, COUNT(DISTINCT wears.worn_on) AS worn
                 FROM `wears` JOIN `garments` ON wears.garment_num = garments.garment_num
-                WHERE wears.user = :a
+                WHERE wears.user = :a AND garments.deleted_at IS NULL
                 GROUP BY garments.garment_num
                 ORDER BY worn DESC, garments.garment_name
                 LIMIT " . (int)$limit;
@@ -142,7 +142,7 @@ class Insights
         $sql = "SELECT garments.garment_id, garments.garment_name, garments.description, garments.image,
                        garments.timestamp AS added, MAX(wears.worn_on) AS last_worn
                 FROM `garments` LEFT JOIN `wears` ON wears.garment_num = garments.garment_num
-                WHERE garments.user_id = :a
+                WHERE garments.user_id = :a AND garments.deleted_at IS NULL
                 GROUP BY garments.garment_num
                 ORDER BY COALESCE(MAX(wears.worn_on), DATE(garments.timestamp)) ASC
                 LIMIT " . (int)$limit;

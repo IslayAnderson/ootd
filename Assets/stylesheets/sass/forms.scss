@@ -4,7 +4,7 @@ label {
   margin-bottom: 0.25rem;
 }
 
-input[type="text"], input[type="email"], input[type="password"], input:not([type]), textarea, select {
+input[type="text"], input[type="email"], input[type="password"], input[type="url"], input:not([type]), textarea, select {
   width: 100%;
   padding: 0.5rem 0;
   margin-bottom: 1rem;
@@ -64,5 +64,27 @@ details {
   form {
     margin-top: 1rem;
     text-align: left;
+  }
+}
+
+//owner-only edit and delete controls under a garment, outfit or blog
+section.edit {
+  details {
+    margin-top: 0;
+
+    summary {
+      @include kicker(0.85rem);
+    }
+
+    form button[type="submit"] {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+  }
+
+  form.delete {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: solid 1px $mid-grey;
   }
 }

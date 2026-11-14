@@ -23,3 +23,14 @@ function tags_split($tags): array
 {
     return array_filter(explode(",", (string)$tags));
 }
+
+/**
+ * @param $tags stored comma separated tags
+ * @return string "#one #two", for edit forms
+ */
+function tags_display($tags): string
+{
+    return implode(" ", array_map(function ($tag) {
+        return "#" . $tag;
+    }, tags_split($tags)));
+}
