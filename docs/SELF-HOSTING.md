@@ -122,7 +122,7 @@ others, also set `S3_PATH_STYLE=1` if they don't support bucket subdomains.
 
 Each OOTD install presents itself to its members as a blog, and other servers (other OOTD installs,
 Mastodon and the rest of the Fediverse) as other blogs. Give yours a name in `/admin` → Settings →
-**Blog name**: other OOTD blogs show your members as "mia from *Blog name*". While it is still
+**Blog name**, and under **Logo** choose the OOTD wordmark, upload an image, or show the name as text: other OOTD blogs show your members as "mia from *Blog name*". While it is still
 the default ("OOTD"), they show your domain instead.
 
 **Connect with other blogs** turns ActivityPub on or off. When it's on, members can follow

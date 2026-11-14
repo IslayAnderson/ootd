@@ -8,8 +8,8 @@ if (count($blog->blogs) == 0) {
     return;
 }
 
-title_update($blog->blogs[0]['blog_title']);
-description_update($blog->blogs[0]['blog_excerpt']);
+title_update(plain_text($blog->blogs[0]['blog_title']));
+description_update(plain_text($blog->blogs[0]['blog_excerpt']));
 ?>
 <section class="blog">
     <?php if (!empty($_GET['saved'])): ?>
@@ -29,11 +29,11 @@ if ($post['user'] == ($_SESSION['user_id'] ?? null)): ?>
                 <input type="hidden" name="blog_id" value="<?= escape($post['blog_id']) ?>">
                 <label>
                     Title
-                    <input type="text" name="title" maxlength="256" value="<?= escape($post['blog_title']) ?>" required>
+                    <input type="text" name="title" maxlength="256" value="<?= escape(plain_text($post['blog_title'])) ?>" required>
                 </label>
                 <label>
                     Excerpt
-                    <textarea name="excerpt" maxlength="1024"><?= escape($post['blog_excerpt']) ?></textarea>
+                    <textarea name="excerpt" maxlength="1024"><?= escape(plain_text($post['blog_excerpt'])) ?></textarea>
                 </label>
                 <label>
                     Content

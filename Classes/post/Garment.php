@@ -78,7 +78,7 @@ class Garment
                         <?php endif; ?>
                         <?= escape($garment['garment_name']) ?>
                     </h1>
-                    <p><?= escape($garment['garment_description']) ?></p>
+                    <p><?= text_html($garment['garment_description']) ?></p>
                 </div>
                 <figure>
                     <img src="<?= $garment['garment_image'] ?>" alt="<?= escape($garment['alt_text'] ?: $garment['garment_name']) ?>">

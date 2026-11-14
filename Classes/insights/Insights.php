@@ -208,7 +208,7 @@ class Insights
             <a href="/garment/<?= escape($garment->garment_id) ?>">
                 <img loading="lazy"
                      src="<?= media_url($garment->media_id, "thumb") ?>"
-                     alt="<?= escape($garment->description) ?>"
+                     alt="<?= escape(plain_text($garment->description)) ?>"
                 >
             </a>
         </div>

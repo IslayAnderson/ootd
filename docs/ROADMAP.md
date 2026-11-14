@@ -382,6 +382,19 @@ Schema 11. Each install now presents itself as a blog, and other servers as othe
 - Cloudflare's email obfuscation took profile addresses (`name@domain`) for email addresses and
   showed "[email protected]" instead. They are now marked `email_off`, which Cloudflare leaves alone.
 
+### 0.13.3 — Logo, search box, old line breaks ✅
+
+- **Logo**: Settings → Logo picks the OOTD wordmark, an uploaded image (PNG, JPEG or WebP; uploading
+  one switches to it and replaces the previous one) or the blog name set in type. Used in the top
+  bar and on the login page; the uploaded image is public and never purged as an orphan.
+- Images under `/Assets` (logo, favicon, default avatar) now carry a version like the stylesheet,
+  so browsers that cached the pre-0.6.1 logo for a year fetch the current one.
+- The feed and `/search` search fields are styled like the other fields (underlined, no browser box).
+- Descriptions, journal titles and excerpts written before 0.7.0 held `<br>` tags and entities
+  like `&rsquo;`, which showed as text once output was escaped. They are now read as plain text:
+  line breaks become breaks, entities become characters, other tags are dropped (pages, edit
+  forms, meta descriptions and what other blogs receive). Text such as "I <3 it" is left alone.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

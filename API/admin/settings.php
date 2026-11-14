@@ -17,6 +17,17 @@ try {
         }
     }
 
+    //a new logo image replaces the old one and becomes the logo
+    if (($_FILES['logo_image']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        $previous = (string)setting_get("logo_media", "");
+        $media_id = Media::store_upload($_FILES['logo_image'], $_SESSION['user_id'], "Logo of " . instance_name());
+        setting_set("logo_media", $media_id, "media");
+        setting_set("logo", "image");
+        if ($previous !== "" && $previous !== $media_id) {
+            Media::remove($previous);
+        }
+    }
+
     header('Location: /admin#settings');
     exit();
 } catch (Exception $e) {

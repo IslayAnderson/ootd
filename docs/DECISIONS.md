@@ -73,6 +73,8 @@ needs an answer before the work that depends on it).
 | D48 | 0.13.1 | Each install is presented as a blog: people elsewhere are shown as "name from Blog name", with no @; "server", "host" and "elsewhere" are "blog" in the interface. The protocol, notifications as stored, and profile addresses (`/@name@host`) are unchanged. | Asked for by the owner. Only what members see changes, so Mastodon and other servers are unaffected; Mastodon users still see `@name@host`. | asked |
 | D49 | 0.13.1 | A blog's name is its own `nodeinfo` `nodeName`, looked up in the background and again weekly. The address is shown instead when the name is missing, is a software default (OOTD, Mastodon, …), matches this blog's name, or is shared by two blogs known here. | Names aren't unique or verified; falling back to the address keeps two blogs from looking like one. | assumed |
 | D50 | 0.13.1 | Long-form posts are called **Journal** entries in the interface; their URLs (`/user/<name>/blog/<id>`), tables and code keep "blog". | "Blog" now means the whole install. Renaming URLs would break links already shared. | assumed |
+| D51 | 0.13.3 | Uploaded logos go through the media store (PNG, JPEG or WebP, resized); SVG isn't accepted. | SVG files can carry scripts, and the media store already handles resizing and storage. The bundled wordmark stays SVG. | assumed |
+| D52 | 0.13.3 | Old HTML in plain-text fields is cleaned when shown, not rewritten in the database. | The stored text stays as written; the clean-up is the same for every reader and needs no migration. Editing and saving the post stores it without the tags. | assumed |
 
 ## Questions
 

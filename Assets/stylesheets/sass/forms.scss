@@ -4,7 +4,7 @@ label {
   margin-bottom: 0.25rem;
 }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="url"], input:not([type]), textarea, select {
+input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="search"], input[type="number"], input:not([type]), textarea, select {
   width: 100%;
   padding: 0.5rem 0;
   margin-bottom: 1rem;
@@ -39,6 +39,12 @@ select[multiple] {
   border: $rule;
   padding: 0.25rem;
   min-height: 7rem;
+}
+
+//browsers draw search fields as rounded boxes of their own
+input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 input[type="file"] {

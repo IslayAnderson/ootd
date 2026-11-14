@@ -11,7 +11,7 @@ if (!$outfit->viewable()) {
 
 title_update("Outfit by " . $outfit->user['username']);
 if (!empty($outfit->description)) {
-    description_update($outfit->description);
+    description_update(plain_text($outfit->description));
 }
 ?>
 <section class="header">
@@ -36,7 +36,7 @@ if (!empty($outfit->description)) {
                 <input type="hidden" name="outfit_id" value="<?= escape($outfit->outfit_id) ?>">
                 <label>
                     Caption
-                    <textarea name="description" maxlength="1024"><?= escape($outfit->description) ?></textarea>
+                    <textarea name="description" maxlength="1024"><?= escape(plain_text($outfit->description)) ?></textarea>
                 </label>
                 <label>
                     Garments

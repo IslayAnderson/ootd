@@ -100,12 +100,12 @@ class Blog
                     <img loading="lazy" src="<?= $image[0] ?>" alt="<?= escape($image[1]) ?>" width="33%">
                 <?php endif; ?>
                 <div>
-                    <a title="<?= escape($blog['blog_title']) ?>"
+                    <a title="<?= escape(plain_text($blog['blog_title'])) ?>"
                        href="/user/<?= escape($blog['username']) ?>/blog/<?= escape($blog['blog_id']) ?>">
-                        <h3><?= escape($blog['blog_title']) ?></h3>
+                        <h3><?= escape(plain_text($blog['blog_title'])) ?></h3>
                     </a>
                     <time datetime="<?= escape($blog['timestamp']) ?>"><?= escape(date_display($blog['timestamp'])) ?></time>
-                    <p><?= escape($blog['blog_excerpt']) ?></p>
+                    <p><?= text_html($blog['blog_excerpt']) ?></p>
                 </div>
             </article>
         <?php
@@ -124,7 +124,7 @@ class Blog
         foreach ($this->blogs as $blog):
             ?>
             <article class="blog-post" dataset-blog-id="<?= escape($blog['blog_id']) ?>">
-                <h1><?= escape($blog['blog_title']) ?></h1>
+                <h1><?= escape(plain_text($blog['blog_title'])) ?></h1>
                 <div class="info">
                     <time datetime="<?= escape($blog['timestamp']) ?>"><?= escape(date_display($blog['timestamp'])) ?></time>
                     <a href="/user/<?= escape($blog['username']) ?>"><?= escape($blog['username']) ?></a>
@@ -132,7 +132,7 @@ class Blog
                         <span class="visibility"><?= escape(visibility_options()[$blog['visibility']] ?? "") ?></span>
                     <?php endif; ?>
                 </div>
-                <p class="excerpt"><?= escape($blog['blog_excerpt']) ?></p>
+                <p class="excerpt"><?= text_html($blog['blog_excerpt']) ?></p>
                 <div class="content">
                     <?= $blog['blog_content'] ?>
                 </div>

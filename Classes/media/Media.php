@@ -174,6 +174,10 @@ class Media
      */
     public static function access($media): array
     {
+        //the site's logo is on every page, signed in or not
+        if ((string)setting_get("logo_media", "") === $media->media_id) {
+            return array(true, true);
+        }
         $db = new Mysql();
         $row = $db->Fetch("SELECT `user_id` FROM `users` WHERE `media_id` = :a", array(":a" => $media->media_id));
         if ($row[0] != '00000') {
