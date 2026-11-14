@@ -30,3 +30,14 @@ needs an answer before the work that depends on it).
 | D6 | 0.7.0 | Deletes are soft (`deleted_at`) with no purge yet. | Needed to send `Delete` to other servers later; a purge job can come with the job runner. | assumed |
 | D7 | 0.7.0 | Edits change text, tags, linked garments and visibility, not photos. | Photos move to the media store in 0.8.0. | assumed |
 | D8 | 0.7.0 | `/privacy` is readable without signing in. | It's linked from the footer on public pages. | assumed |
+| D9 | 0.7.1 | An early-design `invites` table found during upgrade is renamed `invites_legacy`, not converted or dropped. | Its columns (`invitee`, `token`, `confirmed`) don't map cleanly onto the current flow; keeping it loses nothing. | assumed |
+| D10 | 0.7.1 | Staging is upgraded in place rather than wiped and reinstalled. | Exercises the real upgrade path on old data; a full backup was taken first (`/root/ootd-backups` on the server). | assumed |
+
+## Questions
+
+| # | Question | Context |
+| --- | --- | --- |
+| Q1 | May Claude push `claude/main` (and the other `claude/*` branches) to GitHub so Plesk can deploy staging? | Pushes were blocked pending your OK. Until then, staging is updated over SSH (see ROADMAP, "Staging"). |
+| Q2 | Should staging's `.env` move fully to the current format? | It used `DEV_/STAGE_/PROD_` prefixed keys that no version of the code reads. The current `DB_*` keys and `APP_URL` were added alongside them; the old keys were left in place. |
+| Q3 | What were the `profile`, `profile_options` and `size_*` tables (and `garments.size`) for? | They're in the staging database but in no branch of the code. Left untouched. If sizing is a feature you want, it can go on the roadmap. |
+| Q4 | Is the New Relic browser agent on staging intentional? | The server injects New Relic's script into every page. If it stays, the privacy page should mention it (third-party requests, AUDIT F15). |

@@ -39,6 +39,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.6.0 | Done, merged to `claude/development` |
 | 0.6.1 | Done, merged to `claude/development` |
 | 0.7.0 | Done, merged to `claude/development` |
+| 0.7.1 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -136,6 +137,23 @@ First release of the [federation roadmap](FEDERATION.md). Upgrade with `/install
 - Edit and delete for outfits, garments and blogs, owner only, from each item's page. Deletes are
   soft (`deleted_at`) so they can be federated later. Photos can't be changed yet (0.8.0).
 - Connection charset fixed and every table converted to `utf8mb4` (AUDIT F16).
+
+### 0.7.1 — Upgrade fixes found on staging ✅
+
+Found by rehearsing the upgrade on a copy of the staging database (MariaDB 10.6, created by an
+early version of the app). Schema 4.
+
+- `php bin/migrate.php [--app-url=…]` runs the database upgrade from the command line, for
+  servers where nobody can sign in to `/install.php` (staging, deploy scripts). Pulled forward
+  from 0.10.0.
+- The schema version is saved after each step, so re-running after a failure can't repeat a
+  step (re-running schema 1 used to demote every admin).
+- Works on MariaDB: the utf8mb4 conversion no longer names a MySQL-only collation.
+- Older databases: adds the missing `users.csrf` column and `blogs.tags`; widens early blog
+  columns (content was capped at 4096 characters); stops `ON UPDATE CURRENT_TIMESTAMP` moving a
+  post's date when it's edited; keeps an early-design `invites` table as `invites_legacy` and
+  creates the current one.
+- `.env` values with `=`, `;`, `!` or quotes (real passwords) load correctly.
 
 ## Later (not started)
 

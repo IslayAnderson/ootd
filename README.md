@@ -4,7 +4,7 @@
 
 ## Requirements
 - PHP 8.2+ with `pdo_mysql` and `fileinfo`
-- MySQL 8.0.4+ (outfits use `JSON_TABLE`)
+- MySQL 8.0.4+ or MariaDB 10.6+ (outfits use `JSON_TABLE`)
 - Composer, then `composer install`
 - A writable `tmp/` folder in the project root (sessions are stored there)
 - Apache with `mod_rewrite` (see `.htaccess`), or any server that sends unknown paths to `index.php`
@@ -15,7 +15,8 @@ The installer writes `.env`, creates the tables and an `admin` user (email `webm
 password `root`, change it straight away).
 
 Once installed the installer is locked. To upgrade the database after pulling a new version, log in
-as an admin, open `/install.php` and press "Upgrade database".
+as an admin, open `/install.php` and press "Upgrade database", or run `php bin/migrate.php` on the
+server (add `--app-url=https://your.site` the first time on installs from before 0.7.0).
 
 ## .env
 'DB_HOST' (a port can be added as `host;port=3307`)
