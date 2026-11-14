@@ -438,6 +438,18 @@ Schema 13. Off until the keys below are in `.env` (SELF-HOSTING.md, "Cloud blogs
   suspend, resume, delete, permissions). Not yet run against the real Plesk.
 - Moderation and safety moves to 0.15.0.
 
+### 0.14.1 — Cloud blogs on Plesk DNS ✅
+
+- Cloudflare is optional. Without its keys, each blog's A record goes in the Plesk DNS zone of
+  `CLOUD_DOMAIN`, which must be a subscription of the same reseller with Plesk as its name server
+  (D59). Records are found again rather than duplicated on a retry, and removed on delete.
+- New build step **https**, before the owner's email: the blog must answer over https with a valid
+  certificate. It checks every 5 minutes; after `CLOUD_HTTPS_WAIT_HOURS` (default 6) it fails with
+  a note to turn on SSL It! "Keep websites secured" (D60). Retry starts the wait again.
+- Retry also clears a blog's pending checks, so two builds don't run side by side.
+- Tests: 16 new checks (Plesk DNS, waiting, certificate arriving, giving up, retry, delete), and
+  the 49 from 0.14.0 still pass.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

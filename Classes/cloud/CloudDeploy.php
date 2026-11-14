@@ -186,6 +186,28 @@ PHP;
 
     /**
      * @param string $domain
+     * @return bool the blog answers over https with a certificate that checks out
+     */
+    public static function https_ready($domain): bool
+    {
+        $base = (string)($_ENV['CLOUD_HTTPS_URL'] ?? "");
+        $curl = curl_init(($base !== "" ? rtrim($base, "/") : "https://" . $domain) . "/login");
+        $options = array(CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20, CURLOPT_CONNECTTIMEOUT => 10);
+        if ($base !== "") {
+            $options[CURLOPT_HTTPHEADER] = array("Host: " . $domain);
+        } elseif (!CloudDns::cloudflare() && !empty($_ENV['CLOUD_SERVER_IP'])) {
+            //this server's own certificate, before DNS caches have caught up
+            $options[CURLOPT_RESOLVE] = array($domain . ":443:" . $_ENV['CLOUD_SERVER_IP']);
+        }
+        curl_setopt_array($curl, $options);
+        curl_exec($curl);
+        $ok = curl_errno($curl) === 0 && curl_getinfo($curl, CURLINFO_RESPONSE_CODE) == 200;
+        curl_close($curl);
+        return $ok;
+    }
+
+    /**
+     * @param string $domain
      * @param string $script file name of the setup script
      * @param string $token
      * @return array the script's answer (ok, reset)
