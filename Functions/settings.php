@@ -39,3 +39,16 @@ function setting_set($setting, $value, $type = "string")
 
     $db->Fetch($sql, $params);
 }
+
+/**
+ * @return array settings rows an admin can change, internal ones are hidden
+ */
+function settings_editable(): array
+{
+    $sql = "SELECT * FROM `settings` WHERE `setting` NOT IN ('installed', 'schema_version') ORDER BY `setting_num`";
+
+    $db = new Mysql();
+    $row = $db->Fetch($sql, null);
+
+    return $row[0] != '00000' ? $row : array();
+}

@@ -20,6 +20,17 @@ title_update("account");
     <?php if (!empty($_GET['posted'])): ?>
         <p class="notice">Your <?= escape($_GET['posted']) ?> has been saved.</p>
     <?php endif; ?>
+    <details class="password">
+        <summary>Change password</summary>
+        <form action="/API/user/password.php" method="post">
+            <?php CSRF_input(); ?>
+            <label for="current_password">Current password</label>
+            <input type="password" id="current_password" name="current_password" required>
+            <label for="new_password">New password</label>
+            <input type="password" id="new_password" name="new_password" minlength="8" required>
+            <button type="submit">Change password</button>
+        </form>
+    </details>
 </section>
 <section class="blog">
     <h2>New post</h2>

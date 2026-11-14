@@ -28,6 +28,13 @@
     &-content.scroll {
       overflow-x:scroll;
     }
+    &-content table {
+      //table.scss sits tables behind the page, which makes their buttons unclickable
+      z-index: auto;
+    }
+    &-content form {
+      display: inline;
+    }
   }
 }
 
