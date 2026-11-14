@@ -9,7 +9,7 @@ title_update("account");
     </div>
     <h1><?= escape($user->get_username($user->user_id)) ?></h1>
     <p class="byline"><?= escape($user->first_name . " " . $user->last_name) ?></p>
-    <?php $saved_names = array("journal" => "journal entry", "setting" => "setting", "outfit" => "outfit", "garment" => "garment", "avatar" => "profile photo", "password" => "password", "wear" => "wear"); ?>
+    <?php $saved_names = array("journal" => "article", "article" => "article", "setting" => "setting", "outfit" => "outfit", "garment" => "garment", "avatar" => "profile photo", "password" => "password", "wear" => "wear"); ?>
     <?php if (!empty($_GET['posted'])): ?>
         <p class="notice">Your <?= escape($saved_names[$_GET['posted']] ?? "change") ?> has been saved.</p>
     <?php endif; ?>
@@ -39,7 +39,7 @@ title_update("account");
 </section>
 <section class="your-data" id="data">
     <h2>Your data</h2>
-    <p>Download everything you&rsquo;ve put on <?= escape(instance_name()) ?>: your profile, wardrobe, outfits, journal, wears and photos, as a zip of JSON files and images.</p>
+    <p>Download everything you&rsquo;ve put on <?= escape(instance_name()) ?>: your profile, wardrobe, outfits, articles, wears and photos, as a zip of JSON files and images.</p>
     <form action="/API/user/export.php" method="post">
         <?php CSRF_input(); ?>
         <button type="submit" class="secondary">Download your data</button>
@@ -119,7 +119,7 @@ title_update("account");
         <script src="/vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
         <div class="post_tabs">
             <button type="button" data-frame="blog">
-                <span>New journal entry</span>
+                <span>New article</span>
             </button>
             <button type="button" data-frame="outfit" class="active">
                 <span>New outfit</span>
@@ -251,7 +251,7 @@ title_update("account");
 
 </section>
 <section class="blog">
-    <h2>Journal</h2>
+    <h2>Articles</h2>
     <?php
     $blogs = new Post\Blog($user->get_user_id());
     $blogs->render_blogs_profile();

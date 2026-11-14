@@ -70,7 +70,7 @@
                                     Type <strong><?= escape($row_user->username) ?></strong> to confirm
                                     <input type="text" name="confirm" autocomplete="off" required>
                                 </label>
-                                <p>Content: their outfits, garments, journal, comments, wears and likes. Other blogs are asked to remove what they have. The account stays.</p>
+                                <p>Content: their outfits, garments, articles, comments, wears and likes. Other blogs are asked to remove what they have. The account stays.</p>
                                 <button type="submit" name="action" value="delete_content" class="secondary">Delete content</button>
                                 <p>User: their content, then the account. They can&rsquo;t log in again and the username stays taken. This can&rsquo;t be undone.</p>
                                 <button type="submit" name="action" value="delete_account">Delete user</button>

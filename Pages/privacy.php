@@ -10,7 +10,7 @@ title_update("privacy");
     <h2>What we store</h2>
     <ul>
         <li><strong>Your account</strong>: username, email, first and last name, and your password as a one-way hash.</li>
-        <li><strong>What you post</strong>: garments, outfits, journal entries, tags and the photos you upload, including your profile photo.</li>
+        <li><strong>What you post</strong>: garments, outfits, articles, tags and the photos you upload, including your profile photo.</li>
         <li><strong>What you wear</strong>: each time you press "Wore this today", so we can show your insights.</li>
         <li><strong>Invite requests</strong>: the email address you ask for an invite with.</li>
     </ul>
