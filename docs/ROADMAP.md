@@ -32,7 +32,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 ### Staging
 
 `https://islay.treatmag.online` (until 14 Nov 2026 `ootd.islayanderson.co.uk`, which now redirects
-there), on the owner's Plesk server (PHP 8.3, MariaDB 10.6), runs
+there; accounts are `name@treatmag.online`, D62 and Q13), on the owner's Plesk server (PHP 8.3, MariaDB 10.6), runs
 `claude/main`. Its database is test data. Each finished release is pushed to GitHub (`claude/main`,
 `claude/development`) and reaches the server like this:
 
