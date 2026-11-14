@@ -4,6 +4,7 @@
 let register_listeners = (callbackfn, thisArg) => {
     let nav_draw = document.querySelector("body > div.top-bar > div > button:nth-child(1)");
     let accordions = document.querySelectorAll(".accordion__section-button");
+    let post_tabs = document.querySelectorAll(".post_tabs button");
 
     if(nav_draw) {
         nav_draw.addEventListener("click", () => {
@@ -15,6 +16,14 @@ let register_listeners = (callbackfn, thisArg) => {
         accordions.forEach((item, index) => {
             item.addEventListener("click", (e) => {
                 accordion_draw(e);
+            });
+        })
+    }
+
+    if(post_tabs.length > 0) {
+        post_tabs.forEach((item, index) => {
+            item.addEventListener("click", (e) => {
+                post_tab(item);
             });
         })
     }
@@ -40,6 +49,21 @@ let accordion_draw = (e) =>{
     }else{
         content.classList.add('open');
     }
+}
+
+let post_tab = (tab) =>{
+    let post = tab.closest(".post");
+    post.querySelectorAll(".post_tabs button").forEach((item) => {
+        item.classList.remove('active');
+    });
+    tab.classList.add('active');
+    post.querySelectorAll(".frame").forEach((frame) => {
+        if(frame.classList.contains(tab.dataset.frame)){
+            frame.classList.remove('hidden');
+        }else{
+            frame.classList.add('hidden');
+        }
+    });
 }
 
 //API CALLS

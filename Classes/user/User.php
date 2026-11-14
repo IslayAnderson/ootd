@@ -277,6 +277,34 @@ class User
     }
 
     /**
+     * @param string $image binary avatar
+     * @return void
+     */
+    public function set_image($image)
+    {
+        $params = array(':a' => $image, ':b' => $this->user_id);
+        $sql = "UPDATE `users` SET `image` = :a WHERE `user_id` = :b";
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+    }
+
+    /**
+     * @param $id
+     * @return string avatar as a data uri, or the default avatar
+     */
+    public function get_image($id = null)
+    {
+        $params = array(':a' => $id ?? $this->user_id);
+        $sql = "SELECT `image` FROM `users` WHERE `user_id` = :a";
+
+        $db = new Mysql();
+        $row = $db->Fetch($sql, $params);
+
+        return image_bin_encode($row[0] != '00000' ? $row[0]->image : null, "/Assets/images/avi.jpg");
+    }
+
+    /**
      * @param $request
      * @return bool
      * @throws Exception
@@ -315,6 +343,8 @@ class User
             //new session id on login to prevent session fixation
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user_id;
+            //the pre-login token was never stored against the user, init.php makes a new one
+            unset($_SESSION['CSRF']);
             $_SESSION['loggedin_time'] = time();
 
             session_write_close();
@@ -348,7 +378,6 @@ class User
             );
         }
         session_destroy();
-        session_regenerate_id();
         header("location: /login");
         exit();
     }
@@ -376,7 +405,6 @@ class User
         ini_set('session.gc_max_lifetime', 0);
 
         session_destroy();
-        session_regenerate_id();
         header("location: /login");
         exit();
     }
