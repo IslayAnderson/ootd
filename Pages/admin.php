@@ -48,6 +48,19 @@ title_update("admin");
     <div class="accordion__section">
         <div class="accordion__section-header">
             <h2 class="accordion__section-heading">
+                <span class="accordion__section-button" id="cloud">
+                    Cloud blogs
+                </span>
+            </h2>
+        </div>
+        <div class="accordion__section-content">
+            <?php require $_SERVER['DOCUMENT_ROOT']."/partials/cloud.php"; ?>
+        </div>
+    </div>
+
+    <div class="accordion__section">
+        <div class="accordion__section-header">
+            <h2 class="accordion__section-heading">
                 <span class="accordion__section-button" id="settings">
                     Settings
                 </span>

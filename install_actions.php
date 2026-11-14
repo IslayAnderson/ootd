@@ -422,7 +422,9 @@ $migrations = array(
         "remote_blogs_backfill"
     ),
     //users.deleted_at is a new column (accounts deleted from /admin)
-    12 => array()
+    12 => array(),
+    //cloud_blogs is a new table (blogs created from the login page, 0.14.0)
+    13 => array()
 );
 
 function brands_check_table()
@@ -1327,6 +1329,36 @@ function federation_create_table($table)
             KEY state (state)
         ) CHARACTER SET utf8mb4",
         //garments listed on outfits from other OOTD servers (schema 10); brand and category are matched to ours by name
+        //cloud blogs made from this one (0.14.0): one Plesk subscription each; secrets (FTP, database,
+        //setup and cron keys) are encrypted and dropped to just the cron key once the blog is ready
+        "cloud_blogs" => "CREATE TABLE cloud_blogs(
+            cloud_num int(11) NOT NULL AUTO_INCREMENT,
+            cloud_id varchar(32) NOT NULL,
+            subdomain varchar(63) NOT NULL,
+            domain varchar(255) NOT NULL,
+            blog_name varchar(64) NOT NULL,
+            username varchar(32) NOT NULL,
+            email varchar(128) NOT NULL,
+            state varchar(16) NOT NULL DEFAULT 'unconfirmed',
+            step varchar(16) NULL,
+            confirm_hash char(64) NULL,
+            ip_hash char(64) NULL,
+            secrets text NULL,
+            plesk_customer_id int(11) NULL,
+            plesk_webspace_id int(11) NULL,
+            plesk_db_id int(11) NULL,
+            dns_record_id varchar(64) NULL,
+            last_error text NULL,
+            confirmed_at timestamp NULL DEFAULT NULL,
+            ready_at timestamp NULL DEFAULT NULL,
+            pinged_at timestamp NULL DEFAULT NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (cloud_num),
+            UNIQUE KEY cloud_id (cloud_id),
+            KEY subdomain (subdomain),
+            KEY state (state),
+            KEY confirm_hash (confirm_hash)
+        ) CHARACTER SET utf8mb4",
         //other blogs (servers) by host, with the name they give themselves in nodeinfo (schema 11)
         "remote_blogs" => "CREATE TABLE remote_blogs(
             host varchar(255) NOT NULL,
@@ -1532,7 +1564,7 @@ if (!notifications_check_table()) {
 }
 
 //build ActivityPub tables
-foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media", "remote_garments", "likes", "comments", "remote_blogs") as $federation_table) {
+foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media", "remote_garments", "likes", "comments", "remote_blogs", "cloud_blogs") as $federation_table) {
     if (!table_exists($federation_table)) {
         federation_create_table($federation_table);
     } else {

@@ -175,6 +175,43 @@ and followers-only posts. Members and Only me posts never leave your server.
 - `/.well-known/` must reach OOTD. Some hosts keep that folder for certificates; only
   `/.well-known/acme-challenge/` is theirs.
 
+## Cloud blogs
+
+From 0.14.0 a blog on a Plesk server can offer **Create my own blog** on its login page. Each
+blog it makes is a separate OOTD install, in its own Plesk subscription, at `name.<your domain>`.
+It stays off until all of these are in `.env`:
+
+| Key | What |
+| --- | --- |
+| `CLOUD_DOMAIN` | the domain new blogs go under, e.g. `ootd.blog` |
+| `CLOUD_SERVER_IP` | the Plesk server's public IP (subscriptions and DNS records point at it) |
+| `PLESK_API_URL` | `https://<server>:8443/enterprise/control/agent.php` |
+| `PLESK_API_KEY` | the reseller's secret key (not the admin's) |
+| `PLESK_VERIFY_TLS` | `0` if the panel's certificate is for another name (optional) |
+| `CLOUD_PLAN` | the reseller's service plan, e.g. `"OOTD Blog"` (quote names with spaces) |
+| `CLOUDFLARE_ZONE_ID` | the zone of `CLOUD_DOMAIN` |
+| `CLOUDFLARE_API_TOKEN` | a token that can only edit DNS in that zone |
+| `CLOUD_DAILY_LIMIT` | new blogs a day in all (optional, default 10) |
+| `CLOUD_DB_HOST` | the database host new blogs use (optional, default `localhost`) |
+
+Setting it up:
+
+1. Buy the domain and add it to Cloudflare. SSL/TLS mode **Full** (Plesk's default certificate is
+   enough) or **Flexible**.
+2. In Cloudflare, **My Profile → API Tokens → Create Token → Edit zone DNS**, for that zone only.
+3. In Plesk, **Resellers → Add Reseller** (e.g. "OOTD Cloud") on the Default Reseller plan, with a
+   password of your own.
+4. As that reseller, **Service Plans → Add Plan** "OOTD Blog": e.g. 2 GB disk, 1 database, no mail
+   accounts, PHP 8.3 (FPM), FTP on, with `curl`, `zip`, `gd` and `pdo_mysql`.
+5. Make an API secret key for the reseller with Plesk's `secret_key` utility on the server
+   (`plesk bin secret_key --help`), limited to this blog's IP. A key for the admin would work too,
+   but could then touch every site on the server.
+6. Put the keys in `.env`, then check the login page shows the button. The cron job or worker must
+   be running: it builds the blogs and wakes them every minute.
+
+Admins see every blog made from here in `/admin` → **Cloud blogs**, where a failed build can be
+retried and a blog suspended, resumed or deleted.
+
 ## Your users' data
 
 Every account can download its data from `/account` → **Your data**: a zip of JSON files and
