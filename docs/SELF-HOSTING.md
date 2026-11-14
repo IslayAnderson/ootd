@@ -75,6 +75,7 @@ To upgrade: `git pull`, then `docker compose --env-file .env.docker up -d --buil
 | `MAIL_DRIVER` | `smtp`, `mail` (PHP's mail(), through the server's sendmail) or `log` (write to `tmp/mail.log`). Default: `smtp` when `MAIL_HOST` is set, else `mail` when sendmail exists, else `log`. |
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`, `MAIL_USER`, `MAIL_PASS` | SMTP. `MAIL_ENCRYPTION` is `tls` (port 587), `ssl` (465) or `none`. |
 | `MAIL_FROM`, `MAIL_FROM_NAME` | Sender. Default `noreply@` the site's domain and the instance name. |
+| `ACCOUNT_DOMAIN` | Addresses use this domain instead of the site's (`name@example.com` for a site at `blog.example.com`). See [Addresses on another domain](#addresses-on-another-domain). Set it before the site is shared. |
 | `OLD_HOSTS` | Addresses the site used to have, comma-separated and quoted, e.g. `"ootd.old.example, old.example"`. They redirect (301) to the same page at `APP_URL`. |
 | `CSS_BUILT` | Set to `1` when the CSS is compiled at build time (the Docker image does this). |
 
@@ -144,6 +145,23 @@ cp .env ootd.env
 
 To restore, put the code and `.env` back, load the dump into an empty database, put `storage/`
 back, then run `php bin/ootd migrate` in case the code is newer than the backup.
+
+## Addresses on another domain
+
+To give people `name@example.com` while OOTD runs at `blog.example.com`:
+
+1. On `example.com`, redirect `/.well-known/webfinger` and `/.well-known/host-meta` (query string
+   included) to the same paths on `blog.example.com`. With Apache:
+
+   ```apache
+   RewriteEngine On
+   RewriteRule ^\.well-known/(webfinger|host-meta)$ https://blog.example.com/.well-known/$1 [R=301,L]
+   ```
+
+2. Set `ACCOUNT_DOMAIN=example.com` in `.env`.
+
+Account ids stay at `blog.example.com`, so follows made before keep working; the old address
+`name@blog.example.com` still finds the same person. Only one blog can use a domain this way.
 
 ## Moving to a new address
 
