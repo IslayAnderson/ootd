@@ -13,7 +13,7 @@ if ($asked !== "") {
     }
     $local = ltrim($query, "@");
     $handle = RemoteActor::parse_handle($query);
-    if ($handle && strtolower($handle[1]) === strtolower(Federation::domain())) {
+    if ($handle && Federation::is_own_domain($handle[1])) {
         $local = $handle[0];
         $handle = null;
     }

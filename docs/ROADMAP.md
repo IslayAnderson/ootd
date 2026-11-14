@@ -477,6 +477,21 @@ Schema 13. Off until the keys below are in `.env` (SELF-HOSTING.md, "Cloud blogs
   database held the old address. Accounts are now `name@islay.treatmag.online` (D61).
 - Tests: 6 checks (redirect, case, path and query kept, own address reserved).
 
+### 0.14.5 — Addresses on another domain ✅
+
+Schema 14.
+
+- `ACCOUNT_DOMAIN` in `.env`: addresses are `name@<ACCOUNT_DOMAIN>` while the site and its
+  ActivityPub ids stay at `APP_URL` (like Mastodon's `LOCAL_DOMAIN`/`WEB_DOMAIN`). WebFinger answers
+  for both domains with that subject; profiles show it; search and `/@name@<either>` find people
+  here. The account domain must redirect its `/.well-known/webfinger` and `host-meta` here.
+- Other blogs' chosen addresses: when an actor is stored, its server's WebFinger subject is read,
+  and a different domain is kept (`remote_actors.account_host`) only if that domain's WebFinger
+  points back at the same actor (checked weekly, D62). Addresses shown and searched use it.
+- Fix: `/@name@host:port` pages read an empty address (`parse_url` saw a port).
+- Tests: 12 checks with the peer blog and a stand-in account domain (both directions, redirect
+  followed, old address still works, an unbacked claim ignored).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

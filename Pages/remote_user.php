@@ -4,7 +4,14 @@ if (empty($_SESSION['user_id'])) {
     header("location: /login");
     exit();
 }
-$handle = rawurldecode(substr(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), 1));
+//not parse_url: it reads "/@name@host:8080" as having a port and gives no path
+$handle = rawurldecode(substr(explode("?", $_SERVER['REQUEST_URI'])[0], 1));
+//someone here, by either of this blog's domains
+$own = RemoteActor::parse_handle($handle);
+if ($own && Federation::is_own_domain($own[1])) {
+    header("location: /user/" . rawurlencode($own[0]));
+    exit();
+}
 $actor = Federation::enabled() ? RemoteActor::find($handle) : null;
 if (!$actor) {
     http_response_code(404);

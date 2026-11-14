@@ -344,6 +344,9 @@ $columns = array(
 //0.12.0: what's needed to read people elsewhere: their outbox (backfill) and followers collection (followers-only posts)
 $columns["remote_actors"]["outbox"] = "varchar(512) NULL";
 $columns["remote_actors"]["followers"] = "varchar(512) NULL";
+//the domain in their address when it isn't their server's (name@example.com on social.example.com), checked both ways
+$columns["remote_actors"]["account_host"] = "varchar(260) NULL";
+$columns["remote_actors"]["account_checked_at"] = "timestamp NULL DEFAULT NULL";
 //0.13.0: a copied image is a post's photo or one of its garments
 $columns["remote_media"]["kind"] = "varchar(16) NOT NULL DEFAULT 'photo'";
 //0.13.4: accounts deleted by an admin stay as tombstones, so their username can't be reused
@@ -424,7 +427,9 @@ $migrations = array(
     //users.deleted_at is a new column (accounts deleted from /admin)
     12 => array(),
     //cloud_blogs is a new table (blogs created from the login page, 0.14.0)
-    13 => array()
+    13 => array(),
+    //remote_actors.account_host, account_checked_at are new columns (addresses on another domain, 0.14.5)
+    14 => array()
 );
 
 function brands_check_table()
