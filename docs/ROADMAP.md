@@ -63,6 +63,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.9.0 | Done, merged to `claude/development` |
 | 0.10.0 | Done, merged to `claude/development` |
 | 0.11.0 | Done, merged to `claude/development` |
+| 0.11.1 | Hotfix, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -278,6 +279,12 @@ ActivityPub server) can now find an OOTD account by its handle, follow it, and s
 - Federation requests skip sessions and page rendering.
 - Tests: unit tests for signatures and address checks, and an end-to-end test against a fake
   remote server that checks OOTD's signatures independently.
+
+### 0.11.1 — Stale styles fix ✅
+
+- Stylesheet and script links carry the file's modification time (`main.css?v=…`). Cloudflare
+  in front of staging caches `/Assets` for a year, so after a deploy it kept serving the old
+  stylesheet; a new version is now a new address.
 
 ## Later (not started)
 

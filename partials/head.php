@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
-  <link rel="stylesheet" type="text/css" href="/Assets/stylesheets/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="<?= asset_url("/Assets/stylesheets/css/main.css") ?>" />
   <link rel="icon" href="/Assets/images/favicon.png">
 </head>
 <body>
