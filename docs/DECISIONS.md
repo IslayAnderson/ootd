@@ -56,6 +56,13 @@ needs an answer before the work that depends on it).
 | D32 | 0.11.0 | Profiles federate with the username as the display name, no bio, and `discoverable: false`. | Real names stay inside the instance (D3); appearing in other servers' directories should be the user's choice (a later setting). | assumed |
 | D33 | 0.11.0 | A delivery the other server refuses (4xx other than 429) isn't retried; 5xx, 429 and timeouts are, with the job back-off. | Refusals don't change on retry; outages do. | assumed |
 | D34 | 0.11.0 | Signed requests are accepted up to 12 hours old and 1 hour in the future. | Matches Mastodon, whose retries keep the original signature. | assumed |
+| D35 | 0.12.0 | Posts from other servers go in their own tables (`remote_posts`, `remote_media`), not into outfits/garments/blogs with `origin`/`ap_id` columns as the roadmap planned. | A Mastodon post has no garments, wears or local owner; mixing them in would add checks to every query that assumes a local author. A remote outfit page and garment strip can still come with OOTD-to-OOTD extras (0.13.0). | assumed |
+| D36 | 0.12.0 | Posts from other servers are shown to signed-in members only, never to guests, even when public. | This server doesn't vouch for content it copied; guests can read it at the source. | assumed |
+| D37 | 0.12.0 | Replies and direct messages from other servers aren't stored; neither are boosts of other people's posts. | Comments come in 0.13.0. Boosts would fill the feed with posts from people nobody here chose to follow. | assumed |
+| D38 | 0.12.0 | Text-only posts from people you follow are shown, not just ones with photos. | You chose to follow them; hiding most of a Mastodon account would be confusing. | assumed |
+| D39 | 0.12.0 | Copies of someone's posts are deleted as soon as nobody here follows them. Photos are capped by `remote_media_mb` (1 GB default), oldest dropped first. | Keeps storage bounded and holds no more of other people's data than needed. | assumed |
+| D40 | 0.12.0 | Remote profiles show the default avatar, not their profile photo. | Fetching avatars means another stored copy per person; it can come with profile caching later. | assumed |
+| D41 | 0.12.0 | Following someone fetches their 20 latest public posts (backfill). | An empty profile right after following looks broken; 20 is one page on Mastodon. | assumed |
 
 ## Questions
 

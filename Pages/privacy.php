@@ -30,6 +30,9 @@ title_update("privacy");
         username and profile photo are sent to the servers of people who follow you, and are then held by those servers
         under their own policies. Members and Only me posts never leave <?= escape(instance_name()) ?>.
         Deleting or hiding a post asks those servers to remove it, but they can&rsquo;t be forced to.</p>
+    <p>When you follow someone elsewhere, their server is told who is following them (your username and handle).
+        Their posts and photos are copied here so members can see them; photos are fetched by this server, so their
+        server never sees who looks at them. Copies are removed when they delete a post or nobody here follows them any more.</p>
     <?php endif; ?>
 
     <h2>Third parties</h2>

@@ -114,6 +114,14 @@ others, also set `S3_PATH_STYLE=1` if they don't support bucket subdomains.
 - **open**: anyone can create an account at `/signup`.
 - **closed**: no sign-ups or requests. Invites an admin creates still work.
 
+## Other servers
+
+`/admin` → Settings → **Federation** turns ActivityPub on or off. When it's on, members can follow
+people on Mastodon and other servers (search for `@name@server` on the feed), and those people's
+posts and photos are copied here. **Remote media mb** caps the space their photos take (default
+1024 MB). The daily job drops the oldest photos past it, and those posts then link to the original.
+The worker or cron must be running for photos to arrive.
+
 ## Backups
 
 Back up three things: the database, the photos and `.env`.

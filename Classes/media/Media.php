@@ -166,7 +166,8 @@ class Media
 
     /**
      * An image is visible when whatever uses it is: avatars always (they're on public profiles),
-     * garment and outfit photos follow that post's visibility, anything unattached only to its owner
+     * garment and outfit photos follow that post's visibility, photos from other servers are for
+     * members only, anything unattached only to its owner
      *
      * @param object $media row from get()
      * @return array [bool can view, bool public]
@@ -184,6 +185,14 @@ class Media
             if ($row[0] != '00000') {
                 return array(can_view($row[0]->owner, $row[0]->visibility), $row[0]->visibility == VISIBILITY_PUBLIC);
             }
+        }
+        //a photo copied from another server: members who can see that post
+        $row = $db->Fetch("SELECT remote_posts.audience, remote_posts.actor_num FROM `remote_media`
+                           JOIN `remote_posts` ON remote_posts.post_num = remote_media.post_num WHERE remote_media.media_id = :a", array(":a" => $media->media_id));
+        if ($row[0] != '00000') {
+            $viewer = (int)($_SESSION['user_id'] ?? 0);
+            $can = $viewer > 0 && ($row[0]->audience == VISIBILITY_PUBLIC || RemoteFollow::state($viewer, $row[0]->actor_num) === Follow::ACCEPTED);
+            return array($can, false);
         }
         return array($media->user_id == ($_SESSION['user_id'] ?? null), false);
     }

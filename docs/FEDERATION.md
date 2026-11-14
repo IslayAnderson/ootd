@@ -156,7 +156,10 @@ The point where a Mastodon user can find and follow an OOTD user.
   `Delete` to every follower's inbox (shared inbox where offered).
 - `remote_actors` table caching fetched profiles and keys.
 
-#### 0.12.0 — Following out (inbound)
+#### 0.12.0 — Following out (inbound) ✅ shipped
+
+Built with separate `remote_posts` and `remote_media` tables instead of `origin`/`ap_id` columns on
+outfits, garments and blogs (DECISIONS D35).
 
 The point where OOTD users can follow people elsewhere and see their posts.
 
@@ -239,7 +242,7 @@ app only needs to be configurable entirely by environment and to report its own 
 | 0.9.0 | `follows`, `jobs`, `notifications` |
 | 0.10.0 | instance settings rows; `password_resets` |
 | 0.11.0 | `users.public_key`, `users.private_key` (encrypted); `remote_actors`; `deliveries` |
-| 0.12.0 | `origin`, `ap_id`, `actor_id` on outfits/garments/blogs; `follows` points at actors |
+| 0.12.0 | `remote_follows`, `remote_posts`, `remote_media`; `remote_actors.outbox`/`followers`; `notifications.link` (D35) |
 | 0.13.0 | `likes`, `replies`; brand/category alias tables |
 | 0.14.0 | `reports`, `blocks`, `domain_blocks`; `sensitive`, `content_warning` on posts |
 | 1.0.0 | `users.also_known_as`, `users.moved_to` |

@@ -295,6 +295,11 @@ $settings = array(
     "privacy_notice" => array(
         "type" => "text",
         "value" => ""
+    ),
+    //0.12.0: space for photos copied from other servers; the oldest are dropped past this (they can be fetched again)
+    "remote_media_mb" => array(
+        "type" => "int",
+        "value" => 1024
     )
 );
 
@@ -321,6 +326,11 @@ $columns = array(
         "tags" => "varchar(512) NULL"
     )
 );
+//0.12.0: what's needed to read people elsewhere: their outbox (backfill) and followers collection (followers-only posts)
+$columns["remote_actors"]["outbox"] = "varchar(512) NULL";
+$columns["remote_actors"]["followers"] = "varchar(512) NULL";
+//0.12.0: notifications about posts (likes, boosts from other servers) link to the post
+$columns["notifications"]["link"] = "varchar(512) NULL";
 //0.9.0: accounts can ask to approve new followers
 $columns["users"]["approve_followers"] = "tinyint(1) NOT NULL DEFAULT 0";
 //0.8.0: photos live in the media table
@@ -383,7 +393,9 @@ $migrations = array(
         "media_drop_blobs"
     ),
     //actor_keys, remote_actors and remote_followers are new tables (ActivityPub)
-    8 => array()
+    8 => array(),
+    //remote_follows, remote_posts and remote_media are new tables (following people elsewhere)
+    9 => array()
 );
 
 function brands_check_table()
@@ -1227,6 +1239,53 @@ function federation_create_table($table)
             PRIMARY KEY (remote_follow_num),
             UNIQUE KEY pair (user_id, actor_num),
             KEY actor_num (actor_num)
+        ) CHARACTER SET utf8mb4",
+        //local users following people on other servers (schema 9)
+        "remote_follows" => "CREATE TABLE remote_follows(
+            remote_follows_num int(11) NOT NULL AUTO_INCREMENT,
+            user_id int(11) NOT NULL,
+            actor_num int(11) NOT NULL,
+            state varchar(16) NOT NULL DEFAULT 'pending',
+            follow_id varchar(512) NOT NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (remote_follows_num),
+            UNIQUE KEY pair (user_id, actor_num),
+            KEY actor_num (actor_num)
+        ) CHARACTER SET utf8mb4",
+        //posts from people someone here follows (schema 9); audience is public or followers
+        "remote_posts" => "CREATE TABLE remote_posts(
+            post_num int(11) NOT NULL AUTO_INCREMENT,
+            ap_id varchar(512) NOT NULL,
+            actor_num int(11) NOT NULL,
+            type varchar(16) NOT NULL,
+            audience varchar(16) NOT NULL,
+            url varchar(512) NULL,
+            name varchar(512) NULL,
+            summary text NULL,
+            content mediumtext NULL,
+            marked_sensitive tinyint(1) NOT NULL DEFAULT 0,
+            published timestamp NULL DEFAULT NULL,
+            updated_at timestamp NULL DEFAULT NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (post_num),
+            UNIQUE KEY ap_id (ap_id(255)),
+            KEY actor_published (actor_num, published),
+            KEY published (published)
+        ) CHARACTER SET utf8mb4",
+        //images attached to remote posts; the worker copies them into the media store (media_id)
+        "remote_media" => "CREATE TABLE remote_media(
+            remote_media_num int(11) NOT NULL AUTO_INCREMENT,
+            post_num int(11) NOT NULL,
+            position int(11) NOT NULL DEFAULT 0,
+            remote_url varchar(1024) NOT NULL,
+            alt_text text NULL,
+            media_id varchar(32) NULL,
+            state varchar(16) NOT NULL DEFAULT 'pending',
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (remote_media_num),
+            KEY post_num (post_num),
+            KEY media_id (media_id),
+            KEY state (state)
         ) CHARACTER SET utf8mb4"
     );
     $db = new Mysql();
@@ -1375,7 +1434,7 @@ if (!notifications_check_table()) {
 }
 
 //build ActivityPub tables
-foreach (array("actor_keys", "remote_actors", "remote_followers") as $federation_table) {
+foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media") as $federation_table) {
     if (!table_exists($federation_table)) {
         federation_create_table($federation_table);
     } else {
