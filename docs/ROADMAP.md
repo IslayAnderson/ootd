@@ -524,23 +524,34 @@ Schema 15.
 - Includes the owner's login wording ("The TREATwork").
 - Tests: t131 updated (3 new checks).
 
-### 0.15.0 — Themes (planned, design questions open)
+### 0.15.0 — Themes (planned)
 
-Goal: an admin can make their blog look like theirs without being able to break or attack it.
-Draft shape, waiting on the owner's answers:
+Goal: blog admins and members can make their pages look like theirs without being able to break
+or attack the site. Shape agreed with the owner (D66–D69):
 
 - The colours in `variables.scss` become CSS custom properties (`--ink`, `--paper`, `--soft-ink`,
-  `--rule`, an accent). The compiled stylesheet stays the same for every blog; a theme only sets
-  those properties.
-- A theme is a few validated settings: values are picked from fixed lists or checked against
-  strict patterns (`#rrggbb` only), then written into one small server-built `:root{…}` block.
-  Nothing an admin types goes into CSS or HTML as-is.
-- No custom CSS, no uploaded templates, no JavaScript, no remote fonts or images: those are how
-  themes become an attack path (CSS data leaks, tracking, phishing look-alikes).
-- Text/background pairs are checked for readable contrast before they're saved.
+  `--rule`, `--accent`, `--serif`, `--sans`). The compiled stylesheet stays the same for everyone;
+  a theme only sets those properties in one small server-built `:root{…}` block.
+- **Colour pickers** for background, text, muted text, rules and accent: stored only if they
+  match `#rrggbb`, with a readable-contrast check before saving.
+- **Limited CSS:** an optional box that is parsed, not pasted. Only listed selectors (e.g.
+  `.site-logo`, `h1`, `h2`, `.post`, `.kicker`) and listed properties (colours, borders,
+  border-radius, font-weight, letter-spacing, text-transform, text-align, margins and padding)
+  are kept; values must fit a strict grammar. `url()`, `@import`, `@font-face`, `expression`,
+  attribute selectors, `content` and anything else is dropped, and the cleaned result is what's
+  saved and shown back. Sent with a CSP that blocks other style and image sources.
+- **Fonts:** any Google Font for headings and body. The name must match
+  `^[A-Za-z0-9 ]{1,40}$` and is checked against Google's list when saved; the stylesheet link is
+  built by the server and CSP allows only `fonts.googleapis.com` / `fonts.gstatic.com`. The
+  privacy page says visitors' browsers contact Google when a Google Font is set (AUDIT F15).
+- **No dark mode** for now.
+- **Who:** the blog admin sets the blog's theme in `/admin`; each person can set their own for
+  their profile, outfit, garment and article pages (falling back to the blog's). The site's
+  navigation and admin pages keep the blog's theme, so nobody can make a page that impersonates
+  the login or admin screens.
 - Cloud blogs get the same settings; the hub can't change a blog's theme.
-- Exact scope (presets, colour pickers, fonts, dark mode, per-person) is in the questions to the
-  owner, then recorded as D66+.
+- Tests: hostile CSS and font names (escaping `</style>`, `url(`, `@import`, unicode escapes,
+  comments) are all stripped.
 
 ## Later (not started)
 
