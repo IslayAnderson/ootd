@@ -104,7 +104,8 @@ const SETTING_LABELS = array(
     "source_url" => "Source code address",
     "privacy_notice" => "Extra privacy notice",
     "remote_media_mb" => "Space for photos from other blogs (MB)",
-    "logo" => "Logo"
+    "logo" => "Logo",
+    "public_feed" => "Public feed (guests can see the Local feed: public posts only)"
 );
 
 //how the settings form shows a choice, where its stored value isn't clear enough

@@ -1,4 +1,9 @@
 <?php ?>
+<?php if (($_GET['removed'] ?? "") == "content"): ?>
+    <p class="notice">Their content has been deleted.</p>
+<?php elseif (($_GET['removed'] ?? "") == "account"): ?>
+    <p class="notice">The user and their content have been deleted.</p>
+<?php endif; ?>
 
 <form action="/API/admin/users.php" method="post">
     <?php CSRF_input(); ?>
@@ -16,6 +21,7 @@
             <th>last_name</th>
             <th>permission</th>
             <th>session</th>
+            <th>delete</th>
         </tr>
         <?php foreach (User::all_users() as $row_user): ?>
             <tr>
@@ -51,6 +57,25 @@
                         </form>
                     <?php else: ?>
                         &nbsp;
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if ($row_user->user_id != $_SESSION['user_id']): ?>
+                        <details class="danger">
+                            <summary>Delete&hellip;</summary>
+                            <form action="/API/admin/users.php" method="post">
+                                <?php CSRF_input(); ?>
+                                <input type="hidden" name="user_id" value="<?= escape($row_user->user_id) ?>">
+                                <label>
+                                    Type <strong><?= escape($row_user->username) ?></strong> to confirm
+                                    <input type="text" name="confirm" autocomplete="off" required>
+                                </label>
+                                <p>Content: their outfits, garments, journal, comments, wears and likes. Other blogs are asked to remove what they have. The account stays.</p>
+                                <button type="submit" name="action" value="delete_content" class="secondary">Delete content</button>
+                                <p>User: their content, then the account. They can&rsquo;t log in again and the username stays taken. This can&rsquo;t be undone.</p>
+                                <button type="submit" name="action" value="delete_account">Delete user</button>
+                            </form>
+                        </details>
                     <?php endif; ?>
                 </td>
             </tr>

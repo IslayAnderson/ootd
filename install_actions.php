@@ -296,6 +296,11 @@ $settings = array(
         "type" => "text",
         "value" => ""
     ),
+    //0.13.4: let guests see the Local feed (public posts only) instead of being sent to log in
+    "public_feed" => array(
+        "type" => "bool",
+        "value" => 0
+    ),
     //0.13.3: the top bar's logo: the OOTD wordmark, an uploaded image (logo_media) or the blog name as text
     "logo" => array(
         "type" => "choice:wordmark|image|name",
@@ -341,6 +346,8 @@ $columns["remote_actors"]["outbox"] = "varchar(512) NULL";
 $columns["remote_actors"]["followers"] = "varchar(512) NULL";
 //0.13.0: a copied image is a post's photo or one of its garments
 $columns["remote_media"]["kind"] = "varchar(16) NOT NULL DEFAULT 'photo'";
+//0.13.4: accounts deleted by an admin stay as tombstones, so their username can't be reused
+$columns["users"]["deleted_at"] = "timestamp NULL DEFAULT NULL";
 //0.12.0: notifications about posts (likes, boosts from other servers) link to the post
 $columns["notifications"]["link"] = "varchar(512) NULL";
 //0.9.0: accounts can ask to approve new followers
@@ -413,7 +420,9 @@ $migrations = array(
     //remote_blogs is a new table (the names of other blogs, from their nodeinfo); fill it for people already known
     11 => array(
         "remote_blogs_backfill"
-    )
+    ),
+    //users.deleted_at is a new column (accounts deleted from /admin)
+    12 => array()
 );
 
 function brands_check_table()
