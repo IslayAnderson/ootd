@@ -1,8 +1,9 @@
 <?php
 ini_set('output_handler', null);
-ob_start();
 
-require "./init.php";
+require $_SERVER['DOCUMENT_ROOT'] . "/init.php";
+
+ob_start("meta_replace");
 
 
 //check if init has been run (set it global memory I guess) and run init
@@ -42,16 +43,34 @@ switch ($request[0]) {
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/wardrobe.php';
         break;
     case '/admin':
-        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/admin.php';
+        if (is_admin()) {
+            require $_SERVER['DOCUMENT_ROOT'] . '/Pages/admin.php';
+        } else {
+            http_response_code(403);
+            require $_SERVER['DOCUMENT_ROOT'] . '/Pages/403.php';
+        }
         break;
     case '/account':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/account.php';
         break;
-    case (bool)preg_match('/user.*/', $request[0]):
+    case (bool)preg_match('#^/user/#', $request[0]):
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/user.php';
+        break;
+    case (bool)preg_match('#^/@[^/]+$#', $request[0]):
+        //short profile address, /@username
+        header("location: /user/" . rawurlencode(rawurldecode(substr(parse_url($request[0], PHP_URL_PATH), 2))), true, 301);
+        exit();
+    case (bool)preg_match('#^/outfit/[^/]+$#', $request[0]):
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfit.php';
+        break;
+    case (bool)preg_match('#^/garment/[^/]+$#', $request[0]):
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/garment.php';
         break;
     case '/outfits':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfits.php';
+        break;
+    case '/insights':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/insights.php';
         break;
     case '/privacy':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/privacy.php';

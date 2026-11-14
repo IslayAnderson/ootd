@@ -1,0 +1,80 @@
+html {
+  scroll-padding-top: $top-bar-height;
+}
+
+body {
+  font-family: $serif;
+  font-size: 1.05rem;
+  color: $ink;
+  background: $paper;
+}
+
+h1 {
+  @include display(2.6rem);
+  margin-bottom: 0.75rem;
+}
+
+h2 {
+  @include display(1.7rem);
+  margin-bottom: 1rem;
+}
+
+h3 {
+  @include kicker(0.85rem);
+  margin-bottom: 0.25rem;
+}
+
+p {
+  margin-bottom: 0.75rem;
+}
+
+a, a:visited {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+time, .kicker {
+  @include kicker;
+  display: inline-block;
+}
+
+.kicker {
+  margin-bottom: 0.5rem;
+}
+
+.byline {
+  font-style: italic;
+  margin-bottom: 0;
+}
+
+@media only screen and (min-width: $large) {
+  h1 {
+    @include display(3.8rem);
+  }
+
+  h2 {
+    @include display(2.2rem);
+  }
+}
+
+//who can see a post, only shown to its owner
+.visibility {
+  @include kicker(0.6rem);
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border: $rule;
+}
+
+a.permalink {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

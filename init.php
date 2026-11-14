@@ -19,34 +19,45 @@ CSRF_generate();
 
 use ScssPhp\ScssPhp\Compiler;
 
-$compiler = new Compiler();
-$compressor = new tubalmartin\CssMin\Minifier();
-
-$source_scss = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/sass/main.scss';
-$scssContents = file_get_contents($source_scss);
-$import_path = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/sass';
-$compiler->addImportPath($import_path);
 $target_css = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/css/main.css';
 
-$css = $compiler->compile($scssContents);
+//compiling on every request is slow, turn "Recompile sass" off in /admin once styles are settled
+if (!file_exists($target_css) || setting_get("recompile_sass", 1) == 1) {
+    $compiler = new Compiler();
+    $compressor = new tubalmartin\CssMin\Minifier();
 
-if (!empty($css) && is_string($css)) {
-    file_put_contents($target_css, $css);
+    $source_scss = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/sass/main.scss';
+    $scssContents = file_get_contents($source_scss);
+    $import_path = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/sass';
+    $compiler->addImportPath($import_path);
+
+    $css = $compiler->compile($scssContents);
+
+    if (!empty($css) && is_string($css)) {
+        file_put_contents($target_css, $css);
+    }
+
+    $minified_css = $compressor->run(file_get_contents($target_css));
+    if (!empty($minified_css) && is_string($minified_css)) {
+        file_put_contents($target_css, $minified_css);
+    }
+
+    $GLOBALS['sass_len'] = strlen($scssContents);
+    $GLOBALS['sass_gen'] = "true";
 }
-
-$minified_css = $compressor->run(file_get_contents($target_css));
-if (!empty($minified_css) && is_string($minified_css)) {
-    file_put_contents($target_css, $minified_css);
-}
-
-$GLOBALS['sass_len'] = strlen($scssContents);
-$GLOBALS['sass_gen'] = "true";
 
 if (!isset($_SESSION['user_id'])) {
-    if ($_SERVER['REQUEST_URI'] != "/login" && $_SERVER['REQUEST_URI'] != '/signup' && $_SERVER['REQUEST_URI'] != '/invite') {
+    if (!guest_path_allowed(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))) {
         header("location: /login");
+        exit();
     }
 } else {
+    //sessions reset from /admin are cleared in the database, end them here
+    if (!session_valid()) {
+        session_destroy();
+        header("location: /login");
+        exit();
+    }
     if (!isset($_SESSION['user'])) {
         $_SESSION['user'] = serialize(new User($_SESSION['user_id']));
     }

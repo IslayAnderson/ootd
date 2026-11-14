@@ -87,10 +87,39 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | B9 | Low | `partials/user_table.php` and `partials/settings.php` are static mock-ups with real-looking personal data. | 0.4.0 |
 | B10 | Low | `Pages/index.php` sends a redirect header then renders anyway. | — |
 
+### Found while building 0.1.1 – 0.7.0
+
+| # | Sev | Finding | Fix |
+| --- | --- | --- | --- |
+| F1 | High | The original installer never set the `installed` setting, so any existing site still reads as "not installed". The 0.1.1 installer lock therefore treats an existing `users` table as installed. | 0.1.1 |
+| F2 | High | Existing installs store the admin as permission `0`, which the new admin check rejects; the upgrade step accepts a legacy `0` admin until schema 1 has run. | 0.1.1 |
+| F3 | High | The CSRF token minted before login was never saved against the user, so the first form posted after logging in always failed (and logged the user out). | 0.2.0 |
+| F4 | High | `users.session` was written on login but never checked, so logout-elsewhere, "Reset Session" and "Kill All Sessions" did nothing to an open browser. Sessions are now checked on every request. Side effect: **one active session per user** — logging in somewhere else ends the earlier session. | 0.4.0 |
+| F5 | Medium | Images were `BLOB` (64KB max), too small for phone photos; now `MEDIUMBLOB`. | 0.1.1 |
+| F6 | Medium | `Post\Outfit` used inner joins on its garment list, so an outfit with no linked garments failed to load. | 0.2.0 |
+| F7 | Medium | `table.scss` gives tables `z-index: -1`, which put every button inside the admin tables behind the page (unclickable). | 0.4.0 |
+| F8 | Medium | `/user.*/` route regex matched any path containing "user". | 0.3.0 |
+| F9 | Low | `image_bin_encode()` built MIME types like `image/JPEG` from `finfo`'s text description. | 0.2.0 |
+| F10 | Low | `users.session` was `varchar(32)`; widened to 128 in schema 2. | 0.4.0 |
+| F11 | Low | `Functions/environment.php` warned during install because `.env` didn't exist yet. | 0.5.0 |
+| F12 | Medium *(read)* | `/vendor` is inside the web root. `/account` relies on that to load TinyMCE, but it also exposes every Composer package's files. Worth blocking `/vendor` in `.htaccess` except `vendor/tinymce`. | — |
+| F13 | Low *(read)* | `Mysql::Fetch()` binds every value as `PDO::PARAM_STR` and then passes `$params` to `execute()` again; works, but the bind loop is redundant. | — |
+| F14 | Medium | `Post\Outfit` selected `outfits.*` and `garments.*` together, so the garment's `timestamp` overwrote the outfit's and posts showed the wrong date. | 0.6.0 |
+| F15 | Low *(read)* | Pages load Google Fonts, and insights loads Chartist from cdnjs: third-party requests, disclosed on `/privacy`. Self-hosting would remove them. | — |
+| F16 | Low *(read)* | `Mysql` builds its DSN with `;mysql:charset=utf8mb4;`, which PDO ignores, so the connection charset is whatever the server defaults to. Should be `;charset=utf8mb4;`. | 0.7.0 |
+| F17 | Low | The garment page showed "Last worn" to every member, so anyone could see when someone else wore something. Wears are now only shown to their owner. | 0.7.0 |
+
+### Status on `claude/development`
+
+Everything above marked with a release is fixed there and was re-tested on a fresh install
+(PHP 8.4, MySQL 9.4) and on an upgrade from a database created by the original installer.
+Items marked "—" are still open.
+
 ### Performance / housekeeping (documented, not changed)
 
 - `init.php` recompiles and minifies all SCSS on **every request**, including API calls and the
-  hidden CSRF `<img>`. Worth gating behind the (planned) "Re-compile SASS" admin setting.
+  hidden CSRF `<img>`. *Gated behind the "Recompile sass" admin setting in 0.4.0; it defaults to
+  on, so turn it off in production.*
 - Images are stored as `BLOB`s inline in each row and base64-inlined into every page; the
   `media` table in the design diagram is the intended replacement.
 - `Classes/classes.php` `eval`s `use` statements that have no effect at file scope.

@@ -9,23 +9,22 @@ function CSRF_generate(): bool
         $_SESSION['CSRF'] = array();
         $_SESSION['CSRF']['expiry'] = time();
     }
-    if (time() < mktime($_SESSION['CSRF']['expiry']) && !empty($_SESSION['CSRF']['token'])) {
+    if (time() < $_SESSION['CSRF']['expiry'] && !empty($_SESSION['CSRF']['token'])) {
         return false;
     }
 
     $CSRF = id_gen();
 
-    $params = array(':a' => $CSRF, ':b' => $_SESSION['user_id']);
-
-    $sql = "UPDATE `users` SET `csrf`= :a WHERE `user_id` = :b";
-
     if (isset($_SESSION['user_id'])) {
+        $params = array(':a' => $CSRF, ':b' => $_SESSION['user_id']);
+        $sql = "UPDATE `users` SET `csrf`= :a WHERE `user_id` = :b";
+
         $db = new Mysql();
         $db->Fetch($sql, $params);
     }
 
     $_SESSION['CSRF']["token"] = $CSRF;
-    $_SESSION['CSRF']["expiry"] = strtotime("+5 minutes");
+    $_SESSION['CSRF']["expiry"] = strtotime("+1 hour");
 
     return true;
 }
@@ -35,11 +34,7 @@ function CSRF_generate(): bool
  */
 function CSRF_validate($input = null): true
 {
-    if (empty($input)) {
-        if ($_SESSION['user_id']) {
-            $user = new user($_SESSION['user_id']);
-            $user->deauthenticate();
-        }
+    if (empty($input) || empty($_SESSION['user_id'])) {
         throw new Exception('CSRF token missing');
     }
 
@@ -50,11 +45,24 @@ function CSRF_validate($input = null): true
 
     $CSRF = $row[0]->csrf;
 
-    if ($input == $CSRF) {
+    if (!empty($CSRF) && hash_equals($CSRF, (string)$input)) {
         return true;
     } else {
-        $user = new user();
-        $user->kill_all_sessions();
+        //only the session that sent the bad token is ended, not everyone's
+        $user = new User($_SESSION['user_id']);
+        $user->deauthenticate();
         throw new Exception('CSRF token mismatch');
     }
+}
+
+/**
+ * Hidden form field carrying the current CSRF token
+ *
+ * @return void
+ */
+function CSRF_input(): void
+{
+    ?>
+    <input type="hidden" name="csrf" value="<?= escape($_SESSION['CSRF']['token'] ?? "") ?>">
+    <?php
 }
