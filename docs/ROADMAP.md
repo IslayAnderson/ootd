@@ -459,6 +459,12 @@ Schema 13. Off until the keys below are in `.env` (SELF-HOSTING.md, "Cloud blogs
   IP, not 127.0.0.1 (calls to 127.0.0.1 come from 127.0.0.1 and the key is refused). "Keep websites
   secured" is a plan item, added with the XML API's `service-plan add-plan-item`.
 
+### 0.14.3 — Cloud blogs' minute call over https ✅
+
+- The every-minute call to each blog's `/cron` goes over https: with the plan redirecting http, the
+  POST was answered with a redirect and the blog's jobs never ran. Found in the first real blog on
+  treatmag.online (built in 14 seconds, certificate from SSL It! within the hour, then deleted).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
