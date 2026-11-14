@@ -285,6 +285,16 @@ $settings = array(
     "federation" => array(
         "type" => "bool",
         "value" => 1
+    ),
+    //0.12.0: AGPL-3.0 asks that people using the site can get its source; point this at your copy if you change the code
+    "source_url" => array(
+        "type" => "string",
+        "value" => "https://github.com/IslayAnderson/ootd"
+    ),
+    //0.12.0: extra text for /privacy, e.g. monitoring your host adds
+    "privacy_notice" => array(
+        "type" => "text",
+        "value" => ""
     )
 );
 

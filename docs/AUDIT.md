@@ -105,7 +105,7 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | F12 | Medium *(read)* | `/vendor` is inside the web root. `/account` relies on that to load TinyMCE, but it also exposes every Composer package's files. Worth blocking `/vendor` in `.htaccess` except `vendor/tinymce`. Now blocked, along with every code, config and data folder. | 0.10.0 |
 | F13 | Low *(read)* | `Mysql::Fetch()` binds every value as `PDO::PARAM_STR` and then passes `$params` to `execute()` again; works, but the bind loop is redundant. | — |
 | F14 | Medium | `Post\Outfit` selected `outfits.*` and `garments.*` together, so the garment's `timestamp` overwrote the outfit's and posts showed the wrong date. | 0.6.0 |
-| F15 | Low *(read)* | Pages load Google Fonts, and insights loads Chartist from cdnjs: third-party requests, disclosed on `/privacy`. Self-hosting would remove them. | — |
+| F15 | Low *(read)* | Pages load Google Fonts, and insights loads Chartist from cdnjs: third-party requests, disclosed on `/privacy`. Self-hosting would remove them. | **Fixed 0.12.0**: fonts and Chartist are served from `Assets/` |
 | F16 | Low *(read)* | `Mysql` builds its DSN with `;mysql:charset=utf8mb4;`, which PDO ignores, so the connection charset is whatever the server defaults to. Should be `;charset=utf8mb4;`. | 0.7.0 |
 | F17 | Low | The garment page showed "Last worn" to every member, so anyone could see when someone else wore something. Wears are now only shown to their owner. | 0.7.0 |
 | F18 | High | The upgrade saved `schema_version` only at the end, so re-running after a failed step repeated earlier steps; schema 1 remaps permissions, so a re-run demoted every admin. | 0.7.1 |

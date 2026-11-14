@@ -14,12 +14,11 @@ $per_month = $insights->wears_per_month(12);
     <?php if (array_sum($per_month['series']) == 0): ?>
         <p>Press "Wore this today" on one of your <a href="/outfits">outfits</a> to start tracking.</p>
     <?php else: ?>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.4/chartist.min.js"
-                integrity="sha512-9rxMbTkN9JcgG5euudGbdIbhFZ7KGyAuVomdQDI9qXfPply9BJh0iqA7E/moLCatH2JD4xBGHwV6ezBkCpnjRQ=="
-                crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.4/chartist.min.css"
-              integrity="sha512-V0+DPzYyLzIiMiWCg3nNdY+NyIiK9bED/T1xNBj08CaIUyK3sXRpB26OUCIzujMevxY9TRJFHQIxTwgzb0jVLg=="
-              crossorigin="anonymous" referrerpolicy="no-referrer"/>
+        <?php //Chartist 0.11.4, served locally (MIT, Assets/vendor/chartist) ?>
+        <script src="/Assets/vendor/chartist/chartist.min.js"
+                integrity="sha512-9rxMbTkN9JcgG5euudGbdIbhFZ7KGyAuVomdQDI9qXfPply9BJh0iqA7E/moLCatH2JD4xBGHwV6ezBkCpnjRQ=="></script>
+        <link rel="stylesheet" href="/Assets/vendor/chartist/chartist.min.css"
+              integrity="sha512-V0+DPzYyLzIiMiWCg3nNdY+NyIiK9bED/T1xNBj08CaIUyK3sXRpB26OUCIzujMevxY9TRJFHQIxTwgzb0jVLg=="/>
         <div class="ct-chart ct-golden-section"></div>
         <script>
             new Chartist.Line('.ct-chart', {
