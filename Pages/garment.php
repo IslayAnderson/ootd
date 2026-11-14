@@ -31,7 +31,7 @@ title_update($item['garment_name']);
                 </label>
                 <label>
                     Description
-                    <textarea name="description" maxlength="1024"><?= escape($item['garment_description']) ?></textarea>
+                    <textarea name="description" maxlength="1024"><?= escape(plain_text($item['garment_description'])) ?></textarea>
                 </label>
                 <label>
                     Brand

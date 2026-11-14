@@ -565,7 +565,7 @@ class RemotePost
                 <?php if (!$is_profile): ?>
                     <div class="profile">
                         <a href="<?= escape($path) ?>">
-                            <img loading="lazy" src="/Assets/images/avi.jpg" alt="">
+                            <img loading="lazy" src="<?= asset_url("/Assets/images/avi.jpg") ?>" alt="">
                             <span class="username"><?= escape($handle) ?></span>
                         </a>
                     </div>

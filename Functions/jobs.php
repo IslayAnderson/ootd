@@ -20,7 +20,8 @@ function job_media_purge($payload = array()): void
             LEFT JOIN `outfits` ON outfits.media_id = media.media_id
             LEFT JOIN `garments` ON garments.media_id = media.media_id
             LEFT JOIN `remote_media` ON remote_media.media_id = media.media_id
-            WHERE media.deleted_at IS NULL AND users.user_id IS NULL AND remote_media.remote_media_num IS NULL
+            LEFT JOIN `settings` ON settings.setting = 'logo_media' AND settings.value = media.media_id
+            WHERE media.deleted_at IS NULL AND users.user_id IS NULL AND remote_media.remote_media_num IS NULL AND settings.setting IS NULL
               AND (
                 (outfits.outfit_num IS NULL AND garments.garment_num IS NULL AND media.timestamp < DATE_SUB(NOW(), INTERVAL 1 DAY))
                 OR outfits.deleted_at < DATE_SUB(NOW(), INTERVAL " . MEDIA_PURGE_AFTER_DAYS . " DAY)

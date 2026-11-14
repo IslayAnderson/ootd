@@ -31,7 +31,7 @@ $signed_in = !empty($_SESSION['user_id']);
             <span></span>
         <?php endif; ?>
         <a href="/feed" class="logo">
-            <img alt="OOTD" src="/Assets/images/logo.svg">
+            <?= site_logo() ?>
         </a>
         <?php if ($signed_in): ?>
             <a href="/account" aria-label="Account">

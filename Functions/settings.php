@@ -45,7 +45,8 @@ function setting_set($setting, $value, $type = "string")
  */
 function settings_editable(): array
 {
-    $sql = "SELECT * FROM `settings` WHERE `setting` NOT IN ('installed', 'schema_version') ORDER BY `setting_num`";
+    //media settings (the logo) are uploads with a field of their own
+    $sql = "SELECT * FROM `settings` WHERE `setting` NOT IN ('installed', 'schema_version') AND `type` <> 'media' ORDER BY `setting_num`";
 
     $db = new Mysql();
     $row = $db->Fetch($sql, null);
@@ -102,7 +103,13 @@ const SETTING_LABELS = array(
     "federation" => "Connect with other blogs (other OOTD blogs, Mastodon and the Fediverse)",
     "source_url" => "Source code address",
     "privacy_notice" => "Extra privacy notice",
-    "remote_media_mb" => "Space for photos from other blogs (MB)"
+    "remote_media_mb" => "Space for photos from other blogs (MB)",
+    "logo" => "Logo"
+);
+
+//how the settings form shows a choice, where its stored value isn't clear enough
+const SETTING_CHOICE_LABELS = array(
+    "logo" => array("wordmark" => "OOTD wordmark", "image" => "Uploaded image", "name" => "Blog name as text")
 );
 
 function instance_name(): string

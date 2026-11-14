@@ -163,7 +163,7 @@ class Federation
         $tags = tags_split($outfit->tags);
         $content = "";
         if (trim((string)$outfit->description) !== "") {
-            $content .= "<p>" . nl2br(escape($outfit->description), false) . "</p>";
+            $content .= "<p>" . text_html($outfit->description) . "</p>";
         }
         //garments that may go wherever the outfit goes: public ones, or followers-only ones on a followers-only outfit
         $garments = array();
@@ -239,8 +239,8 @@ class Federation
             "type" => "Article",
             "attributedTo" => self::actor_url($blog->username),
             "url" => $url,
-            "name" => (string)$blog->title,
-            "summary" => (string)$blog->excerpt,
+            "name" => plain_text($blog->title),
+            "summary" => plain_text($blog->excerpt),
             "published" => self::time($blog->timestamp),
             "to" => $to,
             "cc" => $cc,
@@ -314,7 +314,7 @@ class Federation
             "url" => $url
         );
         if (trim((string)$garment->description) !== "") {
-            $object['summary'] = (string)$garment->description;
+            $object['summary'] = plain_text($garment->description);
         }
         if (!empty($garment->brand_name)) {
             $object['ootd:brand'] = (string)$garment->brand_name;

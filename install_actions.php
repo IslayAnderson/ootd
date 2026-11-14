@@ -296,6 +296,16 @@ $settings = array(
         "type" => "text",
         "value" => ""
     ),
+    //0.13.3: the top bar's logo: the OOTD wordmark, an uploaded image (logo_media) or the blog name as text
+    "logo" => array(
+        "type" => "choice:wordmark|image|name",
+        "value" => "wordmark"
+    ),
+    //0.13.3: media_id of the uploaded logo, set by the upload field under Logo
+    "logo_media" => array(
+        "type" => "media",
+        "value" => ""
+    ),
     //0.12.0: space for photos copied from other servers; the oldest are dropped past this (they can be fetched again)
     "remote_media_mb" => array(
         "type" => "int",

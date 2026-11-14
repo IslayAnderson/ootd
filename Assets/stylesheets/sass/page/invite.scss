@@ -16,7 +16,17 @@
     img {
       width: 60%;
       max-width: 14rem;
+      max-height: 8rem;
+      object-fit: contain;
       margin: 0 auto 2rem;
+    }
+
+    .site-logo--text {
+      display: block;
+      font-family: $serif;
+      font-size: 3rem;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
     }
 
     p {

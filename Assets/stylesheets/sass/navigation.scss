@@ -40,11 +40,29 @@
       justify-self: end;
     }
 
-    //wordmark only, no icon
+    //wordmark only, no icon; an uploaded logo gets the same height, the blog name is set in type
     .logo img {
       display: block;
       height: 1.4rem;
       width: auto;
+      max-width: 50vw;
+      object-fit: contain;
+    }
+
+    .logo {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .site-logo--text {
+      display: block;
+      font-family: $serif;
+      font-size: 1.3rem;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60vw;
     }
   }
 }

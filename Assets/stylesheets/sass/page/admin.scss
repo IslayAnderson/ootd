@@ -97,6 +97,13 @@ body > div.accordion {
     border-bottom: solid 1px $mid-grey;
     margin: 0;
 
+    .logo-upload .current img {
+      display: block;
+      height: 2rem;
+      width: auto;
+      margin: 0.5rem 0;
+    }
+
     input[type="text"] {
       width: 50%;
       margin: 0;
