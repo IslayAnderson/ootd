@@ -329,6 +329,8 @@ $columns = array(
 //0.12.0: what's needed to read people elsewhere: their outbox (backfill) and followers collection (followers-only posts)
 $columns["remote_actors"]["outbox"] = "varchar(512) NULL";
 $columns["remote_actors"]["followers"] = "varchar(512) NULL";
+//0.13.0: a copied image is a post's photo or one of its garments
+$columns["remote_media"]["kind"] = "varchar(16) NOT NULL DEFAULT 'photo'";
 //0.12.0: notifications about posts (likes, boosts from other servers) link to the post
 $columns["notifications"]["link"] = "varchar(512) NULL";
 //0.9.0: accounts can ask to approve new followers
@@ -395,7 +397,9 @@ $migrations = array(
     //actor_keys, remote_actors and remote_followers are new tables (ActivityPub)
     8 => array(),
     //remote_follows, remote_posts and remote_media are new tables (following people elsewhere)
-    9 => array()
+    9 => array(),
+    //remote_garments, likes and comments are new tables (OOTD-to-OOTD extras, interactions)
+    10 => array()
 );
 
 function brands_check_table()
@@ -1286,6 +1290,56 @@ function federation_create_table($table)
             KEY post_num (post_num),
             KEY media_id (media_id),
             KEY state (state)
+        ) CHARACTER SET utf8mb4",
+        //garments listed on outfits from other OOTD servers (schema 10); brand and category are matched to ours by name
+        "remote_garments" => "CREATE TABLE remote_garments(
+            remote_garment_num int(11) NOT NULL AUTO_INCREMENT,
+            post_num int(11) NOT NULL,
+            position int(11) NOT NULL DEFAULT 0,
+            ap_id varchar(512) NULL,
+            name varchar(128) NOT NULL,
+            brand_name varchar(100) NULL,
+            category_name varchar(100) NULL,
+            brand_id int(11) NULL,
+            category_id int(11) NULL,
+            description varchar(1024) NULL,
+            url varchar(512) NULL,
+            remote_media_num int(11) NULL,
+            PRIMARY KEY (remote_garment_num),
+            KEY post_num (post_num)
+        ) CHARACTER SET utf8mb4",
+        //"love this look": by someone here (user_id) or elsewhere (actor_num), on an outfit or a remote post (schema 10)
+        "likes" => "CREATE TABLE likes(
+            like_num int(11) NOT NULL AUTO_INCREMENT,
+            user_id int(11) NULL,
+            actor_num int(11) NULL,
+            kind varchar(16) NOT NULL,
+            object_num int(11) NOT NULL,
+            activity_id varchar(512) NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (like_num),
+            UNIQUE KEY local_like (user_id, kind, object_num),
+            UNIQUE KEY remote_like (actor_num, kind, object_num),
+            KEY object (kind, object_num)
+        ) CHARACTER SET utf8mb4",
+        //comments on outfits and remote posts, by someone here or a reply from elsewhere (schema 10)
+        "comments" => "CREATE TABLE comments(
+            comment_num int(11) NOT NULL AUTO_INCREMENT,
+            comment_id varchar(32) NOT NULL,
+            kind varchar(16) NOT NULL,
+            parent_num int(11) NOT NULL,
+            user_id int(11) NULL,
+            actor_num int(11) NULL,
+            ap_id varchar(512) NULL,
+            content text NOT NULL,
+            federated tinyint(1) NOT NULL DEFAULT 0,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at timestamp NULL DEFAULT NULL,
+            deleted_at timestamp NULL DEFAULT NULL,
+            PRIMARY KEY (comment_num),
+            UNIQUE KEY comment_id (comment_id),
+            KEY ap_id (ap_id(255)),
+            KEY parent (kind, parent_num)
         ) CHARACTER SET utf8mb4"
     );
     $db = new Mysql();
@@ -1434,7 +1488,7 @@ if (!notifications_check_table()) {
 }
 
 //build ActivityPub tables
-foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media") as $federation_table) {
+foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media", "remote_garments", "likes", "comments") as $federation_table) {
     if (!table_exists($federation_table)) {
         federation_create_table($federation_table);
     } else {

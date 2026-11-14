@@ -10,6 +10,9 @@ class Federation
 {
     const PUBLIC_AUDIENCE = "https://www.w3.org/ns/activitystreams#Public";
     const PAGE_SIZE = 20;
+    /** OOTD's own vocabulary (garments, brands, categories), the same on every OOTD server; described at /ns */
+    const NS = "https://github.com/IslayAnderson/ootd/ns#";
+    const WARDROBE_SIZE = 100;
 
     /**
      * @return bool is federation turned on in /admin
@@ -29,7 +32,8 @@ class Federation
                 "sensitive" => "as:sensitive",
                 "Hashtag" => "as:Hashtag",
                 "toot" => "http://joinmastodon.org/ns#",
-                "discoverable" => "toot:discoverable"
+                "discoverable" => "toot:discoverable",
+                "ootd" => self::NS
             )
         );
     }
@@ -97,6 +101,7 @@ class Federation
             "endpoints" => array("sharedInbox" => absolute_url("/inbox")),
             "manuallyApprovesFollowers" => (int)$user->approve_followers === 1,
             "discoverable" => false,
+            "ootd:wardrobe" => $id . "/wardrobe",
             "publicKey" => array("id" => $id . "#main-key", "owner" => $id, "publicKeyPem" => $public)
         );
         if (!empty($user->media_id) && ($media = Media::get($user->media_id))) {
@@ -145,7 +150,7 @@ class Federation
     public static function outfit_note($outfit_id, $any_visibility = false): ?array
     {
         $db = new Mysql();
-        $row = $db->Fetch("SELECT outfits.outfit_id, outfits.description, outfits.tags, outfits.visibility, outfits.media_id, outfits.timestamp,
+        $row = $db->Fetch("SELECT outfits.outfit_id, outfits.description, outfits.tags, outfits.visibility, outfits.media_id, outfits.timestamp, outfits.garments,
                                   outfits.updated_at, users.username, media.mime, media.width, media.height, media.alt_text
                            FROM `outfits` JOIN `users` ON users.user_id = outfits.user
                            LEFT JOIN `media` ON media.media_id = outfits.media_id
@@ -159,6 +164,19 @@ class Federation
         $content = "";
         if (trim((string)$outfit->description) !== "") {
             $content .= "<p>" . nl2br(escape($outfit->description), false) . "</p>";
+        }
+        //garments that may go wherever the outfit goes: public ones, or followers-only ones on a followers-only outfit
+        $garments = array();
+        foreach (self::garment_rows(json_decode((string)$outfit->garments) ?: array()) as $garment) {
+            if ($garment->visibility == VISIBILITY_PUBLIC || ($garment->visibility == VISIBILITY_FOLLOWERS && $outfit->visibility == VISIBILITY_FOLLOWERS)) {
+                $garments[] = $garment;
+            }
+        }
+        if (count($garments) > 0) {
+            //for Mastodon and other apps that don't know garments
+            $content .= "<p>Wearing: " . escape(implode(", ", array_map(function ($garment) {
+                    return $garment->garment_name . (!empty($garment->brand_name) ? " (" . $garment->brand_name . ")" : "");
+                }, $garments))) . "</p>";
         }
         if (count($tags) > 0) {
             $content .= "<p>" . escape(tags_display($outfit->tags)) . "</p>";
@@ -181,6 +199,11 @@ class Federation
         if (!empty($outfit->updated_at)) {
             $note['updated'] = self::time($outfit->updated_at);
         }
+        if (count($garments) > 0) {
+            $note['ootd:garments'] = array_map(function ($garment) use ($outfit) {
+                return self::garment_object($garment, $outfit->visibility != VISIBILITY_PUBLIC);
+            }, $garments);
+        }
         if (!empty($outfit->media_id) && !empty($outfit->mime)) {
             $note['attachment'][] = array(
                 "type" => "Image",
@@ -202,7 +225,7 @@ class Federation
     public static function blog_article($blog_id, $any_visibility = false): ?array
     {
         $db = new Mysql();
-        $row = $db->Fetch("SELECT blogs.blog_id, blogs.title, blogs.excerpt, blogs.content, blogs.tags, blogs.visibility, blogs.timestamp, blogs.updated_at, users.username
+        $row = $db->Fetch("SELECT blogs.blog_id, blogs.user, blogs.outfits, blogs.title, blogs.excerpt, blogs.content, blogs.tags, blogs.visibility, blogs.timestamp, blogs.updated_at, users.username
                            FROM `blogs` JOIN `users` ON users.user_id = blogs.user
                            WHERE blogs.blog_id = :a AND blogs.deleted_at IS NULL", array(":a" => (string)$blog_id));
         if ($row[0] == '00000' || (!$any_visibility && !self::federates($row[0]->visibility))) {
@@ -229,7 +252,141 @@ class Federation
         if (!empty($blog->updated_at)) {
             $article['updated'] = self::time($blog->updated_at);
         }
+        //linked outfits that federate at least as widely as the post
+        $outfits = array();
+        foreach (json_decode((string)$blog->outfits) ?: array() as $outfit_num) {
+            $row = $db->Fetch("SELECT `outfit_id`, `visibility` FROM `outfits` WHERE `outfit_num` = :a AND `user` = :b AND `deleted_at` IS NULL",
+                array(":a" => (int)$outfit_num, ":b" => (int)$blog->user));
+            if ($row[0] != '00000' && ($row[0]->visibility == VISIBILITY_PUBLIC || ($row[0]->visibility == VISIBILITY_FOLLOWERS && $blog->visibility == VISIBILITY_FOLLOWERS))) {
+                $outfits[] = absolute_url("/outfit/" . $row[0]->outfit_id);
+            }
+        }
+        if (count($outfits) > 0) {
+            $article['ootd:outfits'] = $outfits;
+        }
         return $article;
+    }
+
+    /**
+     * @param array $garment_nums
+     * @return array garment rows (with brand_name, category_name, owner username, image details), in the given order
+     */
+    public static function garment_rows($garment_nums): array
+    {
+        $nums = array_values(array_filter(array_map("intval", (array)$garment_nums)));
+        if (count($nums) == 0) {
+            return array();
+        }
+        $db = new Mysql();
+        $rows = $db->Fetch("SELECT garments.*, brands.brand_name, categories.categories AS category_name, users.username,
+                                   media.mime, media.alt_text, media.width, media.height
+                            FROM `garments` JOIN `users` ON users.user_id = garments.user_id
+                            LEFT JOIN `brands` ON brands.brand_id = garments.brand
+                            LEFT JOIN `categories` ON categories.category_id = garments.category
+                            LEFT JOIN `media` ON media.media_id = garments.media_id
+                            WHERE garments.garment_num IN (" . implode(",", $nums) . ") AND garments.deleted_at IS NULL", null);
+        $by_num = array();
+        foreach ($rows[0] != '00000' ? $rows : array() as $row) {
+            $by_num[(int)$row->garment_num] = $row;
+        }
+        $ordered = array();
+        foreach ($nums as $num) {
+            if (isset($by_num[$num])) {
+                $ordered[] = $by_num[$num];
+            }
+        }
+        return $ordered;
+    }
+
+    /**
+     * @param object $garment row from garment_rows()
+     * @param bool $keyed photo link carries a key (the garment or its outfit isn't public)
+     * @return array ootd:Garment
+     */
+    public static function garment_object($garment, $keyed = false): array
+    {
+        $url = absolute_url("/garment/" . $garment->garment_id);
+        $object = array(
+            "id" => $url,
+            "type" => "ootd:Garment",
+            "attributedTo" => self::actor_url($garment->username),
+            "name" => (string)$garment->garment_name,
+            "url" => $url
+        );
+        if (trim((string)$garment->description) !== "") {
+            $object['summary'] = (string)$garment->description;
+        }
+        if (!empty($garment->brand_name)) {
+            $object['ootd:brand'] = (string)$garment->brand_name;
+        }
+        if (!empty($garment->category_name)) {
+            $object['ootd:category'] = (string)$garment->category_name;
+        }
+        if (!empty($garment->media_id) && !empty($garment->mime)) {
+            $object['image'] = array(
+                "type" => "Image",
+                "mediaType" => $garment->mime,
+                "url" => media_absolute_url($garment->media_id, "thumb", $keyed || $garment->visibility != VISIBILITY_PUBLIC),
+                "name" => (string)$garment->alt_text
+            );
+        }
+        return $object;
+    }
+
+    /**
+     * @param string $garment_id
+     * @return array|null a public garment, with @context, for /garment/<id>
+     */
+    public static function garment($garment_id): ?array
+    {
+        $db = new Mysql();
+        $row = $db->Fetch("SELECT `garment_num` FROM `garments` WHERE `garment_id` = :a AND `deleted_at` IS NULL AND `visibility` = 'public'", array(":a" => (string)$garment_id));
+        if ($row[0] == '00000') {
+            return null;
+        }
+        $garment = self::garment_rows(array($row[0]->garment_num))[0] ?? null;
+        return $garment ? array_merge(array("@context" => self::context()), self::garment_object($garment)) : null;
+    }
+
+    /**
+     * @param object $user row from local_user()
+     * @return array the public wardrobe as an OrderedCollection of ootd:Garment
+     */
+    public static function wardrobe($user): array
+    {
+        $db = new Mysql();
+        $rows = $db->Fetch("SELECT `garment_num` FROM `garments` WHERE `user_id` = :a AND `deleted_at` IS NULL AND `visibility` = 'public'
+                            ORDER BY `timestamp` DESC LIMIT " . self::WARDROBE_SIZE, array(":a" => (int)$user->user_id));
+        $nums = array_map(function ($row) {
+            return (int)$row->garment_num;
+        }, $rows[0] != '00000' ? $rows : array());
+        $items = array_map(function ($garment) {
+            return self::garment_object($garment);
+        }, self::garment_rows($nums));
+        return array(
+            "@context" => self::context(),
+            "id" => self::actor_url($user->username) . "/wardrobe",
+            "type" => "OrderedCollection",
+            "attributedTo" => self::actor_url($user->username),
+            "totalItems" => count($items),
+            "orderedItems" => $items
+        );
+    }
+
+    /**
+     * @return array the JSON-LD context for OOTD's vocabulary, served at /ns
+     */
+    public static function vocabulary(): array
+    {
+        return array("@context" => array(
+            "ootd" => self::NS,
+            "Garment" => "ootd:Garment",
+            "brand" => "ootd:brand",
+            "category" => "ootd:category",
+            "garments" => array("@id" => "ootd:garments", "@container" => "@list"),
+            "outfits" => array("@id" => "ootd:outfits", "@type" => "@id"),
+            "wardrobe" => array("@id" => "ootd:wardrobe", "@type" => "@id")
+        ));
     }
 
     /**
@@ -352,19 +509,29 @@ class Federation
         if (!$user) {
             return;
         }
+        $body = json_encode($activity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        foreach (self::follower_inboxes((int)$user->user_id) as $inbox) {
+            Jobs::dispatch("ap_deliver", array("inbox" => $inbox, "user_id" => (int)$user->user_id, "body" => $body));
+        }
+    }
+
+    /**
+     * @param int $user_id
+     * @return array the inboxes of a local user's followers elsewhere (shared inboxes once each)
+     */
+    public static function follower_inboxes($user_id): array
+    {
         $db = new Mysql();
         $rows = $db->Fetch("SELECT DISTINCT COALESCE(remote_actors.shared_inbox, remote_actors.inbox) AS inbox
                             FROM `remote_followers` JOIN `remote_actors` ON remote_actors.actor_num = remote_followers.actor_num
-                            WHERE remote_followers.user_id = :a AND remote_followers.state = 'accepted'", array(":a" => (int)$user->user_id));
-        if ($rows[0] == '00000') {
-            return;
-        }
-        $body = json_encode($activity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        foreach ($rows as $row) {
+                            WHERE remote_followers.user_id = :a AND remote_followers.state = 'accepted'", array(":a" => (int)$user_id));
+        $inboxes = array();
+        foreach ($rows[0] != '00000' ? $rows : array() as $row) {
             if (!empty($row->inbox)) {
-                Jobs::dispatch("ap_deliver", array("inbox" => $row->inbox, "user_id" => (int)$user->user_id, "body" => $body));
+                $inboxes[] = $row->inbox;
             }
         }
+        return $inboxes;
     }
 
     /**

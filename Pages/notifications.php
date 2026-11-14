@@ -26,7 +26,7 @@ $notifications = Notification::latest($_SESSION['user_id']);
                         Someone
                     <?php endif; ?>
                     <?= escape(Notification::TYPES[$notification->type] ?? $notification->type) ?>
-                    <?php if (in_array($notification->type, array("like", "announce"), true) && !empty($notification->link)): ?>
+                    <?php if (in_array($notification->type, array("like", "announce", "reply"), true) && !empty($notification->link)): ?>
                         &middot; <a href="<?= escape($notification->link) ?>">see it</a>
                     <?php endif; ?>
                     <?php if ($notification->type == "follow_request"): ?>

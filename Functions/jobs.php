@@ -88,3 +88,11 @@ function job_remote_media_purge($payload)
 {
     RemotePost::purge_media();
 }
+
+/**
+ * ActivityPub: send a comment (or its deletion) as a reply
+ */
+function job_ap_comment($payload)
+{
+    Comment::publish($payload);
+}

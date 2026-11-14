@@ -182,7 +182,7 @@ class RemoteActor
     public static function webfinger($name, $host): ?string
     {
         $scheme = !empty($_ENV['AP_ALLOW_HTTP']) && preg_match('/^(127\.|localhost)/', $host) ? "http" : "https";
-        $url = $scheme . "://" . $host . "/.well-known/webfinger?resource=" . rawurlencode("acct:" . $name . "@" . explode(":", $host)[0]);
+        $url = $scheme . "://" . $host . "/.well-known/webfinger?resource=" . rawurlencode("acct:" . $name . "@" . $host);
         try {
             list($status, $body) = SafeHttp::get($url, array("Accept" => "application/jrd+json, application/json"));
         } catch (Exception $e) {
