@@ -44,14 +44,70 @@ class PleskApi
         if (isset($xml->system)) {
             throw new Exception("Plesk: " . trim((string)$xml->system->errtext));
         }
-        $result = $xml->{$operator}->{$operation}->result ?? null;
-        if (!$result) {
+        $results = array();
+        foreach ($xml->{$operator}->{$operation}->result ?? array() as $result) {
+            $results[] = $result;
+        }
+        if (!$results) {
             throw new Exception("Plesk sent no result");
         }
-        if ((string)$result->status !== "ok") {
-            throw new Exception("Plesk: " . trim((string)$result->errtext) . " (" . (string)$result->errcode . ")");
+        foreach ($results as $result) {
+            if ((string)$result->status !== "ok") {
+                throw new Exception("Plesk: " . trim((string)$result->errtext) . " (" . (string)$result->errcode . ")");
+            }
         }
-        return $result;
+        self::$results = $results;
+        return $results[0];
+    }
+
+    //every <result> of the last call (a get with a filter answers one per match)
+    private static $results = array();
+
+    /**
+     * @return int the subscription id of a domain the key's owner has (its main site has the same id)
+     */
+    public static function webspace_id($domain): int
+    {
+        $result = self::call("webspace", "get", "<filter><name>" . self::x($domain) . "</name></filter><dataset><gen_info/></dataset>");
+        return (int)$result->id;
+    }
+
+    /**
+     * @return array of [id, type, host (full name, no trailing dot), value] in a site's DNS zone
+     */
+    public static function dns_records($site_id): array
+    {
+        try {
+            self::call("dns", "get_rec", "<filter><site-id>" . (int)$site_id . "</site-id></filter>");
+        } catch (Exception $e) {
+            if (strpos($e->getMessage(), "no result") !== false) {
+                return array();
+            }
+            throw $e;
+        }
+        $records = array();
+        foreach (self::$results as $result) {
+            $records[] = array("id" => (int)$result->id, "type" => (string)$result->data->type,
+                "host" => rtrim(strtolower((string)$result->data->host), "."), "value" => (string)$result->data->value);
+        }
+        return $records;
+    }
+
+    /**
+     * @param int $site_id
+     * @param string $host the part before the zone's name, e.g. "mia" in mia.example.com
+     * @return int record id
+     */
+    public static function add_dns_a($site_id, $host, $ip): int
+    {
+        $result = self::call("dns", "add_rec", "<site-id>" . (int)$site_id . "</site-id><type>A</type><host>" . self::x($host) . "</host>"
+            . "<value>" . self::x($ip) . "</value>");
+        return (int)$result->id;
+    }
+
+    public static function delete_dns($record_id): void
+    {
+        self::call("dns", "del_rec", "<filter><id>" . (int)$record_id . "</id></filter>");
     }
 
     public static function x($value): string

@@ -179,35 +179,41 @@ and followers-only posts. Members and Only me posts never leave your server.
 
 From 0.14.0 a blog on a Plesk server can offer **Create my own blog** on its login page. Each
 blog it makes is a separate OOTD install, in its own Plesk subscription, at `name.<your domain>`.
-It stays off until all of these are in `.env`:
+It stays off until the first five keys are in `.env`:
 
 | Key | What |
 | --- | --- |
-| `CLOUD_DOMAIN` | the domain new blogs go under, e.g. `ootd.blog` |
+| `CLOUD_DOMAIN` | the domain new blogs go under, e.g. `treatmag.online` |
 | `CLOUD_SERVER_IP` | the Plesk server's public IP (subscriptions and DNS records point at it) |
 | `PLESK_API_URL` | `https://<server>:8443/enterprise/control/agent.php` |
 | `PLESK_API_KEY` | the reseller's secret key (not the admin's) |
-| `PLESK_VERIFY_TLS` | `0` if the panel's certificate is for another name (optional) |
 | `CLOUD_PLAN` | the reseller's service plan, e.g. `"OOTD Blog"` (quote names with spaces) |
-| `CLOUDFLARE_ZONE_ID` | the zone of `CLOUD_DOMAIN` |
-| `CLOUDFLARE_API_TOKEN` | a token that can only edit DNS in that zone |
+| `PLESK_VERIFY_TLS` | `0` if the panel's certificate is for another name (optional) |
+| `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN` | only if `CLOUD_DOMAIN`'s DNS is at Cloudflare (optional) |
 | `CLOUD_DAILY_LIMIT` | new blogs a day in all (optional, default 10) |
+| `CLOUD_HTTPS_WAIT_HOURS` | how long a build waits for a certificate (optional, default 6) |
 | `CLOUD_DB_HOST` | the database host new blogs use (optional, default `localhost`) |
 
-Setting it up:
+Setting it up with Plesk as the name server:
 
-1. Buy the domain and add it to Cloudflare. SSL/TLS mode **Full** (Plesk's default certificate is
-   enough) or **Flexible**.
-2. In Cloudflare, **My Profile → API Tokens → Create Token → Edit zone DNS**, for that zone only.
-3. In Plesk, **Resellers → Add Reseller** (e.g. "OOTD Cloud") on the Default Reseller plan, with a
-   password of your own.
-4. As that reseller, **Service Plans → Add Plan** "OOTD Blog": e.g. 2 GB disk, 1 database, no mail
-   accounts, PHP 8.3 (FPM), FTP on, with `curl`, `zip`, `gd` and `pdo_mysql`.
-5. Make an API secret key for the reseller with Plesk's `secret_key` utility on the server
-   (`plesk bin secret_key --help`), limited to this blog's IP. A key for the admin would work too,
-   but could then touch every site on the server.
+1. Point the domain's name servers at Plesk and add it as a subscription of the reseller (e.g.
+   `ootd`). Blogs' A records are added to that subscription's DNS zone.
+2. Give the reseller room: **Resellers → ootd → Change Plan / Customize**: subscriptions and
+   customers unlimited (or your cap), and the permissions **Customer management**, **Subscription
+   management** (create subscriptions) and **DNS zone management**.
+3. As the reseller, **Service Plans → Add Plan** "OOTD Blog": e.g. 2 GB disk, 1 database, no mail
+   accounts, DNS on, PHP 8.3 (FPM), FTP on.
+4. As admin, **Tools & Settings → SSL/TLS Certificates → Keep websites secured** on, so each new
+   blog gets a Let's Encrypt certificate. The owner is emailed once it has one.
+5. Make an API key for the reseller on the server, limited to this blog's IP:
+   `plesk bin secret_key --create -login ootd -ip-address <this server's IP> -description "OOTD cloud blogs"`.
+   A key for the admin would work too, but could then touch every site on the server.
 6. Put the keys in `.env`, then check the login page shows the button. The cron job or worker must
    be running: it builds the blogs and wakes them every minute.
+
+With the domain at Cloudflare instead, skip step 4 and add a token that can only edit DNS in its
+zone (**My Profile → API Tokens → Edit zone DNS**); records are then proxied and https comes from
+Cloudflare (SSL mode Full or Flexible).
 
 Admins see every blog made from here in `/admin` → **Cloud blogs**, where a failed build can be
 retried and a blog suspended, resumed or deleted.
