@@ -4,9 +4,10 @@
  * pages are open so public posts can be shared; they only show guests what's public.
  *
  * @param string $path
+ * @param bool|null $public_feed Settings → Public feed; looked up when not given
  * @return bool
  */
-function guest_path_allowed($path): bool
+function guest_path_allowed($path, $public_feed = null): bool
 {
     $paths = array(
         "/login",
@@ -25,6 +26,17 @@ function guest_path_allowed($path): bool
     );
     if (in_array($path, $paths, true)) {
         return true;
+    }
+    //Settings → Public feed: the Local tab, public posts only
+    if ($path == "/feed" || $path == "/") {
+        if ($public_feed === null) {
+            try {
+                $public_feed = (int)setting_get("public_feed", 0) === 1;
+            } catch (Throwable $e) {
+                $public_feed = false;
+            }
+        }
+        return $public_feed;
     }
 
     $patterns = array(

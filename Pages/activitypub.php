@@ -175,6 +175,11 @@ try {
     if (preg_match('#^/user/([^/]+)(?:/(inbox|outbox|followers|following|wardrobe|blog/([^/]+)))?$#', $path, $m)) {
         $user = Federation::local_user(rawurldecode($m[1]));
         if (!$user) {
+            if (empty($m[2]) && Federation::deleted_user(rawurldecode($m[1]))) {
+                //a deleted account: other servers drop it on 410
+                ap_respond(array("@context" => "https://www.w3.org/ns/activitystreams", "id" => Federation::actor_url(rawurldecode($m[1])),
+                    "type" => "Tombstone"), 410);
+            }
             ap_not_found();
         }
         $actor = Federation::actor_url($user->username);
