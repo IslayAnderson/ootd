@@ -54,3 +54,6 @@ See [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md): Docker Compose, PHP hosts, `bi
 - [docs/ROADMAP.md](docs/ROADMAP.md) planned releases and branches
 - [docs/FEDERATION.md](docs/FEDERATION.md) plan for self-hosting, a cloud offering and federation
 - [docs/DECISIONS.md](docs/DECISIONS.md) choices made along the way that need the owner's sign-off
+
+# Licence
+OOTD is free software under the [GNU Affero General Public License v3.0 or later](LICENSE). If you run a changed copy for other people, the AGPL asks you to offer them its source: set **Source URL** in `/admin` → Settings to where your copy can be downloaded.

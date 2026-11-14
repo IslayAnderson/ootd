@@ -80,6 +80,20 @@ title_update("account");
             <?php endforeach; ?>
         </ul>
     <?php endif; ?>
+    <?php $elsewhere = Federation::enabled() ? RemoteFollow::following($user->get_user_id()) : array(); ?>
+    <?php if (count($elsewhere) > 0): ?>
+        <h3>Following elsewhere</h3>
+        <ul class="requests">
+            <?php foreach ($elsewhere as $followed): ?>
+                <li>
+                    <a href="<?= escape(RemoteActor::local_path($followed)) ?>"><?= escape(RemoteActor::handle($followed)) ?></a>
+                    <?php if ($followed->state === Follow::PENDING): ?>
+                        <span class="kicker">waiting for <?= escape($followed->host) ?></span>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
     <?php $requests = Follow::requests($user->get_user_id()); ?>
     <?php if (count($requests) > 0): ?>
         <h3>Requests</h3>

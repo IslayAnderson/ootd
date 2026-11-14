@@ -148,3 +148,78 @@ section.header .handle {
   color: $soft-ink;
   user-select: all;
 }
+
+//following people elsewhere (0.12.0)
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+form.search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+
+  label {
+    flex-basis: 100%;
+  }
+
+  input[type="search"] {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+}
+
+form.feed-search {
+  @include band;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+}
+
+article.outfit.remote {
+  .album {
+    display: grid;
+    gap: 0.5rem;
+
+    img {
+      width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      background: $light-grey;
+    }
+  }
+
+  .media-placeholder {
+    @include kicker(0.7rem);
+    padding: 3rem 1rem;
+    background: $light-grey;
+    color: $soft-ink;
+    text-align: center;
+  }
+
+  .remote-content {
+    font-size: 1.15rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+
+    p {
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    a {
+      color: inherit;
+    }
+  }
+
+  details.content-warning > summary {
+    @include kicker(0.75rem);
+    padding: 0.75rem 0;
+    cursor: pointer;
+  }
+}

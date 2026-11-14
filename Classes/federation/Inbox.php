@@ -1,9 +1,13 @@
 <?php
 
 /**
- * Incoming activities. 0.11.0 handles what's needed to be followed from elsewhere: Follow,
- * Undo Follow, and Delete of an account that's gone. Anything else is accepted and ignored until
- * 0.12.0 (following out) handles it.
+ * Incoming activities:
+ * - being followed: Follow, Undo Follow (0.11.0)
+ * - following people elsewhere: Accept/Reject of our Follow, their posts' Create, Update and
+ *   Delete, profile Updates, and Delete of an account that's gone (0.12.0)
+ * - Like and Announce (boost) of a post here become notifications; boosts of other people's posts
+ *   are ignored
+ * Anything else is accepted and ignored.
  */
 class Inbox
 {
@@ -60,10 +64,37 @@ class Inbox
                     return self::unfollow($actor, $activity['object']);
                 }
                 return 202;
+            case "Accept":
+            case "Reject":
+                RemoteFollow::answered($actor, $activity['object'] ?? null, $activity['type'] == "Accept");
+                return 202;
+            case "Create":
+            case "Update":
+                $object = $activity['object'] ?? null;
+                if ($activity['type'] == "Update" && self::id($object) === $actor_id) {
+                    //their profile changed
+                    RemoteActor::get($actor_id, true);
+                    return 202;
+                }
+                if (is_array($object)) {
+                    RemotePost::ingest($actor, $object, $activity);
+                }
+                return 202;
             case "Delete":
                 if (self::id($activity['object'] ?? null) === $actor_id) {
                     $db = new Mysql();
                     $db->Fetch("DELETE FROM `remote_followers` WHERE `actor_num` = :a", array(":a" => $actor->actor_num));
+                    RemoteFollow::actor_gone($actor->actor_num);
+                    RemotePost::forget($actor->actor_num);
+                } elseif (is_string(self::id($activity['object'] ?? null))) {
+                    RemotePost::remove($actor, self::id($activity['object']));
+                }
+                return 202;
+            case "Like":
+            case "Announce":
+                $post = self::local_post(self::id($activity['object'] ?? null));
+                if ($post) {
+                    Notification::add($post['owner'], $activity['type'] == "Like" ? "like" : "announce", null, RemoteActor::handle($actor), $post['link']);
                 }
                 return 202;
             default:
@@ -81,6 +112,31 @@ class Inbox
             return $value;
         }
         return is_array($value) && is_string($value['id'] ?? null) ? $value['id'] : null;
+    }
+
+    /**
+     * @param string|null $url
+     * @return array|null [owner user_id, link] for a federated outfit or blog post on this server
+     */
+    public static function local_post($url): ?array
+    {
+        if (!is_string($url)) {
+            return null;
+        }
+        $db = new Mysql();
+        $outfit = absolute_url("/outfit/");
+        if (strpos($url, $outfit) === 0) {
+            $id = rawurldecode(substr($url, strlen($outfit)));
+            $row = $db->Fetch("SELECT `user` AS owner, `visibility` FROM `outfits` WHERE `outfit_id` = :a AND `deleted_at` IS NULL", array(":a" => $id));
+            return $row[0] != '00000' && Federation::federates($row[0]->visibility) ? array("owner" => (int)$row[0]->owner, "link" => "/outfit/" . rawurlencode($id)) : null;
+        }
+        if (preg_match('#^' . preg_quote(absolute_url("/user/"), '#') . '([^/]+)/blog/([^/?#]+)$#', $url, $m)) {
+            $row = $db->Fetch("SELECT blogs.user AS owner, blogs.visibility FROM `blogs` JOIN `users` ON users.user_id = blogs.user
+                               WHERE blogs.blog_id = :a AND users.username = :b AND blogs.deleted_at IS NULL", array(":a" => rawurldecode($m[2]), ":b" => rawurldecode($m[1])));
+            return $row[0] != '00000' && Federation::federates($row[0]->visibility)
+                ? array("owner" => (int)$row[0]->owner, "link" => "/user/" . $m[1] . "/blog/" . $m[2]) : null;
+        }
+        return null;
     }
 
     /**

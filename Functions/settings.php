@@ -74,6 +74,9 @@ function setting_clean($type, $value, $current): string
     if (count($choices) > 0) {
         return in_array((string)$value, $choices, true) ? (string)$value : (string)$current;
     }
+    if ($type == "int") {
+        return is_numeric(trim((string)$value)) ? (string)max(0, (int)$value) : (string)$current;
+    }
     $limit = $type == "text" ? 5000 : 100;
     return mb_substr(trim((string)$value), 0, $limit);
 }

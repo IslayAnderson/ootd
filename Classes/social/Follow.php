@@ -98,7 +98,7 @@ class Follow
 
     /**
      * @param int $user_id
-     * @return array [followers, following] counts of accepted follows, followers include other servers
+     * @return array [followers, following] counts of accepted follows, both include other servers
      */
     public static function counts($user_id): array
     {
@@ -106,8 +106,9 @@ class Follow
         $sql = "SELECT
                   (SELECT COUNT(*) FROM `follows` WHERE `followed_id` = :a AND `state` = 'accepted')
                   + (SELECT COUNT(*) FROM `remote_followers` WHERE `user_id` = :c AND `state` = 'accepted') AS followers,
-                  (SELECT COUNT(*) FROM `follows` WHERE `follower_id` = :b AND `state` = 'accepted') AS following";
-        $row = $db->Fetch($sql, array(":a" => (int)$user_id, ":b" => (int)$user_id, ":c" => (int)$user_id));
+                  (SELECT COUNT(*) FROM `follows` WHERE `follower_id` = :b AND `state` = 'accepted')
+                  + (SELECT COUNT(*) FROM `remote_follows` WHERE `user_id` = :d AND `state` = 'accepted') AS following";
+        $row = $db->Fetch($sql, array(":a" => (int)$user_id, ":b" => (int)$user_id, ":c" => (int)$user_id, ":d" => (int)$user_id));
         return array((int)$row[0]->followers, (int)$row[0]->following);
     }
 

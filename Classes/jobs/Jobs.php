@@ -79,7 +79,7 @@ class Jobs
                 $backoff = min(86400, 60 * (2 ** ($attempts - 1)));
                 $sql = "UPDATE `jobs` SET `attempts` = :n, `last_error` = :e, `locked_at` = NULL,
                         `run_at` = DATE_ADD(NOW(), INTERVAL " . $backoff . " SECOND)"
-                    . ($attempts >= self::MAX_ATTEMPTS ? ", `failed_at` = NOW()" : "") . " WHERE `job_num` = :a";
+                    . ($attempts >= self::MAX_ATTEMPTS || $e instanceof PermanentFailure ? ", `failed_at` = NOW()" : "") . " WHERE `job_num` = :a";
                 $db->Fetch($sql, array(":a" => $job->job_num, ":n" => $attempts, ":e" => mb_substr($e->getMessage(), 0, 1024)));
                 $failed++;
             }
@@ -132,9 +132,11 @@ class Jobs
     public static function schedule_daily(): void
     {
         $db = new Mysql();
-        $row = $db->Fetch("SELECT `job_num` FROM `jobs` WHERE `type` = 'media_purge' AND `timestamp` > DATE_SUB(NOW(), INTERVAL 1 DAY)", null);
-        if ($row[0] == '00000') {
-            self::dispatch("media_purge", array(), 0, true);
+        foreach (array("media_purge", "remote_media_purge") as $type) {
+            $row = $db->Fetch("SELECT `job_num` FROM `jobs` WHERE `type` = :a AND `timestamp` > DATE_SUB(NOW(), INTERVAL 1 DAY)", array(":a" => $type));
+            if ($row[0] == '00000') {
+                self::dispatch($type, array(), 0, true);
+            }
         }
         //finished jobs are kept for a week for /admin, then dropped
         $db->Fetch("DELETE FROM `jobs` WHERE `done_at` < DATE_SUB(NOW(), INTERVAL 7 DAY)", null);

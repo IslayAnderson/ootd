@@ -5,7 +5,7 @@
  * https only, the host must resolve to public IP addresses (no loopback, private, link-local or
  * reserved ranges) and the connection is pinned to the address that was checked (no DNS
  * rebinding), redirects are followed by hand and re-checked (3 at most), responses are capped at
- * 1 MB and requests time out.
+ * 1 MB (more for photos) and requests time out.
  *
  * For local testing only, AP_ALLOW_HTTP=1 allows http:// and AP_ALLOW_PRIVATE=1 allows private
  * addresses. Never set them on a public server.
@@ -13,18 +13,21 @@
 class SafeHttp
 {
     const MAX_BYTES = 1048576;
+    /** photos from other servers */
+    const MAX_MEDIA_BYTES = 16777216;
     const MAX_REDIRECTS = 3;
     const TIMEOUT = 10;
 
     /**
      * @param string $url
      * @param array $headers name => value
+     * @param int $max_bytes
      * @return array [status, body, headers (lower-case name => value)]
      * @throws Exception when the address isn't allowed or the request fails
      */
-    public static function get($url, $headers = array()): array
+    public static function get($url, $headers = array(), $max_bytes = self::MAX_BYTES): array
     {
-        return self::request("GET", $url, $headers, null);
+        return self::request("GET", $url, $headers, null, self::MAX_REDIRECTS, $max_bytes);
     }
 
     /**
@@ -123,7 +126,7 @@ class SafeHttp
         return (ord($ip_bin[$bytes]) & $mask) === (ord($subnet_bin[$bytes]) & $mask);
     }
 
-    private static function request($method, $url, $headers, $body, $redirects = self::MAX_REDIRECTS): array
+    private static function request($method, $url, $headers, $body, $redirects = self::MAX_REDIRECTS, $max_bytes = self::MAX_BYTES): array
     {
         list($host, $port, $ip) = self::check($url);
 
@@ -149,10 +152,10 @@ class SafeHttp
                 }
                 return strlen($line);
             },
-            CURLOPT_WRITEFUNCTION => function ($curl, $chunk) use (&$received) {
+            CURLOPT_WRITEFUNCTION => function ($curl, $chunk) use (&$received, $max_bytes) {
                 $received .= $chunk;
                 //returning less than the chunk's length aborts the transfer
-                return strlen($received) > self::MAX_BYTES ? 0 : strlen($chunk);
+                return strlen($received) > $max_bytes ? 0 : strlen($chunk);
             }
         ));
         if ($body !== null) {
@@ -163,7 +166,7 @@ class SafeHttp
         $error = curl_error($curl);
         curl_close($curl);
 
-        if (strlen($received) > self::MAX_BYTES) {
+        if (strlen($received) > $max_bytes) {
             throw new Exception("Response too large");
         }
         if ($ok === false) {
@@ -174,7 +177,7 @@ class SafeHttp
                 throw new Exception("Too many redirects");
             }
             $next = self::resolve_url($url, $response_headers['location']);
-            return self::request($method, $next, $headers, $body, $redirects - 1);
+            return self::request($method, $next, $headers, $body, $redirects - 1, $max_bytes);
         }
         return array($status, $received, $response_headers);
     }
