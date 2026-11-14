@@ -24,6 +24,7 @@ if (!empty($outfit->description)) {
 <div class="feed">
     <?php $outfit->render_outfit(); ?>
 </div>
+<?php Comment::render_section("outfit", (int)$outfit->outfit_num, (string)$outfit->outfit_id, (int)$outfit->user['user_id']); ?>
 <?php if ($outfit->owned()):
     $own_garments = new Post\Garment($_SESSION['user_id']);
     ?>

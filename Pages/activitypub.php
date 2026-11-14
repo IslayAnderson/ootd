@@ -137,6 +137,30 @@ try {
         ap_respond(array("@context" => "https://www.w3.org/ns/activitystreams", "id" => absolute_url("/actor/outbox"), "type" => "OrderedCollection", "totalItems" => 0, "orderedItems" => array()));
     }
 
+    //OOTD's vocabulary (garments), a JSON-LD context
+    if ($path == "/ns") {
+        ap_respond(Federation::vocabulary(), 200, "application/ld+json");
+    }
+
+    // /garment/<id>, public garments only
+    if (preg_match('#^/garment/([^/]+)$#', $path, $m)) {
+        $garment = Federation::garment(rawurldecode($m[1]));
+        if (!$garment) {
+            ap_not_found();
+        }
+        ap_respond($garment);
+    }
+
+    // /comment/<id>, comments on public posts only
+    if (preg_match('#^/comment/([0-9a-f]+)$#', $path, $m)) {
+        $comment = Comment::get($m[1]);
+        $note = $comment ? Comment::note($comment) : null;
+        if (!$note || !in_array(Federation::PUBLIC_AUDIENCE, $note['to'], true)) {
+            ap_not_found();
+        }
+        ap_respond(array_merge(array("@context" => Federation::context()), $note));
+    }
+
     // /outfit/<id>
     if (preg_match('#^/outfit/([^/]+)$#', $path, $m)) {
         $note = Federation::outfit_note(rawurldecode($m[1]));
@@ -147,8 +171,8 @@ try {
         ap_respond(array_merge(array("@context" => Federation::context()), $note));
     }
 
-    // /user/<name>[/blog/<id>|/inbox|/outbox|/followers|/following]
-    if (preg_match('#^/user/([^/]+)(?:/(inbox|outbox|followers|following|blog/([^/]+)))?$#', $path, $m)) {
+    // /user/<name>[/blog/<id>|/inbox|/outbox|/followers|/following|/wardrobe]
+    if (preg_match('#^/user/([^/]+)(?:/(inbox|outbox|followers|following|wardrobe|blog/([^/]+)))?$#', $path, $m)) {
         $user = Federation::local_user(rawurldecode($m[1]));
         if (!$user) {
             ap_not_found();
@@ -161,6 +185,9 @@ try {
         }
         if ($part == "inbox") {
             ap_inbox();
+        }
+        if ($part == "wardrobe") {
+            ap_respond(Federation::wardrobe($user));
         }
         if (strpos($part, "blog/") === 0) {
             $article = Federation::blog_article(rawurldecode($m[3]));

@@ -5,8 +5,9 @@
  * - being followed: Follow, Undo Follow (0.11.0)
  * - following people elsewhere: Accept/Reject of our Follow, their posts' Create, Update and
  *   Delete, profile Updates, and Delete of an account that's gone (0.12.0)
- * - Like and Announce (boost) of a post here become notifications; boosts of other people's posts
- *   are ignored
+ * - Like and Announce (boost) of a post here become notifications, likes of outfits are counted;
+ *   boosts of other people's posts are ignored
+ * - replies to posts here, or to posts copied here, become comments (0.13.0)
  * Anything else is accepted and ignored.
  */
 class Inbox
@@ -63,6 +64,9 @@ class Inbox
                 if (($activity['object']['type'] ?? null) == "Follow") {
                     return self::unfollow($actor, $activity['object']);
                 }
+                if (($activity['object']['type'] ?? null) == "Like") {
+                    Like::remote_undo($actor, $activity['object']);
+                }
                 return 202;
             case "Accept":
             case "Reject":
@@ -77,7 +81,12 @@ class Inbox
                     return 202;
                 }
                 if (is_array($object)) {
-                    RemotePost::ingest($actor, $object, $activity);
+                    //a reply to a post here, or to one copied here, is a comment; other replies are ignored (D37)
+                    if (!empty($object['inReplyTo'])) {
+                        Comment::ingest_reply($actor, $object);
+                    } else {
+                        RemotePost::ingest($actor, $object, $activity);
+                    }
                 }
                 return 202;
             case "Delete":
@@ -86,14 +95,19 @@ class Inbox
                     $db->Fetch("DELETE FROM `remote_followers` WHERE `actor_num` = :a", array(":a" => $actor->actor_num));
                     RemoteFollow::actor_gone($actor->actor_num);
                     RemotePost::forget($actor->actor_num);
+                    $db->Fetch("DELETE FROM `likes` WHERE `actor_num` = :a", array(":a" => $actor->actor_num));
+                    $db->Fetch("UPDATE `comments` SET `deleted_at` = NOW() WHERE `actor_num` = :a AND `deleted_at` IS NULL", array(":a" => $actor->actor_num));
                 } elseif (is_string(self::id($activity['object'] ?? null))) {
-                    RemotePost::remove($actor, self::id($activity['object']));
+                    if (!Comment::remove_remote($actor, self::id($activity['object']))) {
+                        RemotePost::remove($actor, self::id($activity['object']));
+                    }
                 }
                 return 202;
             case "Like":
             case "Announce":
                 $post = self::local_post(self::id($activity['object'] ?? null));
-                if ($post) {
+                //a repeated Like (some servers resend) notifies once
+                if ($post && ($activity['type'] != "Like" || Like::remote_like($actor, $activity))) {
                     Notification::add($post['owner'], $activity['type'] == "Like" ? "like" : "announce", null, RemoteActor::handle($actor), $post['link']);
                 }
                 return 202;

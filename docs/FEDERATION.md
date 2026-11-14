@@ -175,7 +175,7 @@ The point where OOTD users can follow people elsewhere and see their posts.
 - **SSRF protection** on every outgoing fetch: block private/loopback IP ranges, limit
   redirects and response size, set timeouts.
 
-#### 0.13.0 — OOTD-to-OOTD extras
+#### 0.13.0 — OOTD-to-OOTD extras ✅ (shipped; see ROADMAP for what changed from this plan)
 
 Content that only other OOTD instances understand, layered on top so Mastodon still sees a
 normal photo post.
@@ -243,7 +243,7 @@ app only needs to be configurable entirely by environment and to report its own 
 | 0.10.0 | instance settings rows; `password_resets` |
 | 0.11.0 | `users.public_key`, `users.private_key` (encrypted); `remote_actors`; `deliveries` |
 | 0.12.0 | `remote_follows`, `remote_posts`, `remote_media`; `remote_actors.outbox`/`followers`; `notifications.link` (D35) |
-| 0.13.0 | `likes`, `replies`; brand/category alias tables |
+| 0.13.0 | `likes`, `comments`, `remote_garments`; `remote_media.kind` (no alias tables, D44) |
 | 0.14.0 | `reports`, `blocks`, `domain_blocks`; `sensitive`, `content_warning` on posts |
 | 1.0.0 | `users.also_known_as`, `users.moved_to` |
 

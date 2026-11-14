@@ -5,8 +5,8 @@ ini_set('output_handler', null);
 //addresses, and for profiles, outfits and blog posts when the client asks for ActivityStreams JSON
 $early_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $wants_activity = (bool)preg_match('#application/(activity\+json|ld\+json)#', $_SERVER['HTTP_ACCEPT'] ?? "");
-if (preg_match('#^/(\.well-known/(webfinger|host-meta|nodeinfo)|nodeinfo/2\.1|actor(/inbox|/outbox)?|inbox|user/[^/]+/(inbox|outbox|followers|following))$#', $early_path)
-    || ($wants_activity && preg_match('#^/(user/[^/]+(/blog/[^/]+)?|outfit/[^/]+)$#', $early_path))) {
+if (preg_match('#^/(\.well-known/(webfinger|host-meta|nodeinfo)|nodeinfo/2\.1|ns|actor(/inbox|/outbox)?|inbox|user/[^/]+/(inbox|outbox|followers|following|wardrobe))$#', $early_path)
+    || ($wants_activity && preg_match('#^/(user/[^/]+(/blog/[^/]+)?|outfit/[^/]+|garment/[^/]+|comment/[0-9a-f]+)$#', $early_path))) {
     require $_SERVER['DOCUMENT_ROOT'] . '/Pages/activitypub.php';
     exit();
 }
@@ -91,6 +91,14 @@ switch ($request[0]) {
         //someone on another server, /@name@host
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/remote_user.php';
         break;
+    case (bool)preg_match('#^/remote/[0-9]+$#', $request[0]):
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/remote_post.php';
+        break;
+    case (bool)preg_match('#^/comment/[0-9a-f]+$#', $request[0]):
+        //a comment's own address (its ActivityPub id) leads to it on its post
+        $comment = Comment::get(substr($request[0], strlen("/comment/")));
+        header("location: " . ($comment ? Comment::link($comment) : "/feed"));
+        exit();
     case '/search':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/search.php';
         break;

@@ -32,6 +32,7 @@ function guest_path_allowed($path): bool
         '#^/user/[^/]+$#',
         '#^/user/[^/]+/blog/[^/]+$#',
         '#^/outfit/[^/]+$#',
+        '#^/comment/[0-9a-f]+$#',
         '#^/garment/[^/]+$#',
         //media checks visibility itself
         '#^/media/[A-Za-z0-9]+/(display|thumb)$#'
