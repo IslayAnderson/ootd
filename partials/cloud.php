@@ -8,7 +8,7 @@ $cloud_notice = array("retry" => "Building it again.", "suspend" => "Suspended: 
     <p class="notice"><?= escape($cloud_notice[$_GET['cloud']]) ?></p>
 <?php endif; ?>
 <?php if (!CloudBlog::enabled()): ?>
-    <p class="notice">Creating blogs is off: .env doesn&rsquo;t have every CLOUD_, PLESK_ and CLOUDFLARE_ setting (SELF-HOSTING, &ldquo;Cloud blogs&rdquo;).</p>
+    <p class="notice">Creating blogs is off: .env doesn&rsquo;t have every CLOUD_ and PLESK_ setting (SELF-HOSTING, &ldquo;Cloud blogs&rdquo;).</p>
 <?php else: ?>
     <p>Anyone can create a blog at <em>name</em>.<?= escape(CloudBlog::domain()) ?> from the login page, up to <?= CloudBlog::daily_limit() ?> a day.</p>
 <?php endif; ?>

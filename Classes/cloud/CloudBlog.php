@@ -5,8 +5,9 @@
  * real Plesk subscription under a reseller on this server, at <name>.CLOUD_DOMAIN, with its own
  * database and its own copy of OOTD, installed with the person as its admin.
  *
- * Off unless .env has all of: CLOUD_DOMAIN, CLOUD_SERVER_IP, PLESK_API_URL, PLESK_API_KEY,
- * CLOUD_PLAN, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID (see SELF-HOSTING, "Cloud blogs").
+ * Off unless .env has all of: CLOUD_DOMAIN, CLOUD_SERVER_IP, PLESK_API_URL, PLESK_API_KEY and
+ * CLOUD_PLAN (see SELF-HOSTING, "Cloud blogs"). DNS goes to Cloudflare when its keys are set too,
+ * otherwise to Plesk (CloudDns).
  *
  * The request is confirmed by email, then the cloud_build job works through the steps below,
  * remembering each one, so a retry after a timeout carries on where it stopped. The new blog has no
@@ -14,7 +15,7 @@
  */
 class CloudBlog
 {
-    const STEPS = array("customer", "webspace", "database", "dns", "upload", "setup", "email");
+    const STEPS = array("customer", "webspace", "database", "dns", "upload", "setup", "https", "email");
     const RESERVED = array("www", "mail", "ftp", "smtp", "imap", "pop", "webmail", "admin", "api", "app", "blog", "blogs", "ootd", "static",
         "cdn", "ns1", "ns2", "dns", "autodiscover", "autoconfig", "plesk", "cpanel", "status", "help", "support", "root", "test", "staging",
         "dev", "about", "login", "signup", "abuse", "postmaster", "hostmaster", "security", "news", "shop", "store");
@@ -26,7 +27,7 @@ class CloudBlog
      */
     public static function enabled(): bool
     {
-        foreach (array("CLOUD_DOMAIN", "CLOUD_SERVER_IP", "PLESK_API_URL", "PLESK_API_KEY", "CLOUD_PLAN", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ZONE_ID") as $key) {
+        foreach (array("CLOUD_DOMAIN", "CLOUD_SERVER_IP", "PLESK_API_URL", "PLESK_API_KEY", "CLOUD_PLAN") as $key) {
             if (trim((string)($_ENV[$key] ?? "")) === "") {
                 return false;
             }
@@ -243,8 +244,7 @@ class CloudBlog
                         break;
                     case "dns":
                         if (empty($blog->dns_record_id)) {
-                            $record = CloudflareDns::find_a($blog->domain) ?? CloudflareDns::add_a($blog->domain, $_ENV['CLOUD_SERVER_IP']);
-                            self::save($blog, array("dns_record_id" => $record));
+                            self::save($blog, array("dns_record_id" => CloudDns::point($blog->domain, $_ENV['CLOUD_SERVER_IP'])));
                         }
                         break;
                     case "upload":
@@ -276,6 +276,22 @@ class CloudBlog
                         }
                         $secrets['reset'] = $answer['reset'];
                         $keep();
+                        break;
+                    case "https":
+                        //the owner's link is https, and other blogs only talk https
+                        if (!CloudDeploy::https_ready($blog->domain)) {
+                            $secrets['https_since'] = $secrets['https_since'] ?? time();
+                            $keep();
+                            $hours = max(1, (int)($_ENV['CLOUD_HTTPS_WAIT_HOURS'] ?? 6));
+                            if (time() - $secrets['https_since'] > $hours * 3600) {
+                                throw new PermanentFailure("No working HTTPS certificate after " . $hours . " hours. In Plesk, turn on SSL It! "
+                                    . "\"Keep websites secured\" (or secure " . $blog->domain . " by hand), then retry.");
+                            }
+                            self::save($blog, array("last_error" => "Waiting for its HTTPS certificate"));
+                            //a new job each time: this one is still running, so a unique one would find itself
+                            Jobs::dispatch("cloud_build", array("cloud_id" => $blog->cloud_id, "check" => time()), 300);
+                            return;
+                        }
                         break;
                     case "email":
                         Mailer::queue($blog->email, "Your blog " . $blog->domain . " is ready",
@@ -333,10 +349,12 @@ class CloudBlog
         if (!$blog || !in_array($blog->state, array("failed", "queued", "building"), true)) {
             throw new Exception("Nothing to retry");
         }
-        //the job that gave up would otherwise mark it failed again from all()
-        (new Mysql())->Fetch("DELETE FROM `jobs` WHERE `type` = 'cloud_build' AND `failed_at` IS NOT NULL AND `payload` LIKE :a",
+        //a job that gave up would mark it failed again from all(); a pending https check would run alongside the new one
+        (new Mysql())->Fetch("DELETE FROM `jobs` WHERE `type` = 'cloud_build' AND `done_at` IS NULL AND `locked_at` IS NULL AND `payload` LIKE :a",
             array(":a" => "%" . $blog->cloud_id . "%"));
-        self::save($blog, array("state" => "queued", "last_error" => null));
+        $secrets = self::secrets($blog);
+        unset($secrets['https_since']);
+        self::save($blog, array("state" => "queued", "last_error" => null, "secrets" => $secrets ? ActorKey::encrypt(json_encode($secrets)) : null));
         Jobs::dispatch("cloud_build", array("cloud_id" => $blog->cloud_id), 0, true);
     }
 
@@ -369,7 +387,7 @@ class CloudBlog
             PleskApi::delete_customer($blog->plesk_customer_id);
         }
         if (!empty($blog->dns_record_id)) {
-            CloudflareDns::delete($blog->dns_record_id);
+            CloudDns::remove($blog->dns_record_id);
         }
         self::save($blog, array("state" => "deleted", "secrets" => null, "plesk_webspace_id" => null, "plesk_customer_id" => null,
             "plesk_db_id" => null, "dns_record_id" => null, "confirm_hash" => null));
