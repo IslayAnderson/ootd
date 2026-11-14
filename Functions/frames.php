@@ -17,7 +17,10 @@ function frame_policy($env): string
             $allowed[] = $origin;
         }
     }
-    return "frame-ancestors " . implode(" ", $allowed);
+    //themes (0.15.0): stylesheets only from here and Google Fonts, fonts only from here and
+    //Google's font files, so a theme can't load anything else even if a rule slipped through
+    return "frame-ancestors " . implode(" ", $allowed)
+        . "; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com";
 }
 
 function send_frame_policy(): void

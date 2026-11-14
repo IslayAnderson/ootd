@@ -524,6 +524,43 @@ Schema 15.
 - Includes the owner's login wording ("The TREATwork").
 - Tests: t131 updated (3 new checks).
 
+### 0.15.0 — Themes ✅
+
+Blog admins and members can make their pages look like theirs without being able to break or
+attack the site (D66–D70).
+
+- The colours and fonts in `variables.scss` are CSS custom properties (`--paper`, `--ink`,
+  `--soft-ink`, `--line`, `--accent`, `--serif`, `--sans`; the greys follow the theme with
+  `color-mix`). The compiled stylesheet is the same for everyone; a theme only adds one small
+  `<style>` block that the server writes into the head (`Functions/theme.php`). Buttons use
+  `--accent`. The TREAT wordmark keeps Inter Tight whatever the theme.
+- **Admin → Theme** sets the blog's; **Account → Your theme** sets a person's, used on their
+  profile, articles, outfits and garments. The top bar, menu and footer keep the blog's look, and
+  login, admin and every other page never show a person's theme.
+- **Colours:** five pickers. Only `#rrggbb` is stored, and text, muted text and buttons must have
+  4.5:1 contrast with the background, or they stay as they were.
+- **Fonts:** any Google Font by name (letters, digits and spaces, at most 40), checked against
+  Google when saved. The stylesheet link is built by the server. `/privacy` says Google Fonts are
+  used, only while any theme uses one.
+- **Extra CSS** (`ThemeCss`): read rule by rule and rebuilt from allowlisted selectors (people get
+  fewer: no `body`, bars, footer or logo), properties and value grammar. @-rules, comments,
+  backslash escapes, attribute selectors, `content`, `expression` and anything unknown are
+  dropped. A person's rules are scoped to their page's content. The admin or person is told what
+  was left out and why.
+- **Images in `url()`** (`ThemeImage`, background-image only, 5 per save): fetched once when saved
+  over `SafeHttp` (https, public IPs only and not this server, pinned, redirects re-checked).
+  Rejected on suspicious headers: a type other than PNG, JPEG, GIF or WebP (no SVG),
+  `Content-Disposition: attachment`, `Set-Cookie`, `Refresh`, any `Content-Encoding`, or over
+  2 MB. The body must start with that format's signature, sniff as the same type, end where the
+  format ends (no polyglots) and decode. Then it's re-encoded into the media store, and the CSS
+  points at the copy, which is public. Images a theme stops using are deleted.
+- `Content-Security-Policy` adds `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' data: https://fonts.gstatic.com`.
+- **No dark mode** for now.
+- Schema 16: new `themes` table.
+- Tests: `tests/Unit/ThemeTest.php` (14 tests: hostile CSS, scoping, headers, polyglots,
+  contrast, font names, own-IP) and t150 (51 checks against a fake image and font host).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
@@ -537,3 +574,5 @@ Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.
 - Only recompile SCSS when the admin "Re-compile SASS" setting is on.
 - PHPUnit tests (already a dev dependency).
 - Self-host the Google Fonts (Newsreader, Inter Tight) if the site should make no third-party requests (AUDIT F15).
+- One CSRF token per session instead of per user, so signing in on a second device doesn't sign the first out on its next form (AUDIT F27).
+- Dark mode for themes (D68).

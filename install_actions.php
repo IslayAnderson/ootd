@@ -433,7 +433,9 @@ $migrations = array(
     //OOTD became TREAT blog (0.14.6): blogs still called by the old default take the new one
     15 => array(
         "default_name_treat"
-    )
+    ),
+    //themes is a new table (0.15.0)
+    16 => array()
 );
 
 function brands_check_table()
@@ -1431,6 +1433,16 @@ function federation_create_table($table)
             UNIQUE KEY comment_id (comment_id),
             KEY ap_id (ap_id(255)),
             KEY parent (kind, parent_num)
+        ) CHARACTER SET utf8mb4",
+        //a blog's theme (owner_id 0) or a person's (their user_id), schema 16
+        "themes" => "CREATE TABLE themes(
+            owner_id int(11) NOT NULL,
+            colours varchar(512) NULL,
+            serif_font varchar(60) NULL,
+            sans_font varchar(60) NULL,
+            css text NULL,
+            updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (owner_id)
         ) CHARACTER SET utf8mb4"
     );
     $db = new Mysql();
@@ -1579,7 +1591,7 @@ if (!notifications_check_table()) {
 }
 
 //build ActivityPub tables
-foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media", "remote_garments", "likes", "comments", "remote_blogs", "cloud_blogs") as $federation_table) {
+foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media", "remote_garments", "likes", "comments", "remote_blogs", "cloud_blogs", "themes") as $federation_table) {
     if (!table_exists($federation_table)) {
         federation_create_table($federation_table);
     } else {

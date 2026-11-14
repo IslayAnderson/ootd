@@ -178,6 +178,10 @@ class Media
         if ((string)setting_get("logo_media", "") === $media->media_id) {
             return array(true, true);
         }
+        //images in the blog's or someone's theme are part of how the pages look
+        if (theme_uses_media($media->media_id)) {
+            return array(true, true);
+        }
         $db = new Mysql();
         $row = $db->Fetch("SELECT `user_id` FROM `users` WHERE `media_id` = :a", array(":a" => $media->media_id));
         if ($row[0] != '00000') {
