@@ -45,6 +45,10 @@ title_update("account");
         <button type="submit" class="secondary">Download your data</button>
     </form>
 </section>
+<section class="theme" id="theme">
+    <h2>Your theme</h2>
+    <?php $theme_owner = "me"; require $_SERVER['DOCUMENT_ROOT']."/partials/theme_form.php"; ?>
+</section>
 <section class="followers" id="followers">
     <h2>Followers</h2>
     <?php list($followers, $following) = Follow::counts($user->get_user_id()); ?>

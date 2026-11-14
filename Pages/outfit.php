@@ -9,6 +9,7 @@ if (!$outfit->viewable()) {
     return;
 }
 
+theme_for_user($outfit->user['user_id']);
 title_update("Outfit by " . $outfit->user['username']);
 if (!empty($outfit->description)) {
     description_update(plain_text($outfit->description));

@@ -37,7 +37,14 @@ title_update("privacy");
     <?php endif; ?>
 
     <h2>Third parties</h2>
-    <p>Fonts and charts are served by <?= escape(instance_name()) ?> itself; pages don&rsquo;t load anything from other services.</p>
+    <?php if (theme_google_fonts_used()): ?>
+        <p>This blog, or some people on it, use <strong>Google Fonts</strong> in their theme. On those pages your
+            browser fetches the fonts from Google, which sees your IP address and browser
+            (<a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google&rsquo;s note on this</a>).
+            Everything else, theme background images included, is served by <?= escape(instance_name()) ?> itself.</p>
+    <?php else: ?>
+        <p>Fonts and charts are served by <?= escape(instance_name()) ?> itself; pages don&rsquo;t load anything from other services.</p>
+    <?php endif; ?>
     <?php if (trim((string)setting_get("privacy_notice", "")) !== ""): ?>
         <p><?= nl2br(escape(setting_get("privacy_notice", ""))) ?></p>
     <?php endif; ?>

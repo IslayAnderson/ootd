@@ -99,7 +99,7 @@ body > div.accordion {
 
     &.logo-upload .current .site-logo--wordmark {
       display: block;
-      font-family: $sans;
+      font-family: $wordmark;
       font-weight: 800;
       font-size: 1.6rem;
       letter-spacing: 0.06em;
@@ -158,4 +158,42 @@ details.danger {
       font-size: 0.8rem;
     }
   }
+}
+
+//themes (0.15.0)
+.theme-form {
+  label.colour input[type="color"] {
+    width: 4rem;
+    height: 2.25rem;
+    padding: 0.15rem;
+    border: $rule;
+    background: $paper;
+    cursor: pointer;
+  }
+
+  label textarea {
+    width: 60%;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  .hint {
+    font-size: 0.85rem;
+    color: $soft-ink;
+    margin: 0.5rem 0;
+
+    summary {
+      cursor: pointer;
+    }
+  }
+
+  .notice ul {
+    margin: 0.5rem 0 0 1.25rem;
+    text-transform: none;
+    font-weight: 400;
+  }
+}
+
+form.theme-reset button {
+  margin-top: 0.5rem;
 }

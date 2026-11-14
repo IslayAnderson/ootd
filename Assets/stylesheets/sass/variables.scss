@@ -1,14 +1,19 @@
-//colour, monochrome like a print magazine
-$ink: #000;
-$paper: #fff;
-$light-grey: #f5f5f5;
-$mid-grey: #a9a9a9;
-$soft-ink: #555;
-$rule: solid 1px $ink;
+//colour, monochrome like a print magazine. Themes (0.15.0) change these through CSS custom
+//properties, so the compiled stylesheet is the same for every blog; the defaults are in main.scss
+$ink: var(--ink);
+$paper: var(--paper);
+$light-grey: var(--light-grey);
+$mid-grey: var(--mid-grey);
+$soft-ink: var(--soft-ink);
+$line: var(--line);
+$accent: var(--accent);
+$rule: solid 1px $line;
 
 //type
-$serif: "Newsreader", Georgia, "Times New Roman", serif;
-$sans: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$serif: var(--serif);
+$sans: var(--sans);
+//the TREAT wordmark keeps its own face whatever the theme
+$wordmark: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
 //layout
 $column: 42rem;

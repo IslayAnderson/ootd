@@ -61,6 +61,19 @@ title_update("admin");
     <div class="accordion__section">
         <div class="accordion__section-header">
             <h2 class="accordion__section-heading">
+                <span class="accordion__section-button" id="theme">
+                    Theme
+                </span>
+            </h2>
+        </div>
+        <div class="accordion__section-content">
+            <?php $theme_owner = "blog"; require $_SERVER['DOCUMENT_ROOT']."/partials/theme_form.php"; ?>
+        </div>
+    </div>
+
+    <div class="accordion__section">
+        <div class="accordion__section-header">
+            <h2 class="accordion__section-heading">
                 <span class="accordion__section-button" id="settings">
                     Settings
                 </span>
