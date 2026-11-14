@@ -5,6 +5,7 @@ let register_listeners = (callbackfn, thisArg) => {
     let nav_draw = document.querySelector("body > div.top-bar > div > button:nth-child(1)");
     let accordions = document.querySelectorAll(".accordion__section-button");
     let post_tabs = document.querySelectorAll(".post_tabs button");
+    let filters = document.querySelectorAll("form.filters select");
 
     if(nav_draw) {
         nav_draw.addEventListener("click", () => {
@@ -28,6 +29,14 @@ let register_listeners = (callbackfn, thisArg) => {
         })
     }
     
+    if(filters.length > 0) {
+        filters.forEach((item, index) => {
+            item.addEventListener("change", (e) => {
+                item.form.submit();
+            });
+        })
+    }
+
     return true;
 }
 

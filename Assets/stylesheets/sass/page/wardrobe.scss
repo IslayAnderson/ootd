@@ -7,7 +7,7 @@
     padding:0.5rem;
     border-bottom: solid 1px black;
     margin-bottom: 0.5rem;
-    button, .search {
+    button, .filter, .search {
         all: unset;
         display: flex;
         flex-direction: row;
@@ -17,7 +17,7 @@
         padding: 0.25rem;
         border: solid 1px black;
         margin-left: 0.5rem;
-        input{
+        input, select{
             margin: unset;
             padding: unset;
             border: unset;
@@ -35,7 +35,49 @@
     }
 }
 .wardrobe{
-    article{
-        
+    .brand{
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+    .category, .tags{
+        font-size: 0.8rem;
+        span{
+            display: inline-block;
+            margin-right: 0.25rem;
+        }
+    }
+    .category span{
+        border: solid 1px black;
+        padding: 0 0.25rem;
+    }
+}
+.filters .filter select{
+    appearance: none;
+    background: transparent;
+}
+section.garment {
+    article.garment {
+        .brand {
+            display: block;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+        figure img {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+        .info, .category, .tags {
+            margin-top: 0.5rem;
+            span {
+                display: inline-block;
+                margin-right: 0.25rem;
+            }
+        }
+        .category span {
+            border: solid 1px black;
+            padding: 0 0.25rem;
+        }
     }
 }
