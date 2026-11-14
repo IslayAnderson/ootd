@@ -87,7 +87,7 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | B9 | Low | `partials/user_table.php` and `partials/settings.php` are static mock-ups with real-looking personal data. | 0.4.0 |
 | B10 | Low | `Pages/index.php` sends a redirect header then renders anyway. | — |
 
-### Found while building 0.1.1 – 0.7.0
+### Found while building 0.1.1 – 0.7.1
 
 | # | Sev | Finding | Fix |
 | --- | --- | --- | --- |
@@ -108,6 +108,12 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | F15 | Low *(read)* | Pages load Google Fonts, and insights loads Chartist from cdnjs: third-party requests, disclosed on `/privacy`. Self-hosting would remove them. | — |
 | F16 | Low *(read)* | `Mysql` builds its DSN with `;mysql:charset=utf8mb4;`, which PDO ignores, so the connection charset is whatever the server defaults to. Should be `;charset=utf8mb4;`. | 0.7.0 |
 | F17 | Low | The garment page showed "Last worn" to every member, so anyone could see when someone else wore something. Wears are now only shown to their owner. | 0.7.0 |
+| F18 | High | The upgrade saved `schema_version` only at the end, so re-running after a failed step repeated earlier steps; schema 1 remaps permissions, so a re-run demoted every admin. | 0.7.1 |
+| F19 | High | Databases from early versions lack `users.csrf`, so every request after login failed once the upgrade had run. | 0.7.1 |
+| F20 | Medium | MariaDB (and MySQL without `explicit_defaults_for_timestamp`) gave early tables `ON UPDATE CURRENT_TIMESTAMP`, so editing an outfit changed its date. | 0.7.1 |
+| F21 | Medium | Early databases have a different `invites` table and smaller `blogs` columns (content capped at 4096 characters). | 0.7.1 |
+| F22 | Medium | `Functions/environment.php` used `parse_ini_file()`, which fails on, or truncates, values containing `=`, `;`, `!` or quotes. | 0.7.1 |
+| F23 | Low *(read)* | The staging database has tables no code uses: `profile`, `profile_options`, `sizes`, `size_category`, `size_sub_category`, `size_gender`, and `garments.size`. Left untouched; see DECISIONS Q3. | — |
 
 ### Status on `claude/development`
 
