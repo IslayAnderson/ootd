@@ -36,6 +36,11 @@ needs an answer before the work that depends on it).
 | D12 | 0.8.0 | Uploads are stored as 1600px and 480px versions only; the original file isn't kept. Photos become JPEG (quality 85); images with transparency stay PNG. | Strips location data with no way to leak it later, and keeps storage small. Means originals can't be re-processed later. | assumed |
 | D13 | 0.8.0 | Images are served through PHP (`/media/...`) with a visibility check, not straight from disk or a public bucket. | Members-only and private photos stay private. Public ones get long cache headers to offset the cost. | assumed |
 | D14 | 0.8.0 | Profile photos are always visible, including to people who aren't signed in. | They're shown on public profiles and next to public posts. | assumed |
+| D15 | 0.9.0 | Follows are accepted automatically; approving followers is opt-in per account. | Matches Mastodon's default and the old behaviour, where members could see each other's posts without asking. | assumed |
+| D16 | 0.9.0 | Members visibility stays the default for new posts (D2), with Followers as an extra choice. | Changing the default to Followers would hide new posts from members nobody has followed yet. | assumed |
+| D17 | 0.9.0 | Photos of deleted posts are deleted for good 30 days later; the post row itself stays (soft-deleted). | Gives a window to undo, and keeps the row so a `Delete` can still be federated. | assumed |
+| D18 | 0.9.0 | Follower and following counts are public on profiles, the list of who isn't. | Counts are standard on the fediverse; the lists reveal who knows whom. | assumed |
+| D19 | 0.9.0 | Jobs run from cron every minute on staging rather than a long-running worker. | Plesk shared hosting has cron but no process supervisor. | assumed |
 
 ## Questions
 

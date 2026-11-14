@@ -32,6 +32,17 @@ server (add `--app-url=https://your.site` the first time on installs from before
 'APP_URL' the site's address, e.g. `https://ootd.example`, set by the installer; public links are built from it, so don't change it once the site is shared
 no defaults are assumed
 
+## Background jobs
+Photos of deleted posts are cleaned up (and, later, federation is delivered) by background jobs. Run one of:
+```
+* * * * * php /path/to/ootd/bin/cron.php   # cron, every minute
+php bin/worker.php                          # long-running, under systemd or supervisor
+```
+`/admin` → Jobs shows anything waiting or failed.
+
+## Tests
+`vendor/bin/phpunit`
+
 # Docs
 - [docs/AUDIT.md](docs/AUDIT.md) known issues and code conventions
 - [docs/ROADMAP.md](docs/ROADMAP.md) planned releases and branches

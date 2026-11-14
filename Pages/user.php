@@ -29,6 +29,25 @@ title_update($user->username);
     <?php else: ?>
         <p class="notice">You're seeing <?= escape($user->username) ?>'s public posts. <a href="/login">Log in</a> to see more.</p>
     <?php endif; ?>
+    <?php list($followers, $following) = Follow::counts($user->user_id); ?>
+    <p class="follow-counts">
+        <span><strong><?= $followers ?></strong> <?= $followers == 1 ? "follower" : "followers" ?></span>
+        <span><strong><?= $following ?></strong> following</span>
+    </p>
+    <?php if (!empty($_SESSION['user_id']) && $_SESSION['user_id'] != $user->user_id):
+        $follow_state = Follow::state($_SESSION['user_id'], $user->user_id); ?>
+        <form action="/API/follow/<?= $follow_state === null ? "create" : "delete" ?>.php" method="post" class="follow">
+            <?php CSRF_input(); ?>
+            <input type="hidden" name="username" value="<?= escape($user->username) ?>">
+            <?php if ($follow_state === null): ?>
+                <button type="submit">Follow</button>
+            <?php elseif ($follow_state === Follow::PENDING): ?>
+                <button type="submit" class="secondary" title="Cancel your request">Requested</button>
+            <?php else: ?>
+                <button type="submit" class="secondary" title="Unfollow">Following</button>
+            <?php endif; ?>
+        </form>
+    <?php endif; ?>
 </section>
 <section class="blog">
     <h2>Blogs</h2>

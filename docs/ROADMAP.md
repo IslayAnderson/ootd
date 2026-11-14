@@ -56,6 +56,7 @@ a release reaches staging like this:
 | 0.7.0 | Done, merged to `claude/development` |
 | 0.7.1 | Done, merged to `claude/development` |
 | 0.8.0 | Done, merged to `claude/development` |
+| 0.9.0 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -189,6 +190,33 @@ existing image into the store (`storage/` must be writable by PHP).
 - Outfit and garment photos can be replaced from their edit forms; the old files are deleted.
 - Pages no longer inline images as base64, so they're much smaller.
 - The old `image` BLOB columns are left in place, unused, so a rollback still has its images.
+
+### 0.9.0 — Follows, timelines and background jobs ✅
+
+Third release of the [federation roadmap](FEDERATION.md). Schema 6.
+
+- Follow and unfollow from a profile, which now shows follower and following counts. Follows
+  are accepted straight away unless the account turns on "Approve new followers" (Account →
+  Followers), where requests are accepted or declined.
+- New **Followers** visibility: only the owner's accepted followers see the post.
+- `/notifications`: new follower, follow request, request accepted. The menu shows the unread
+  count.
+- `/feed` has two tabs: **Following** (you and the people you follow) and **Local** (everything on
+  this instance you can see, the old feed). Following is the default once you follow someone.
+- Background jobs: a `jobs` table, `bin/worker.php` (long-running) and `bin/cron.php` (run every
+  minute from cron). Failed jobs retry with back-off (1 min doubling, 8 tries); failures and a
+  "Retry failed jobs" button are under `/admin` → Jobs.
+- The first job, `media_purge` (daily), deletes the photos of posts deleted more than 30 days ago
+  and uploads never attached to a post.
+- PHPUnit suite (`vendor/bin/phpunit`: visibility rules, guest routes, URLs, `.env` parsing, the
+  S3 signature) and GitHub Actions CI (lint and tests on PHP 8.3 and 8.4).
+
+Run the jobs with one of:
+
+```
+* * * * * php /path/to/ootd/bin/cron.php
+php bin/worker.php            # under systemd or supervisor
+```
 
 ## Later (not started)
 
