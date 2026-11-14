@@ -40,7 +40,7 @@ class Mailer
     public static function send($to, $subject, $body): void
     {
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Not an email address");
+            throw new PermanentFailure("Not an email address");
         }
         if (!self::enabled()) {
             $log = $_SERVER['DOCUMENT_ROOT'] . "/tmp/mail.log";

@@ -79,7 +79,7 @@ class Jobs
                 $backoff = min(86400, 60 * (2 ** ($attempts - 1)));
                 $sql = "UPDATE `jobs` SET `attempts` = :n, `last_error` = :e, `locked_at` = NULL,
                         `run_at` = DATE_ADD(NOW(), INTERVAL " . $backoff . " SECOND)"
-                    . ($attempts >= self::MAX_ATTEMPTS ? ", `failed_at` = NOW()" : "") . " WHERE `job_num` = :a";
+                    . ($attempts >= self::MAX_ATTEMPTS || $e instanceof PermanentFailure ? ", `failed_at` = NOW()" : "") . " WHERE `job_num` = :a";
                 $db->Fetch($sql, array(":a" => $job->job_num, ":n" => $attempts, ":e" => mb_substr($e->getMessage(), 0, 1024)));
                 $failed++;
             }
