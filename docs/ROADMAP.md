@@ -66,6 +66,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.11.1 | Hotfix, merged to `claude/development` |
 | 0.12.0 | Done, merged to `claude/development` |
 | 0.12.1 | Done, merged to `claude/development` |
+| 0.12.2 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -326,6 +327,12 @@ on Mastodon and other Fediverse servers and see their posts.
   `mail`, `log`) picks explicitly; the sender defaults to `noreply@` the site's domain (Q9).
 - Staging: the unused `profile`, `profile_options` and `size_*` tables and `garments.size` were
   dropped after a backup (Q3).
+
+### 0.12.2 — Email check on locked-down hosts ✅
+
+- On hosts that set PHP's `open_basedir` (Plesk, cPanel), PHP can't look at sendmail, so the web
+  pages decided email was off while the worker sent it fine. Sendmail outside `open_basedir` is now
+  taken as present.
 
 ## Later (not started)
 
