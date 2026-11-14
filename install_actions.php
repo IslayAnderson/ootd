@@ -399,7 +399,11 @@ $migrations = array(
     //remote_follows, remote_posts and remote_media are new tables (following people elsewhere)
     9 => array(),
     //remote_garments, likes and comments are new tables (OOTD-to-OOTD extras, interactions)
-    10 => array()
+    10 => array(),
+    //remote_blogs is a new table (the names of other blogs, from their nodeinfo); fill it for people already known
+    11 => array(
+        "remote_blogs_backfill"
+    )
 );
 
 function brands_check_table()
@@ -1022,6 +1026,18 @@ function media_migrate_blobs()
 }
 
 /**
+ * schema 11: note the blog of everyone already known, so their names are looked up
+ */
+function remote_blogs_backfill()
+{
+    $db = new Mysql();
+    $rows = $db->Fetch("SELECT MIN(`ap_id`) AS ap_id FROM `remote_actors` GROUP BY `host`", null);
+    foreach ($rows[0] != '00000' ? $rows : array() as $row) {
+        RemoteActor::note_blog($row->ap_id);
+    }
+}
+
+/**
  * schema 7: drop the image BLOB columns emptied by media_migrate_blobs() (D11). A table that still
  * has an image that wasn't moved keeps its column, so nothing is lost.
  */
@@ -1292,6 +1308,15 @@ function federation_create_table($table)
             KEY state (state)
         ) CHARACTER SET utf8mb4",
         //garments listed on outfits from other OOTD servers (schema 10); brand and category are matched to ours by name
+        //other blogs (servers) by host, with the name they give themselves in nodeinfo (schema 11)
+        "remote_blogs" => "CREATE TABLE remote_blogs(
+            host varchar(255) NOT NULL,
+            base_url varchar(512) NOT NULL,
+            name varchar(255) NULL,
+            fetched_at timestamp NULL DEFAULT NULL,
+            timestamp timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (host)
+        ) CHARACTER SET utf8mb4",
         "remote_garments" => "CREATE TABLE remote_garments(
             remote_garment_num int(11) NOT NULL AUTO_INCREMENT,
             post_num int(11) NOT NULL,
@@ -1488,7 +1513,7 @@ if (!notifications_check_table()) {
 }
 
 //build ActivityPub tables
-foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media", "remote_garments", "likes", "comments") as $federation_table) {
+foreach (array("actor_keys", "remote_actors", "remote_followers", "remote_follows", "remote_posts", "remote_media", "remote_garments", "likes", "comments", "remote_blogs") as $federation_table) {
     if (!table_exists($federation_table)) {
         federation_create_table($federation_table);
     } else {

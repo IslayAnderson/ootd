@@ -93,6 +93,18 @@ function registration_mode(): string
 /**
  * @return string the instance's name, OOTD unless an admin changed it
  */
+//what the settings form calls each setting; the names in the database stay as they are
+const SETTING_LABELS = array(
+    "instance_name" => "Blog name",
+    "instance_description" => "Blog description",
+    "instance_rules" => "Rules for members",
+    "admin_contact" => "Admin contact",
+    "federation" => "Connect with other blogs (other OOTD blogs, Mastodon and the Fediverse)",
+    "source_url" => "Source code address",
+    "privacy_notice" => "Extra privacy notice",
+    "remote_media_mb" => "Space for photos from other blogs (MB)"
+);
+
 function instance_name(): string
 {
     $name = setting_get("instance_name", "OOTD");

@@ -4,7 +4,7 @@
     <?php CSRF_input(); ?>
     <?php foreach (settings_editable() as $setting): ?>
         <label for="setting_<?= escape($setting->setting) ?>">
-            <span><?= escape(ucfirst(str_replace("_", " ", $setting->setting))) ?></span>
+            <span><?= escape(SETTING_LABELS[$setting->setting] ?? ucfirst(str_replace("_", " ", $setting->setting))) ?></span>
             <?php if ($setting->type == "bool"): ?>
                 <input type="checkbox" id="setting_<?= escape($setting->setting) ?>"
                        name="<?= escape($setting->setting) ?>" <?= $setting->value == 1 ? "checked" : "" ?>/>

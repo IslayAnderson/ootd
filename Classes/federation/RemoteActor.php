@@ -30,6 +30,7 @@ class RemoteActor
             return $cached;
         }
         self::store($document);
+        self::note_blog($ap_id);
         $row = $db->Fetch("SELECT * FROM `remote_actors` WHERE `ap_id` = :a", array(":a" => (string)$ap_id));
         return $row[0] != '00000' ? $row[0] : null;
     }
@@ -211,11 +212,174 @@ class RemoteActor
     }
 
     /**
+     * The handle as other servers write it. Stored in notifications and used in the protocol;
+     * people here see display() instead.
+     *
      * @param object $actor remote_actors row
      * @return string @name@host
      */
     public static function handle($actor): string
     {
         return "@" . ($actor->username ?: "unknown") . "@" . $actor->host;
+    }
+
+    /**
+     * @param object $actor remote_actors row
+     * @return string name@host, their address without Mastodon's leading @
+     */
+    public static function address($actor): string
+    {
+        return ($actor->username ?: "unknown") . "@" . $actor->host;
+    }
+
+    /**
+     * How someone elsewhere is shown here: "mia from Mia's Closet"
+     *
+     * @param object $actor remote_actors row (or anything with username and host)
+     * @return string
+     */
+    public static function display($actor): string
+    {
+        return ($actor->username ?: "unknown") . " from " . self::blog_name((string)$actor->host);
+    }
+
+    /**
+     * @param string $handle @name@host, as stored in notifications
+     * @return string "name from Blog", or the text as it was when it isn't a handle
+     */
+    public static function display_handle($handle): string
+    {
+        $parsed = self::parse_handle($handle);
+        return $parsed ? $parsed[0] . " from " . self::blog_name(explode(":", $parsed[1])[0]) : (string)$handle;
+    }
+
+    //names servers get by default, which say nothing about which blog it is
+    const GENERIC_NAMES = array("ootd", "mastodon", "misskey", "pleroma", "akkoma", "gotosocial", "pixelfed",
+        "friendica", "lemmy", "sharkey", "firefish", "iceshrimp", "hubzilla", "wordpress", "writefreely");
+
+    private static $blogs = null;
+
+    /**
+     * The name another blog gives itself, or its address when it has none, still has the default
+     * name, or shares its name with another blog (or with this one)
+     *
+     * @param string $host
+     * @return string
+     */
+    public static function blog_name($host): string
+    {
+        $host = strtolower((string)$host);
+        if (self::$blogs === null) {
+            self::$blogs = array();
+            $db = new Mysql();
+            $rows = $db->Fetch("SELECT `host`, `name` FROM `remote_blogs` WHERE `name` IS NOT NULL AND `name` <> ''", null);
+            foreach ($rows[0] != '00000' ? $rows : array() as $row) {
+                self::$blogs[strtolower($row->host)] = $row->name;
+            }
+        }
+        $name = self::$blogs[$host] ?? "";
+        if ($name === "" || in_array(strtolower($name), self::GENERIC_NAMES, true)
+            || strcasecmp($name, instance_name()) === 0) {
+            return $host;
+        }
+        $same = 0;
+        foreach (self::$blogs as $other) {
+            if (strcasecmp($other, $name) === 0) {
+                $same++;
+            }
+        }
+        return $same > 1 ? $host : $name;
+    }
+
+    /**
+     * Remember the blog an actor lives on and look its name up in the background (again after a week)
+     *
+     * @param string $ap_id
+     * @return void
+     */
+    public static function note_blog($ap_id): void
+    {
+        $parts = parse_url((string)$ap_id);
+        if (empty($parts['host']) || empty($parts['scheme'])) {
+            return;
+        }
+        $host = strtolower($parts['host']);
+        $base = strtolower($parts['scheme']) . "://" . $host . (isset($parts['port']) ? ":" . (int)$parts['port'] : "");
+        $db = new Mysql();
+        $row = $db->Fetch("SELECT `fetched_at` FROM `remote_blogs` WHERE `host` = :a", array(":a" => $host));
+        if ($row[0] == '00000') {
+            $db->Fetch("INSERT IGNORE INTO `remote_blogs` (`host`, `base_url`, `fetched_at`) VALUES (:a, :b, NOW())", array(":a" => $host, ":b" => $base));
+        } elseif (strtotime((string)$row[0]->fetched_at) > time() - 7 * 86400) {
+            return;
+        } else {
+            $db->Fetch("UPDATE `remote_blogs` SET `fetched_at` = NOW() WHERE `host` = :a", array(":a" => $host));
+        }
+        Jobs::dispatch("remote_blog", array("host" => $host));
+    }
+
+    /**
+     * Job: read another blog's name from its nodeinfo (metadata.nodeName, which Mastodon and OOTD publish)
+     *
+     * @param string $host
+     * @return void
+     */
+    public static function fetch_blog_name($host): void
+    {
+        $db = new Mysql();
+        $row = $db->Fetch("SELECT `base_url` FROM `remote_blogs` WHERE `host` = :a", array(":a" => (string)$host));
+        if ($row[0] == '00000') {
+            return;
+        }
+        $base = $row[0]->base_url;
+        $name = null;
+        try {
+            list($status, $body) = SafeHttp::get($base . "/.well-known/nodeinfo", array("Accept" => "application/json"), 65536);
+            $index = $status == 200 ? json_decode((string)$body, true) : null;
+            $href = null;
+            foreach (is_array($index) ? ($index['links'] ?? array()) : array() as $link) {
+                if (is_string($link['href'] ?? null) && strpos((string)($link['rel'] ?? ""), "nodeinfo.diaspora.software/ns/schema/2") !== false
+                    && parse_url($link['href'], PHP_URL_HOST) === parse_url($base, PHP_URL_HOST)) {
+                    $href = $link['href'];
+                }
+            }
+            if ($href) {
+                list($status, $body) = SafeHttp::get($href, array("Accept" => "application/json"), 262144);
+                $info = $status == 200 ? json_decode((string)$body, true) : null;
+                $node_name = is_array($info) ? ($info['metadata']['nodeName'] ?? null) : null;
+                if (is_string($node_name)) {
+                    $name = mb_substr(trim(preg_replace('/\s+/u', " ", strip_tags(html_entity_decode($node_name, ENT_QUOTES)))), 0, 80);
+                }
+            }
+        } catch (Exception $e) {
+            //unreachable: keep the address until next week's try
+        }
+        $db->Fetch("UPDATE `remote_blogs` SET `name` = :b, `fetched_at` = NOW() WHERE `host` = :a",
+            array(":a" => (string)$host, ":b" => $name !== "" ? $name : null));
+        self::$blogs = null;
+    }
+
+    /**
+     * "mia from Mia's Closet" (or "mia from closet.example") as a handle find() understands
+     *
+     * @param string $query
+     * @return string|null name@host[:port], or name@ this domain for someone here; null when it isn't that form
+     */
+    public static function from_display($query): ?string
+    {
+        if (!preg_match('/^@?([a-z0-9_.\-]{1,128})\s+from\s+(.{1,255})$/iu', trim((string)$query), $m)) {
+            return null;
+        }
+        list(, $name, $blog) = $m;
+        $blog = trim($blog);
+        if (strcasecmp($blog, instance_name()) === 0 || strcasecmp($blog, Federation::domain()) === 0) {
+            return $name . "@" . Federation::domain();
+        }
+        $db = new Mysql();
+        $rows = $db->Fetch("SELECT `base_url` FROM `remote_blogs` WHERE LOWER(`name`) = LOWER(:a) OR `host` = LOWER(:a)", array(":a" => $blog));
+        if ($rows[0] != '00000' && count($rows) == 1) {
+            return $name . "@" . parse_url($rows[0]->base_url, PHP_URL_HOST) . (parse_url($rows[0]->base_url, PHP_URL_PORT) ? ":" . parse_url($rows[0]->base_url, PHP_URL_PORT) : "");
+        }
+        //not a blog anyone here has met yet: it may be its address
+        return preg_match('/^[a-z0-9.\-]+(:[0-9]{1,5})?$/i', $blog) ? $name . "@" . strtolower($blog) : null;
     }
 }

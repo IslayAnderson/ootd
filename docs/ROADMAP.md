@@ -360,6 +360,23 @@ each other's garments, and members can love and comment on posts here and elsewh
   visibilities, wardrobe, `/ns`, brand/category matching, likes and Undo, comments both ways,
   deletes, escaping, guests).
 
+### 0.13.1 — Blogs by name ✅
+
+Schema 11. Each install now presents itself as a blog, and other servers as other blogs.
+
+- People elsewhere are shown as **"mia from Mia's Closet"** instead of `@mia@closet.example`: on
+  profiles, posts, comments, notifications and the account page. The name is the other blog's own
+  name from its nodeinfo (new `remote_blogs` table, looked up by the worker and weekly after),
+  or its address when it has none, still has a default name, or shares it with another blog (D49).
+- Your own profile shows "you from *Blog name*" and, smaller, your address for other blogs
+  (`name@domain`, without Mastodon's @).
+- Search takes "name from Blog name" for any blog known here, and addresses with or without @.
+- "Server", "host" and "elsewhere" are "blog" throughout: the **Other blogs** feed tab, "Following on
+  other blogs", the privacy page, settings labels (**Blog name**, **Connect with other blogs**).
+- Long-form posts are now the **Journal** (D50).
+- The account page's "saved" notice only shows known names, not whatever is in the address.
+- Tests: 19 checks for naming, search and fallbacks; the 0.11 to 0.13 runs updated and passing.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
