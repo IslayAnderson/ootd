@@ -42,7 +42,11 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
    server has files that aren't in the repo (DECISIONS Q6). `.env`, `tmp/`, `vendor/` and
    `storage/` are never overwritten. Files stay owned by the subscription user, and the site
    folder itself keeps the `psaserv` group.
-4. Run `php bin/migrate.php` as the subscription user and check the public pages and error log.
+4. Run `composer install --no-dev` and `php bin/migrate.php` as the subscription user (vendor is
+   backed up first), and check `/health`, the public pages and the error log.
+5. Refresh Plesk's copy of the repository (`plesk ext git --fetch`). Plesk's Git integration
+   deploys `claude/main` automatically, so a stale copy there can overwrite the site with an
+   old commit (DECISIONS Q11).
 
 | Release | Status |
 | --- | --- |
