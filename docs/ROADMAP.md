@@ -524,6 +524,24 @@ Schema 15.
 - Includes the owner's login wording ("The TREATwork").
 - Tests: t131 updated (3 new checks).
 
+### 0.15.0 — Themes (planned, design questions open)
+
+Goal: an admin can make their blog look like theirs without being able to break or attack it.
+Draft shape, waiting on the owner's answers:
+
+- The colours in `variables.scss` become CSS custom properties (`--ink`, `--paper`, `--soft-ink`,
+  `--rule`, an accent). The compiled stylesheet stays the same for every blog; a theme only sets
+  those properties.
+- A theme is a few validated settings: values are picked from fixed lists or checked against
+  strict patterns (`#rrggbb` only), then written into one small server-built `:root{…}` block.
+  Nothing an admin types goes into CSS or HTML as-is.
+- No custom CSS, no uploaded templates, no JavaScript, no remote fonts or images: those are how
+  themes become an attack path (CSS data leaks, tracking, phishing look-alikes).
+- Text/background pairs are checked for readable contrast before they're saved.
+- Cloud blogs get the same settings; the hub can't change a blog's theme.
+- Exact scope (presets, colour pickers, fonts, dark mode, per-person) is in the questions to the
+  owner, then recorded as D66+.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
