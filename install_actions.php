@@ -760,6 +760,46 @@ function invites_create_table()
     return invites_check_table();
 }
 
+function wears_check_table()
+{
+    $sql = "SHOW TABLES LIKE 'wears';";
+
+    $db = new Mysql();
+    $table = $db->Fetch($sql, null);
+
+    $table = (array)$table[0];
+
+    if ($table != '00000') {
+        if (($table['Tables_in_' . $_ENV['DB_SCHEMA'] . ' (wears)'] ?? null) == "wears") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+function wears_create_table()
+{
+    $sql = "CREATE TABLE wears(
+        wear_num int(11) AUTO_INCREMENT,
+        user int(11) NOT NULL,
+        outfit_num int(11) NULL,
+        garment_num int(11) NULL,
+        worn_on date NOT NULL,
+        timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(wear_num),
+        KEY user_worn_on (user, worn_on),
+        KEY garment_num (garment_num)
+    );";
+
+    $db = new Mysql();
+    $db->Fetch($sql, null);
+
+    return wears_check_table();
+}
+
 function column_exists($table, $column)
 {
     $params = array(':a' => $_ENV['DB_SCHEMA'], ':b' => $table, ':c' => $column);
@@ -858,6 +898,13 @@ if (!invites_check_table()) {
     invites_create_table();
 } else {
     echo "<br>invites table already complete";
+}
+
+//build wears table
+if (!wears_check_table()) {
+    wears_create_table();
+} else {
+    echo "<br>wears table already complete";
 }
 
 //build permissions table
