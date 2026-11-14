@@ -90,6 +90,14 @@ function job_remote_media_purge($payload)
 }
 
 /**
+ * Look up another blog's name (nodeinfo)
+ */
+function job_remote_blog($payload)
+{
+    RemoteActor::fetch_blog_name((string)($payload['host'] ?? ""));
+}
+
+/**
  * ActivityPub: send a comment (or its deletion) as a reply
  */
 function job_ap_comment($payload)

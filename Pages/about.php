@@ -24,7 +24,7 @@ $contact = trim((string)setting_get("admin_contact", ""));
     <?php elseif (registration_mode() == "invite"): ?>
         <p>Joining is by invitation. <a href="/signup">Request an invite</a>.</p>
     <?php else: ?>
-        <p>This server isn&rsquo;t taking new members.</p>
+        <p>This blog isn&rsquo;t taking new members.</p>
     <?php endif; ?>
     <?php if ($contact !== ""): ?>
         <h2>Contact</h2>

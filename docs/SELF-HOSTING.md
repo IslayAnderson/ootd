@@ -118,12 +118,17 @@ others, also set `S3_PATH_STYLE=1` if they don't support bucket subdomains.
 - **open**: anyone can create an account at `/signup`.
 - **closed**: no sign-ups or requests. Invites an admin creates still work.
 
-## Other servers
+## Other blogs
 
-`/admin` → Settings → **Federation** turns ActivityPub on or off. When it's on, members can follow
-people on Mastodon and other servers (search for `@name@server` on the feed), and those people's
-posts and photos are copied here. **Remote media mb** caps the space their photos take (default
-1024 MB). The daily job drops the oldest photos past it, and those posts then link to the original.
+Each OOTD install presents itself to its members as a blog, and other servers (other OOTD installs,
+Mastodon and the rest of the Fediverse) as other blogs. Give yours a name in `/admin` → Settings →
+**Blog name**: other OOTD blogs show your members as "mia from *Blog name*". While it is still
+the default ("OOTD"), they show your domain instead.
+
+**Connect with other blogs** turns ActivityPub on or off. When it's on, members can follow
+people on other blogs (search for "name from Blog name", or their address `name@their.domain`, on
+the feed), and those people's posts and photos are copied here. **Space for photos from other
+blogs** caps the space their photos take (default 1024 MB). The daily job drops the oldest photos past it, and those posts then link to the original.
 The worker or cron must be running for photos to arrive.
 
 ## Backups
@@ -158,7 +163,8 @@ Release notes are in [ROADMAP.md](ROADMAP.md).
 
 ## Federation
 
-From 0.11.0 every account has a Fediverse handle, `@username@your.host`, shown on its profile.
+From 0.11.0 every account has an address, `username@your.host`, shown on its profile ("Address for
+other blogs"); Mastodon writes it `@username@your.host`.
 People on Mastodon and other ActivityPub servers can search for it, follow it and see its public
 and followers-only posts. Members and Only me posts never leave your server.
 

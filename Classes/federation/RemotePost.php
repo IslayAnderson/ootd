@@ -543,7 +543,7 @@ class RemotePost
      */
     public static function render($post, $media, $is_profile = false): void
     {
-        $handle = "@" . $post->username . "@" . $post->host;
+        $handle = RemoteActor::display($post);
         $path = "/@" . rawurlencode((string)$post->username) . "@" . rawurlencode((string)$post->host);
         $content = sanitise_html((string)$post->content);
         $photos = array_values(array_filter($media, function ($item) {
@@ -556,7 +556,7 @@ class RemotePost
         <article class="outfit remote">
             <div class="info">
                 <a href="<?= escape((string)$post->url) ?>" class="permalink" rel="nofollow noopener" target="_blank"
-                   title="Open on <?= escape($post->host) ?>">
+                   title="Open on <?= escape(RemoteActor::blog_name((string)$post->host)) ?>">
                     <time datetime="<?= escape($post->published) ?>"><?= escape(date_display($post->published)) ?></time>
                 </a>
                 <?php if ($post->audience == VISIBILITY_FOLLOWERS): ?>

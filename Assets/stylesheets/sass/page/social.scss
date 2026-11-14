@@ -142,11 +142,19 @@ form.settings {
   }
 }
 
-//fediverse handle on profiles (0.11.0)
+//"name from Blog" on profiles (0.11.0, reworded 0.13.1), and the address other blogs use
 section.header .handle {
   @include kicker(0.7rem);
   color: $soft-ink;
-  user-select: all;
+}
+
+section.header .address {
+  font-size: 0.8rem;
+  color: $soft-ink;
+
+  span {
+    user-select: all;
+  }
 }
 
 //following people elsewhere (0.12.0)

@@ -1,5 +1,5 @@
 <?php
-//someone on another server, /@name@host: members only, since looking them up makes requests to that server
+//someone on another blog, /@name@host: members only, since looking them up makes requests to that blog
 if (empty($_SESSION['user_id'])) {
     header("location: /login");
     exit();
@@ -11,13 +11,13 @@ if (!$actor) {
     title_update("not found");
     ?>
     <section class="header">
-        <p class="kicker">Elsewhere</p>
+        <p class="kicker">Other blogs</p>
         <h1>Not <em>found</em></h1>
         <p class="notice">
             <?php if (!Federation::enabled()): ?>
-                Following people on other servers is turned off here.
+                Following people on other blogs is turned off here.
             <?php else: ?>
-                Couldn't find <?= escape($handle) ?>. Check the handle, or try again later if their server is down.
+                Couldn't find <?= escape(RemoteActor::display_handle($handle)) ?>. Check the address, or try again later if their blog is down.
             <?php endif; ?>
         </p>
     </section>
@@ -27,17 +27,17 @@ if (!$actor) {
 $state = RemoteFollow::state($_SESSION['user_id'], $actor->actor_num);
 $posts = RemotePost::latest($_SESSION['user_id'], "actor", 30, $actor->actor_num);
 $media = RemotePost::media_for($posts);
-title_update(RemoteActor::handle($actor));
+title_update(RemoteActor::display($actor));
 ?>
 <section class="header">
-    <p class="kicker">Elsewhere &middot; <?= escape($actor->host) ?></p>
+    <p class="kicker">From <?= escape(RemoteActor::blog_name((string)$actor->host)) ?></p>
     <div class="avatar">
         <img src="/Assets/images/avi.jpg" alt="">
     </div>
     <h1><?= escape($actor->name ?: $actor->username) ?></h1>
-    <p class="handle"><?= escape(RemoteActor::handle($actor)) ?></p>
+    <p class="handle" title="Their address: <?= escape(RemoteActor::address($actor)) ?>"><?= escape(RemoteActor::display($actor)) ?></p>
     <p class="byline">
-        <a href="<?= escape($actor->url ?: $actor->ap_id) ?>" rel="nofollow noopener" target="_blank">Their profile on <?= escape($actor->host) ?></a>
+        <a href="<?= escape($actor->url ?: $actor->ap_id) ?>" rel="nofollow noopener" target="_blank">Their profile on <?= escape(RemoteActor::blog_name((string)$actor->host)) ?></a>
     </p>
     <form action="/API/follow/remote.php" method="post" class="follow">
         <?php CSRF_input(); ?>

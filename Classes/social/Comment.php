@@ -364,7 +364,7 @@ class Comment
                                 <?php if (!empty($comment->user_id)): ?>
                                     <a href="/user/<?= escape(rawurlencode((string)$comment->username)) ?>"><?= escape((string)$comment->username) ?></a>
                                 <?php else: ?>
-                                    <a href="/@<?= escape(rawurlencode((string)$comment->remote_username) . "@" . rawurlencode((string)$comment->remote_host)) ?>">@<?= escape($comment->remote_username . "@" . $comment->remote_host) ?></a>
+                                    <a href="/@<?= escape(rawurlencode((string)$comment->remote_username) . "@" . rawurlencode((string)$comment->remote_host)) ?>" title="<?= escape($comment->remote_username . "@" . $comment->remote_host) ?>"><?= escape(RemoteActor::display((object)array("username" => $comment->remote_username, "host" => $comment->remote_host))) ?></a>
                                 <?php endif; ?>
                                 <time datetime="<?= escape($comment->timestamp) ?>"><?= escape(date_display($comment->timestamp)) ?></time>
                             </p>

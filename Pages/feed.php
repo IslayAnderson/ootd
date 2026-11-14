@@ -1,7 +1,7 @@
 <?php
 title_update("feed");
 //Following: people you follow, here and elsewhere (and you). Local: everyone here you can see.
-//Federated: posts from other servers that people here follow.
+//Federated ("Other blogs"): posts from other blogs that people here follow.
 $viewer = (int)$_SESSION['user_id'];
 $federation = Federation::enabled();
 $tabs = $federation ? array("following", "local", "federated") : array("following", "local");
@@ -12,12 +12,12 @@ $limit = 30;
 ?>
 <form action="/search" method="get" class="search feed-search" role="search">
     <label for="feed-search" class="visually-hidden">Find people</label>
-    <input type="search" id="feed-search" name="q" placeholder="Find people<?= $federation ? ", here or @name@server" : "" ?>" autocomplete="off">
+    <input type="search" id="feed-search" name="q" placeholder="Find people<?= $federation ? ", here or on other blogs" : "" ?>" autocomplete="off">
     <button type="submit" class="secondary">Search</button>
 </form>
 <nav class="feed-tabs" aria-label="Feed">
     <?php foreach ($tabs as $name): ?>
-        <a href="/feed?tab=<?= $name ?>"<?= $tab == $name ? ' aria-current="page"' : "" ?>><?= ucfirst($name) ?></a>
+        <a href="/feed?tab=<?= $name ?>"<?= $tab == $name ? ' aria-current="page"' : "" ?>><?= $name == "federated" ? "Other blogs" : ucfirst($name) ?></a>
     <?php endforeach; ?>
 </nav>
 <div class="feed">
@@ -59,11 +59,11 @@ $limit = 30;
     if (count($items) == 0) {
         if ($tab == "following") {
             ?>
-            <p class="empty">Nothing from people you follow yet. Find someone on the <a href="/feed?tab=local">Local</a> feed and follow them from their profile<?= $federation ? ", or search for someone elsewhere by their handle" : "" ?>.</p>
+            <p class="empty">Nothing from people you follow yet. Find someone on the <a href="/feed?tab=local">Local</a> feed and follow them from their profile<?= $federation ? ", or search for someone on another blog" : "" ?>.</p>
             <?php
         } elseif ($tab == "federated") {
             ?>
-            <p class="empty">Nothing from other servers yet. Once someone here follows people elsewhere, their posts show up here.</p>
+            <p class="empty">Nothing from other blogs yet. Once someone here follows people on other blogs, their posts show up here.</p>
             <?php
         } else {
             ?>

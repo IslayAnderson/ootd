@@ -152,7 +152,7 @@ class Blog
     public function create_blog($request = null)
     {
         if (empty($request) || empty($request['user_id']) || trim((string)$request['title']) == "") {
-            throw new Exception('Blog title missing');
+            throw new Exception('Title missing');
         }
 
         //only the author's own outfits can be attached
@@ -223,10 +223,10 @@ class Blog
     {
         $blog_num = self::owned_num($request['user_id'] ?? 0, $request['blog_id'] ?? "");
         if (empty($blog_num)) {
-            throw new Exception('Blog not found');
+            throw new Exception('Journal entry not found');
         }
         if (trim((string)($request['title'] ?? "")) == "") {
-            throw new Exception('Blog title missing');
+            throw new Exception('Title missing');
         }
 
         $params = array(
@@ -256,7 +256,7 @@ class Blog
     {
         $blog_num = self::owned_num($user_id, $blog_id);
         if (empty($blog_num)) {
-            throw new Exception('Blog not found');
+            throw new Exception('Journal entry not found');
         }
 
         $sql = 'UPDATE `blogs` SET `deleted_at` = NOW() WHERE `blog_num` = :a';

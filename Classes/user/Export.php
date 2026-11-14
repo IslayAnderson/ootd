@@ -83,7 +83,7 @@ class Export
             . "profile.json    your account (no password)\n"
             . "garments.json   your wardrobe\n"
             . "outfits.json    your outfits; garments are garment_ids\n"
-            . "blogs.json      your blog posts\n"
+            . "blogs.json      your journal entries\n"
             . "wears.json      every time you logged wearing something\n"
             . "follows.json    who you follow and who follows you\n"
             . "media.json      your photos; the files are in media/, named by media_id\n");

@@ -1,28 +1,37 @@
 <?php
-//find someone here by username, or elsewhere by @name@host or the address of their profile
+//find someone here by username, or on another blog by "name from Blog", name@host or the address of their profile
 title_update("search");
-$query = trim((string)($_GET['q'] ?? ""));
+$asked = trim((string)($_GET['q'] ?? ""));
+$query = $asked;
 $message = null;
-if ($query !== "") {
+if ($asked !== "") {
+    //"mia from Mia's Closet" becomes mia@closet.example when that blog is known here
+    $query = RemoteActor::from_display($query) ?? $query;
+    if ($query === $asked && preg_match('/^@?\S+\s+from\s+(.+)$/iu', $asked, $m)) {
+        $message = "Couldn't tell which blog " . trim($m[1]) . " is. Search for them by their address instead: their name @ their blog's domain.";
+        $query = "";
+    }
     $local = ltrim($query, "@");
     $handle = RemoteActor::parse_handle($query);
     if ($handle && strtolower($handle[1]) === strtolower(Federation::domain())) {
         $local = $handle[0];
         $handle = null;
     }
-    if (!$handle && !preg_match('#^https?://#i', $query)) {
+    if ($message) {
+        //nothing to look up
+    } elseif (!$handle && !preg_match('#^https?://#i', $query)) {
         if ((new User())->get_user_id_from_username($local)) {
             header("location: /user/" . rawurlencode($local));
             exit();
         }
         $message = "Nobody here is called " . $local . ".";
     } elseif (!Federation::enabled()) {
-        $message = "Following people on other servers is turned off here.";
+        $message = "Following people on other blogs is turned off here.";
     } elseif (($actor = RemoteActor::find($query))) {
         header("location: " . RemoteActor::local_path($actor));
         exit();
     } else {
-        $message = "Couldn't find " . $query . ". Check it, or try again later if their server is down.";
+        $message = "Couldn't find " . $asked . ". Check it, or try again later if their blog is down.";
     }
 }
 ?>
@@ -30,8 +39,8 @@ if ($query !== "") {
     <p class="kicker">Search</p>
     <h1>Find <em>people</em></h1>
     <form action="/search" method="get" class="search">
-        <label for="q">Username, or a handle elsewhere like @name@mastodon.social</label>
-        <input type="search" id="q" name="q" value="<?= escape($query) ?>" placeholder="@name@server" autocomplete="off" required>
+        <label for="q">Username, someone on another blog like &ldquo;mia from Mia&rsquo;s Closet&rdquo;, or their address like mia@closet.example</label>
+        <input type="search" id="q" name="q" value="<?= escape($asked) ?>" placeholder="name from blog, or name@blog address" autocomplete="off" required>
         <button type="submit">Search</button>
     </form>
     <?php if ($message): ?>

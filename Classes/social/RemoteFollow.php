@@ -30,7 +30,7 @@ class RemoteFollow
     public static function follow($user_id, $actor): string
     {
         if (!Federation::enabled()) {
-            throw new Exception("Following people on other servers is turned off here");
+            throw new Exception("Following people on other blogs is turned off here");
         }
         if (empty($actor->inbox)) {
             throw new Exception("That account can't be followed");
