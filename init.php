@@ -15,6 +15,8 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createMutable(__DIR__);
 $dotenv->load();
 
+send_frame_policy();
+
 CSRF_generate();
 
 use ScssPhp\ScssPhp\Compiler;

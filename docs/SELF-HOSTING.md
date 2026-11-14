@@ -76,6 +76,7 @@ To upgrade: `git pull`, then `docker compose --env-file .env.docker up -d --buil
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`, `MAIL_USER`, `MAIL_PASS` | SMTP. `MAIL_ENCRYPTION` is `tls` (port 587), `ssl` (465) or `none`. |
 | `MAIL_FROM`, `MAIL_FROM_NAME` | Sender. Default `noreply@` the site's domain and the instance name. |
 | `ACCOUNT_DOMAIN` | Addresses use this domain instead of the site's (`name@example.com` for a site at `blog.example.com`). See [Addresses on another domain](#addresses-on-another-domain). Set it before the site is shared. |
+| `FRAME_ANCESTORS` | Sites allowed to show this one in a frame, besides itself, e.g. `"https://example.com https://www.example.com"`. Default: none (only itself). |
 | `OLD_HOSTS` | Addresses the site used to have, comma-separated and quoted, e.g. `"ootd.old.example, old.example"`. They redirect (301) to the same page at `APP_URL`. |
 | `CSS_BUILT` | Set to `1` when the CSS is compiled at build time (the Docker image does this). |
 
