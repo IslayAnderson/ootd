@@ -86,3 +86,56 @@ input[readonly] {
   color: $soft-ink;
   border-bottom-style: dashed;
 }
+
+//cloud blogs (0.14.0): "Create my own blog" under the login form, and the address field
+.login .create-own {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: $rule;
+  text-align: center;
+
+  p {
+    font-style: italic;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn {
+    display: inline-block;
+    text-decoration: none;
+  }
+}
+
+.create-blog {
+  .address-field {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+
+    input {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    span {
+      font-family: $serif;
+      font-size: 1.1rem;
+      white-space: nowrap;
+    }
+  }
+
+  .checkbox {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    text-transform: none;
+    letter-spacing: normal;
+    font-family: $sans;
+    margin: 0.5rem 0 1rem;
+
+    input {
+      flex: 0 0 auto;
+      width: auto;
+      margin: 0;
+    }
+  }
+}

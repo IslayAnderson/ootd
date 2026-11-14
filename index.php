@@ -11,6 +11,12 @@ if (preg_match('#^/(\.well-known/(webfinger|host-meta|nodeinfo)|nodeinfo/2\.1|ns
     exit();
 }
 
+//jobs woken over HTTP (cloud blogs): no session, no page
+if ($early_path === "/cron") {
+    require $_SERVER['DOCUMENT_ROOT'] . '/Pages/cron.php';
+    exit();
+}
+
 require $_SERVER['DOCUMENT_ROOT'] . "/init.php";
 
 ob_start("meta_replace");
@@ -114,6 +120,10 @@ switch ($request[0]) {
         break;
     case '/outfits':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfits.php';
+        break;
+    case '/create-blog':
+    case '/create-blog/confirm':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/create_blog.php';
         break;
     case '/forgot':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/forgot.php';

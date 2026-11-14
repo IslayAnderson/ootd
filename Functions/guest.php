@@ -22,7 +22,10 @@ function guest_path_allowed($path, $public_feed = null): bool
         "/forgot",
         "/reset",
         "/API/user/forgot.php",
-        "/API/user/reset.php"
+        "/API/user/reset.php",
+        "/create-blog",
+        "/create-blog/confirm",
+        "/API/cloud/create.php"
     );
     if (in_array($path, $paths, true)) {
         return true;
