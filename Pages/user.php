@@ -54,7 +54,7 @@ title_update($user->username);
     <?php endif; ?>
 </section>
 <section class="blog">
-    <h2>Journal</h2>
+    <h2>Articles</h2>
     <?php
     $blogs = new Post\Blog($user->get_user_id());
     if (count($blogs->blogs) > 0) {

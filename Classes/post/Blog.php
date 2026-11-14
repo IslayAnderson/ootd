@@ -223,7 +223,7 @@ class Blog
     {
         $blog_num = self::owned_num($request['user_id'] ?? 0, $request['blog_id'] ?? "");
         if (empty($blog_num)) {
-            throw new Exception('Journal entry not found');
+            throw new Exception('Article not found');
         }
         if (trim((string)($request['title'] ?? "")) == "") {
             throw new Exception('Title missing');
@@ -256,7 +256,7 @@ class Blog
     {
         $blog_num = self::owned_num($user_id, $blog_id);
         if (empty($blog_num)) {
-            throw new Exception('Journal entry not found');
+            throw new Exception('Article not found');
         }
 
         $sql = 'UPDATE `blogs` SET `deleted_at` = NOW() WHERE `blog_num` = :a';

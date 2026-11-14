@@ -6,7 +6,7 @@ try {
 
     Post\Blog::delete_blog($_SESSION['user_id'], $_POST['blog_id'] ?? "");
 
-    header('Location: /account?deleted=journal');
+    header('Location: /account?deleted=article');
     exit();
 } catch (Exception $e) {
     echo json_encode(array(

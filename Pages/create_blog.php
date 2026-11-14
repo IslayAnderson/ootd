@@ -33,7 +33,7 @@ $domain = CloudBlog::domain();
     <?php else: ?>
         <div class="description">
             <h1>Create your own <em>blog</em></h1>
-            <p>Your own TREAT blog: a wardrobe, daily outfits and a journal, at your own address. You&rsquo;re its admin,
+            <p>Your own TREAT blog: a wardrobe, daily outfits and articles, at your own address. You&rsquo;re its admin,
                 and people on other blogs and on Mastodon can follow you.</p>
             <?php if (!empty($_GET['error'])): ?>
                 <p class="notice"><?= escape($_GET['error']) ?></p>
