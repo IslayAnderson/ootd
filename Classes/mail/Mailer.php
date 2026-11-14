@@ -26,7 +26,25 @@ class Mailer
             return "smtp";
         }
         $sendmail = explode(" ", trim((string)ini_get("sendmail_path")))[0];
-        return $sendmail !== "" && is_executable($sendmail) ? "mail" : "log";
+        if ($sendmail === "") {
+            return "log";
+        }
+        //hosts that set open_basedir (Plesk, cPanel) don't let PHP look at sendmail, though mail() can run it
+        if (trim((string)ini_get("open_basedir")) !== "" && !self::inside_basedir($sendmail)) {
+            return "mail";
+        }
+        return is_executable($sendmail) ? "mail" : "log";
+    }
+
+    private static function inside_basedir($path): bool
+    {
+        foreach (explode(PATH_SEPARATOR, (string)ini_get("open_basedir")) as $dir) {
+            $dir = rtrim(trim($dir), "/");
+            if ($dir !== "" && ($path === $dir || str_starts_with($path, $dir . "/"))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
