@@ -69,9 +69,41 @@ To upgrade: `git pull`, then `docker compose --env-file .env.docker up -d --buil
 | `TINYMCE` | TinyMCE licence key; `gpl` for the self-hosted editor. |
 | `MEDIA_DRIVER` | `local` (default) or `s3`. |
 | `STORAGE_PATH` | Where the local driver keeps photos, default `storage/`. |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_KEY`, `S3_SECRET`, `S3_PATH_STYLE` | S3-compatible storage (AWS, Cloudflare R2, Backblaze B2, MinIO). The bucket stays private. |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_KEY`, `S3_SECRET`, `S3_PATH_STYLE` | S3-compatible storage (Cloudflare R2, AWS, Backblaze B2, MinIO). The bucket stays private. See [Photos on Cloudflare R2](#photos-on-cloudflare-r2). |
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM`, `MAIL_FROM_NAME` | SMTP. `MAIL_ENCRYPTION` is `tls` (port 587), `ssl` (465) or `none`. |
 | `CSS_BUILT` | Set to `1` when the CSS is compiled at build time (the Docker image does this). |
+
+## Photos on Cloudflare R2
+
+Photos can live in an S3-compatible bucket instead of on the server's disk. Cloudflare R2 is the
+recommended provider: there are no fees for serving files, which matters because every photo is
+served through OOTD.
+
+1. In the Cloudflare dashboard, go to **R2** → **Create bucket**. Leave public access **off**:
+   OOTD checks who may see each photo and serves it itself.
+2. **R2** → **Manage API tokens** → **Create API token**, with **Object Read & Write** on that
+   bucket only. Note the access key ID, the secret, and the S3 endpoint
+   (`https://<account id>.r2.cloudflarestorage.com`).
+3. Add to `.env`:
+
+   ```
+   MEDIA_DRIVER=s3
+   S3_ENDPOINT=https://<account id>.r2.cloudflarestorage.com
+   S3_BUCKET=ootd-media
+   S3_KEY=<access key id>
+   S3_SECRET=<secret access key>
+   ```
+
+   `S3_REGION` (`auto`) and `S3_PATH_STYLE` (on) are set automatically for R2 endpoints. For a
+   bucket in the EU jurisdiction, use the `https://<account id>.eu.r2.cloudflarestorage.com` endpoint.
+4. Run `php bin/ootd storage:check`. It writes a test file, reads it back and deletes it.
+
+Photos already on disk aren't moved. Copy `storage/` into the bucket keeping the same paths
+(for example with `rclone copy storage/ r2:ootd-media`) before switching. Otherwise old photos
+won't load.
+
+For AWS S3, set `S3_ENDPOINT=https://s3.<region>.amazonaws.com` and `S3_REGION`. For MinIO and
+others, also set `S3_PATH_STYLE=1` if they don't support bucket subdomains.
 
 ## Who can join
 

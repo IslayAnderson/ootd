@@ -10,6 +10,7 @@
  *   php bin/ootd user:create <username> <email> [--admin] [--password=...]
  *   php bin/ootd jobs            run waiting background jobs once (what cron.php does)
  *   php bin/ootd health          check the database, storage and jobs; exits 1 if something is wrong
+ *   php bin/ootd storage:check   write, read back and delete a test file in the media store (S3/R2 setup)
  *   php bin/ootd version
  *
  * install reads: DB_HOST, DB_USER, DB_PASS, DB_SCHEMA, APP_URL, PWD_SEED (generated when missing),
@@ -165,13 +166,37 @@ switch ($command) {
         }
         exit($health['ok'] ? 0 : 1);
 
+    case "storage:check":
+        load_app($root);
+        $storage = media_storage();
+        out("driver    " . get_class($storage));
+        if ($storage instanceof StorageS3) {
+            $where = $storage->describe("ootd-check/" . bin2hex(random_bytes(4)));
+            out("region    " . $where['region'] . ($where['path_style'] ? ", path style" : ", virtual-hosted"));
+        }
+        $key = "ootd-check/" . bin2hex(random_bytes(8)) . ".txt";
+        $body = "OOTD storage check " . date("c");
+        try {
+            $storage->put($key, $body, "text/plain");
+            out("write     ok");
+            $read = $storage->get($key);
+            out("read      " . ($read === $body ? "ok" : "FAIL (got " . ($read === null ? "nothing" : strlen($read) . " different bytes") . ")"));
+            $storage->delete($key);
+            $gone = $storage->get($key) === null;
+            out("delete    " . ($gone ? "ok" : "FAIL (still there: " . $key . ")"));
+            exit($read === $body && $gone ? 0 : 1);
+        } catch (Exception $e) {
+            out("FAIL      " . $e->getMessage());
+            exit(1);
+        }
+
     case "version":
         load_app($root);
         out(OOTD_VERSION);
         break;
 
     default:
-        out("usage: php bin/ootd install|env|migrate|user:create|jobs|health|version");
+        out("usage: php bin/ootd install|env|migrate|user:create|jobs|health|storage:check|version");
         exit($command == "help" ? 0 : 1);
 }
 

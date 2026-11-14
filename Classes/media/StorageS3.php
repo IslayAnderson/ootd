@@ -4,6 +4,7 @@
  * Media in an S3-compatible bucket (AWS S3, Cloudflare R2, Backblaze B2, MinIO...), signed with AWS Signature V4.
  * .env: S3_ENDPOINT (e.g. https://s3.eu-west-2.amazonaws.com), S3_REGION, S3_BUCKET, S3_KEY, S3_SECRET,
  * S3_PATH_STYLE=1 for endpoints that want https://endpoint/bucket/key instead of https://bucket.endpoint/key.
+ * Cloudflare R2 (https://<account id>.r2.cloudflarestorage.com) defaults to region "auto" and path style.
  * The bucket stays private; files are still served through /media so visibility is checked.
  */
 class StorageS3 implements Storage
@@ -19,11 +20,33 @@ class StorageS3 implements Storage
     {
         $config = $config ?? $_ENV;
         $this->endpoint = rtrim((string)($config['S3_ENDPOINT'] ?? ""), "/");
-        $this->region = (string)($config['S3_REGION'] ?? "us-east-1");
+        $r2 = self::is_r2($this->endpoint);
+        $this->region = (string)(($config['S3_REGION'] ?? "") ?: ($r2 ? "auto" : "us-east-1"));
         $this->bucket = (string)($config['S3_BUCKET'] ?? "");
         $this->key = (string)($config['S3_KEY'] ?? "");
         $this->secret = (string)($config['S3_SECRET'] ?? "");
-        $this->path_style = !empty($config['S3_PATH_STYLE']);
+        $this->path_style = isset($config['S3_PATH_STYLE']) && $config['S3_PATH_STYLE'] !== ""
+            ? !empty($config['S3_PATH_STYLE'])
+            : $r2;
+    }
+
+    /**
+     * @param string $endpoint
+     * @return bool is it a Cloudflare R2 endpoint
+     */
+    public static function is_r2($endpoint): bool
+    {
+        $host = strtolower((string)parse_url((string)$endpoint, PHP_URL_HOST));
+        return $host !== "" && str_ends_with($host, ".r2.cloudflarestorage.com");
+    }
+
+    /**
+     * @return array region, path style, and the address a key would be sent to (for checks and tests)
+     */
+    public function describe($key = "check"): array
+    {
+        list($host, $path) = $this->location($key);
+        return array("region" => $this->region, "path_style" => $this->path_style, "url" => $host . $path);
     }
 
     /**
