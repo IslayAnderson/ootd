@@ -28,9 +28,29 @@ All of Claude's work lives under `claude/`, separate from `main`:
 Each release branch builds on the previous one, so `claude/development` always holds the latest
 release. Nothing has been merged into `claude/main` or `main`.
 
+| Release | Status |
+| --- | --- |
+| 0.1.1 | Done, merged to `claude/development` |
+| 0.2.0 | Done, merged to `claude/development` |
+| 0.3.0 | Done, merged to `claude/development` |
+| 0.4.0 | Done, merged to `claude/development` |
+| 0.5.0 | Done, merged to `claude/development` |
+
+## Upgrading an existing install
+
+1. Deploy the code and run `composer install`.
+2. Log in as the admin (the original installer's admin is permission `0`; the upgrade accepts it).
+3. Open `/install.php` and press **Upgrade database**. This adds the missing columns and the
+   `blogs`, `invites` and `wears` tables, remaps permission ids and moves `schema_version` to 2.
+   It is safe to run more than once.
+4. Everyone, including you, is logged out once: sessions are now checked against
+   `users.session` (AUDIT F4). Log back in.
+5. In `/admin` → Settings, turn **Recompile sass** off once the CSS is built.
+6. Change the admin password from `/account` if it is still `root`.
+
 ## Releases
 
-### 0.1.1 — Security, install and schema fixes
+### 0.1.1 — Security, install and schema fixes ✅
 
 Make a fresh install actually work and close the anonymous-visitor holes.
 
@@ -43,7 +63,7 @@ Make a fresh install actually work and close the anonymous-visitor holes.
 - Docroot-relative `require` in `index.php` (I6); README setup notes (I7).
 - Logout, empty result sets, `User` setters, `Post\Garment` filter, page titles (B1, B2, B3, B5, B6).
 
-### 0.2.0 — Posting
+### 0.2.0 — Posting ✅
 
 The `/account` page has *New blog / New outfit / New garment* tabs that don't submit.
 
@@ -52,14 +72,14 @@ The `/account` page has *New blog / New outfit / New garment* tabs that don't su
 - Avatar upload (`API/user/avatar.php`).
 - Blogs render on profiles (B4) and get a page at `/user/<username>/blog/<blog_id>`.
 
-### 0.3.0 — Wardrobe and garments
+### 0.3.0 — Wardrobe and garments ✅
 
 - `/wardrobe` shows the signed-in user's real garments instead of dummy data (B8).
 - Category, tag and search filters (the filter bar already exists).
 - `/garment/<garment_id>` detail page (already linked from outfits and wardrobe).
 - `/outfits` lists the signed-in user's outfits.
 
-### 0.4.0 — Admin and invites
+### 0.4.0 — Admin and invites ✅
 
 - Live user table: list users, reset a user's session, change permission, kill all sessions (B9).
 - Settings read from and saved to the `settings` table, with the seeded `installed` / `schema_version` hidden.
@@ -68,7 +88,7 @@ The `/account` page has *New blog / New outfit / New garment* tabs that don't su
   only accepts a valid unused code (S6). Fix `Validate::basic()`.
 - Change password on `/account` (S10).
 
-### 0.5.0 — Insights
+### 0.5.0 — Insights ✅
 
 Replaces the hard-coded "just for demo" stats block (B7).
 
@@ -78,6 +98,9 @@ Replaces the hard-coded "just for demo" stats block (B7).
 
 ## Later (not started)
 
+- Block `/vendor` from the web except TinyMCE (AUDIT F12).
+- Edit and delete for garments, outfits and blogs (only create exists).
+- Email the invite link instead of an admin copying it from `/admin`.
 - `media` table from the design diagram instead of inline `BLOB`s (and images served by URL).
 - Moderation queue for user-submitted brands, categories and tags (`in_moderation` columns exist).
 - Only recompile SCSS when the admin "Re-compile SASS" setting is on.
