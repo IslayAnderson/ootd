@@ -1,21 +1,32 @@
 <?php
 
 /**
- * In-app notifications: follow, follow_request, follow_accepted (more arrive with federation)
+ * In-app notifications. Someone on another server is named by handle in `object`; `link` points at
+ * what it's about (a post, or a remote profile).
  */
 class Notification
 {
     const TYPES = array(
         "follow" => "started following you",
         "follow_request" => "asked to follow you",
-        "follow_accepted" => "accepted your follow request"
+        "follow_accepted" => "accepted your follow request",
+        "like" => "liked your post",
+        "announce" => "boosted your post"
     );
 
-    public static function add($user_id, $type, $actor_id = null, $object = null): void
+    /**
+     * @param int $user_id who is told
+     * @param string $type a key of TYPES
+     * @param int|null $actor_id local user who did it
+     * @param string|null $object handle of someone elsewhere who did it
+     * @param string|null $link local path it's about
+     * @return void
+     */
+    public static function add($user_id, $type, $actor_id = null, $object = null, $link = null): void
     {
-        $sql = "INSERT INTO `notifications` (`user_id`, `type`, `actor_id`, `object`) VALUES (:a, :b, :c, :d)";
+        $sql = "INSERT INTO `notifications` (`user_id`, `type`, `actor_id`, `object`, `link`) VALUES (:a, :b, :c, :d, :e)";
         $db = new Mysql();
-        $db->Fetch($sql, array(":a" => (int)$user_id, ":b" => $type, ":c" => $actor_id, ":d" => $object));
+        $db->Fetch($sql, array(":a" => (int)$user_id, ":b" => $type, ":c" => $actor_id, ":d" => $object === null ? null : mb_substr($object, 0, 128), ":e" => $link));
     }
 
     public static function unread_count($user_id): int

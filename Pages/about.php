@@ -30,5 +30,6 @@ $contact = trim((string)setting_get("admin_contact", ""));
         <h2>Contact</h2>
         <p><?= filter_var($contact, FILTER_VALIDATE_EMAIL) ? '<a href="mailto:' . escape($contact) . '">' . escape($contact) . '</a>' : escape($contact) ?></p>
     <?php endif; ?>
-    <p class="small">Runs OOTD <?= escape(OOTD_VERSION) ?>.</p>
+    <p class="small">Runs OOTD <?= escape(OOTD_VERSION) ?>, free software under the GNU AGPL<?php if (setting_get("source_url", "")): ?>
+        &middot; <a href="<?= escape(setting_get("source_url", "")) ?>">source code</a><?php endif; ?>.</p>
 </section>

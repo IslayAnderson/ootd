@@ -76,14 +76,16 @@ class RemoteActor
             ":f" => mb_substr((string)$document['inbox'], 0, 512),
             ":g" => is_string($document['endpoints']['sharedInbox'] ?? null) ? mb_substr($document['endpoints']['sharedInbox'], 0, 512) : null,
             ":h" => $key['id'] ?? null,
-            ":i" => $key['publicKeyPem'] ?? null
+            ":i" => $key['publicKeyPem'] ?? null,
+            ":j" => is_string($document['outbox'] ?? null) ? mb_substr($document['outbox'], 0, 512) : null,
+            ":k" => is_string($document['followers'] ?? null) ? mb_substr($document['followers'], 0, 512) : null
         );
         $db = new Mysql();
-        $db->Fetch("INSERT INTO `remote_actors` (`ap_id`, `username`, `host`, `name`, `url`, `inbox`, `shared_inbox`, `key_id`, `public_key`, `fetched_at`)
-                    VALUES (:a, :b, :c, :d, :e, :f, :g, :h, :i, NOW())
+        $db->Fetch("INSERT INTO `remote_actors` (`ap_id`, `username`, `host`, `name`, `url`, `inbox`, `shared_inbox`, `key_id`, `public_key`, `outbox`, `followers`, `fetched_at`)
+                    VALUES (:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, NOW())
                     ON DUPLICATE KEY UPDATE `username` = VALUES(`username`), `host` = VALUES(`host`), `name` = VALUES(`name`), `url` = VALUES(`url`),
                       `inbox` = VALUES(`inbox`), `shared_inbox` = VALUES(`shared_inbox`), `key_id` = VALUES(`key_id`),
-                      `public_key` = VALUES(`public_key`), `fetched_at` = NOW()", $params);
+                      `public_key` = VALUES(`public_key`), `outbox` = VALUES(`outbox`), `followers` = VALUES(`followers`), `fetched_at` = NOW()", $params);
     }
 
     /**
@@ -119,6 +121,93 @@ class RemoteActor
         }
         //Mastodon's keys are the actor's URL plus #main-key
         return explode("#", (string)$key_id)[0];
+    }
+
+    /**
+     * @param string $handle name@host, with or without the leading @
+     * @return array [name, host] or null when it isn't a handle
+     */
+    public static function parse_handle($handle): ?array
+    {
+        if (!preg_match('/^@?([a-z0-9_.\-]{1,128})@([a-z0-9.\-]{1,253}(?::[0-9]{1,5})?)$/i', trim((string)$handle), $m)) {
+            return null;
+        }
+        return array($m[1], strtolower($m[2]));
+    }
+
+    /**
+     * Find someone on another server by handle (WebFinger) or by the address of their profile
+     *
+     * @param string $query @name@host or https://host/...
+     * @return object|null remote_actors row
+     */
+    public static function find($query)
+    {
+        $query = trim((string)$query);
+        $handle = self::parse_handle($query);
+        if ($handle) {
+            list($name, $host) = $handle;
+            if ($host === strtolower(Federation::domain())) {
+                return null;
+            }
+            $db = new Mysql();
+            $row = $db->Fetch("SELECT `ap_id` FROM `remote_actors` WHERE `username` = :a AND `host` = :b", array(":a" => $name, ":b" => explode(":", $host)[0]));
+            if ($row[0] != '00000') {
+                return self::get($row[0]->ap_id);
+            }
+            $actor_id = self::webfinger($name, $host);
+            return $actor_id ? self::get($actor_id) : null;
+        }
+        if (preg_match('#^https?://#i', $query)) {
+            //a profile page (https://host/@name) usually answers its actor document when asked for JSON
+            try {
+                $document = self::fetch($query);
+            } catch (Exception $e) {
+                return null;
+            }
+            $id = Inbox::id($document['id'] ?? null);
+            if (!$id || !in_array($document['type'] ?? "", array("Person", "Service", "Organization", "Group", "Application"), true)) {
+                return null;
+            }
+            return self::get($id);
+        }
+        return null;
+    }
+
+    /**
+     * @param string $name
+     * @param string $host
+     * @return string|null the actor id the handle points at
+     */
+    public static function webfinger($name, $host): ?string
+    {
+        $scheme = !empty($_ENV['AP_ALLOW_HTTP']) && preg_match('/^(127\.|localhost)/', $host) ? "http" : "https";
+        $url = $scheme . "://" . $host . "/.well-known/webfinger?resource=" . rawurlencode("acct:" . $name . "@" . explode(":", $host)[0]);
+        try {
+            list($status, $body) = SafeHttp::get($url, array("Accept" => "application/jrd+json, application/json"));
+        } catch (Exception $e) {
+            return null;
+        }
+        $document = json_decode((string)$body, true);
+        if ($status != 200 || !is_array($document)) {
+            return null;
+        }
+        foreach ($document['links'] ?? array() as $link) {
+            if (($link['rel'] ?? "") == "self" && is_string($link['href'] ?? null)
+                && preg_match('#^application/(activity\+json|ld\+json)#', (string)($link['type'] ?? ""))) {
+                return $link['href'];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param object $actor remote_actors row
+     * @return string the address of their profile here, /@name@host
+     */
+    public static function local_path($actor): string
+    {
+        return "/@" . rawurlencode($actor->username ?: "unknown") . "@" . rawurlencode($actor->host);
     }
 
     /**

@@ -64,6 +64,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.10.0 | Done, merged to `claude/development` |
 | 0.11.0 | Done, merged to `claude/development` |
 | 0.11.1 | Hotfix, merged to `claude/development` |
+| 0.12.0 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -285,6 +286,37 @@ ActivityPub server) can now find an OOTD account by its handle, follow it, and s
 - Stylesheet and script links carry the file's modification time (`main.css?v=…`). Cloudflare
   in front of staging caches `/Assets` for a year, so after a deploy it kept serving the old
   stylesheet; a new version is now a new address.
+
+### 0.12.0 — Following out ✅
+
+Sixth release of the [federation roadmap](FEDERATION.md). Schema 9. Members can now follow people
+on Mastodon and other Fediverse servers and see their posts.
+
+- **Finding people**: a search box on the feed (and `/search`) takes a username here, a handle
+  (`@name@mastodon.social`, looked up with WebFinger) or the address of a profile elsewhere.
+  Remote profiles live at `/@name@host`, for signed-in members only, with a Follow button.
+- **Following**: sends `Follow`, shows Requested until their server sends `Accept` (or `Reject`),
+  then fetches their 20 latest public posts from their outbox. Unfollowing sends `Undo`.
+  Account → Followers lists everyone followed elsewhere; following counts include them.
+- **Their posts**: the inbox stores `Create` and `Update` of notes and articles from people
+  someone here follows, and honours `Delete` (of a post, or of their whole account). Posts must be
+  by the sender and live on the sender's server. Replies and direct messages aren't stored.
+  Content is sanitised when shown; content warnings and sensitive media start folded.
+- **Feeds**: Following mixes posts from people you follow here and elsewhere; a new
+  **Federated** tab shows everything from other servers. Remote posts are for members only:
+  public ones to every member, followers-only ones to members who follow that person.
+- **Photos** are fetched by the worker (up to 16 MB, 50 megapixels), re-encoded into the media
+  store and served through `/media` like local photos, never hot-linked. A daily job drops the
+  oldest when they take more than `remote_media_mb` (Settings, default 1024 MB); the post then
+  links to the photo on its own server. Posts and photos are deleted when nobody here follows
+  that person any more.
+- **Likes and boosts** of posts here, from other servers, become notifications linking to the post.
+- Self-hosting: fonts and Chartist are served from `Assets/` (AUDIT F15); `LICENSE` (AGPL-3.0);
+  Cloudflare R2 works with just its endpoint, and `php bin/ootd storage:check` tests a bucket.
+- A background job that can never succeed (email to a malformed address) fails once instead of
+  retrying for days.
+- Tests: an end-to-end run against a simulated Mastodon-style server (61 checks: search,
+  follow, Accept/Reject, backfill, posts, spoofing, likes, deletes, cache limit, unfollow).
 
 ## Later (not started)
 
