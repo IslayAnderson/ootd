@@ -32,8 +32,8 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 ### Staging
 
 `https://ootd.islayanderson.co.uk`, on the owner's Plesk server (PHP 8.3, MariaDB 10.6), runs
-`claude/main`. Its database is test data. Until pushes to GitHub are approved (DECISIONS Q1),
-a release reaches staging like this:
+`claude/main`. Its database is test data. Each finished release is pushed to GitHub (`claude/main`,
+`claude/development`) and reaches the server like this:
 
 1. Rehearse: restore the latest staging backup into a scratch database on the server and run
    `bin/migrate.php` against a copy of the code there, twice (the second run must change nothing).

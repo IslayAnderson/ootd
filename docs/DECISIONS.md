@@ -40,15 +40,15 @@ needs an answer before the work that depends on it).
 | D16 | 0.9.0 | Members visibility stays the default for new posts (D2), with Followers as an extra choice. | Changing the default to Followers would hide new posts from members nobody has followed yet. | assumed |
 | D17 | 0.9.0 | Photos of deleted posts are deleted for good 30 days later; the post row itself stays (soft-deleted). | Gives a window to undo, and keeps the row so a `Delete` can still be federated. | assumed |
 | D18 | 0.9.0 | Follower and following counts are public on profiles, the list of who isn't. | Counts are standard on the fediverse; the lists reveal who knows whom. | assumed |
-| D19 | 0.9.0 | Jobs run from cron every minute on staging rather than a long-running worker. | Plesk shared hosting has cron but no process supervisor. | assumed |
 
 ## Questions
 
 | # | Question | Context |
 | --- | --- | --- |
-| Q1 | May Claude push `claude/main` (and the other `claude/*` branches) to GitHub so Plesk can deploy staging? | Pushes were blocked pending your OK. Until then, staging is updated over SSH (see ROADMAP, "Staging"). |
+| Q1 | ~~May Claude push `claude/main` to GitHub?~~ **Answered:** push to staging whenever a release is complete. | `claude/main` and `claude/development` are pushed after each release; the files still reach the server by the SSH procedure (ROADMAP, "Staging"), since the server holds files that aren't in the repo (Q6). |
 | Q2 | Should staging's `.env` move fully to the current format? | It used `DEV_/STAGE_/PROD_` prefixed keys that no version of the code reads. The current `DB_*` keys and `APP_URL` were added alongside them; the old keys were left in place. |
 | Q3 | What were the `profile`, `profile_options` and `size_*` tables (and `garments.size`) for? | They're in the staging database but in no branch of the code. Left untouched. If sizing is a feature you want, it can go on the roadmap. |
 | Q4 | Is the New Relic browser agent on staging intentional? | The server injects New Relic's script into every page. If it stays, the privacy page should mention it (third-party requests, AUDIT F15). |
 | Q5 | Which S3-compatible provider (if any) should cloud and larger self-hosts use? | The S3 driver signs requests correctly against AWS's published example but hasn't run against a live bucket yet. |
 | Q6 | Should the email code found only on staging come into the repo? | `Classes/mail/Mail.php` (Brevo invite emails), `Pages/onboard.php` and `partials/email_templates/invite.php` are on the server but in no branch. They were left in place on deploy and copied for safekeeping. They need `brevo/brevo-php` and Guzzle, which aren't in `composer.json`. The roadmap puts email in 0.10.0. |
+| Q7 | May Claude add a cron job on staging for `bin/cron.php` (every minute, as `ide`)? | 0.9.0's background jobs only run when something runs them. Not added, since it's a standing change to your server: a Plesk scheduled task or `crontab -u ide` line `* * * * * /opt/plesk/php/8.3/bin/php /var/www/vhosts/islayanderson.co.uk/ootd.Islayanderson.co.uk/bin/cron.php`. Until then nothing is purged, which is harmless. |
