@@ -30,6 +30,8 @@ server (add `--app-url=https://your.site` the first time on installs from before
 'STORAGE_PATH' optional, where the local driver keeps images (default `storage/`)
 'S3_ENDPOINT' 'S3_REGION' 'S3_BUCKET' 'S3_KEY' 'S3_SECRET' for `MEDIA_DRIVER=s3`; add 'S3_PATH_STYLE=1' for endpoints that need `endpoint/bucket/key` addresses
 'APP_URL' the site's address, e.g. `https://ootd.example`, set by the installer; public links are built from it, so don't change it once the site is shared
+'MAIL_HOST' 'MAIL_PORT' 'MAIL_ENCRYPTION' 'MAIL_USER' 'MAIL_PASS' 'MAIL_FROM' 'MAIL_FROM_NAME' SMTP for password resets and invites; without them email goes to `tmp/mail.log`
+'CSS_BUILT' `1` when the CSS was compiled at build time (Docker)
 no defaults are assumed
 
 ## Background jobs
@@ -42,6 +44,9 @@ php bin/worker.php                          # long-running, under systemd or sup
 
 ## Tests
 `vendor/bin/phpunit`
+
+## Docker and other hosts
+See [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md): Docker Compose, PHP hosts, `bin/ootd`, backups and upgrades.
 
 # Docs
 - [docs/AUDIT.md](docs/AUDIT.md) known issues and code conventions

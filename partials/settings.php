@@ -8,6 +8,14 @@
             <?php if ($setting->type == "bool"): ?>
                 <input type="checkbox" id="setting_<?= escape($setting->setting) ?>"
                        name="<?= escape($setting->setting) ?>" <?= $setting->value == 1 ? "checked" : "" ?>/>
+            <?php elseif (count(setting_choices($setting->type)) > 0): ?>
+                <select id="setting_<?= escape($setting->setting) ?>" name="<?= escape($setting->setting) ?>">
+                    <?php foreach (setting_choices($setting->type) as $choice): ?>
+                        <option value="<?= escape($choice) ?>"<?= $choice == $setting->value ? " selected" : "" ?>><?= escape(ucfirst($choice)) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            <?php elseif ($setting->type == "text"): ?>
+                <textarea id="setting_<?= escape($setting->setting) ?>" name="<?= escape($setting->setting) ?>" rows="4"><?= escape($setting->value) ?></textarea>
             <?php else: ?>
                 <input type="text" id="setting_<?= escape($setting->setting) ?>"
                        name="<?= escape($setting->setting) ?>" value="<?= escape($setting->value) ?>"/>

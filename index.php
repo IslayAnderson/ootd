@@ -18,6 +18,21 @@ if (preg_match('#^/media/[A-Za-z0-9]+/(display|thumb)$#', $request[0])) {
     require $_SERVER['DOCUMENT_ROOT'] . '/Pages/media.php';
 }
 
+//uptime monitors and container health checks; details stay on the command line (bin/ootd health)
+if ($request[0] == '/health') {
+    ob_end_clean();
+    $health = health_check();
+    http_response_code($health['ok'] ? 200 : 503);
+    header('Content-Type: application/json');
+    header('Cache-Control: no-store');
+    $summary = array();
+    foreach ($health['checks'] as $name => $check) {
+        $summary[$name] = $check['ok'] ? "ok" : "fail";
+    }
+    echo json_encode(array("status" => $health['ok'] ? "ok" : "fail", "checks" => $summary));
+    exit();
+}
+
 // if(count(explode("API", $request)) > 1){
 //     // do some authentication
 //     require require $_SERVER['DOCUMENT_ROOT'] . $request . ".php";
@@ -74,6 +89,15 @@ switch ($request[0]) {
         break;
     case '/outfits':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfits.php';
+        break;
+    case '/forgot':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/forgot.php';
+        break;
+    case '/reset':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/reset.php';
+        break;
+    case '/about':
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/about.php';
         break;
     case '/notifications':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/notifications.php';

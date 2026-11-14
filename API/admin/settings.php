@@ -13,7 +13,7 @@ try {
         if ($setting->type == "bool") {
             setting_set($setting->setting, isset($_POST[$setting->setting]) ? 1 : 0);
         } elseif (isset($_POST[$setting->setting])) {
-            setting_set($setting->setting, mb_substr((string)$_POST[$setting->setting], 0, 100));
+            setting_set($setting->setting, setting_clean($setting->type, $_POST[$setting->setting], $setting->value));
         }
     }
 

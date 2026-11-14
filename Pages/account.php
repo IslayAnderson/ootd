@@ -36,6 +36,14 @@ title_update("account");
         </form>
     </details>
 </section>
+<section class="your-data" id="data">
+    <h2>Your data</h2>
+    <p>Download everything you&rsquo;ve put on <?= escape(instance_name()) ?>: your profile, wardrobe, outfits, blog posts, wears and photos, as a zip of JSON files and images.</p>
+    <form action="/API/user/export.php" method="post">
+        <?php CSRF_input(); ?>
+        <button type="submit" class="secondary">Download your data</button>
+    </form>
+</section>
 <section class="followers" id="followers">
     <h2>Followers</h2>
     <?php list($followers, $following) = Follow::counts($user->get_user_id()); ?>

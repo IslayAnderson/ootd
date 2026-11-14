@@ -82,6 +82,13 @@ class Invite
         $db = new Mysql();
         $db->Fetch($sql, $params);
 
+        $invite = $db->Fetch("SELECT `email` FROM `invites` WHERE `invite_num` = :a AND `code` = :b", array(':a' => (int)$invite_num, ':b' => $code));
+        if ($invite[0] != '00000') {
+            Mailer::queue($invite[0]->email, "Your invite to " . instance_name(),
+                "Your request to join " . instance_name() . " has been approved.\n\n"
+                . "Finish signing up here:\n" . absolute_url("/invite?code=" . $code) . "\n");
+        }
+
         return $code;
     }
 

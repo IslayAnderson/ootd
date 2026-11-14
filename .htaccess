@@ -1,5 +1,16 @@
 RewriteEngine On
 RewriteBase /
+
+# Only index.php, install.php, install_actions.php, API/, Assets/ and TinyMCE are meant to be
+# fetched directly (AUDIT F12). Everything else is code, config or data.
+RewriteRule ^(Classes|Functions|Pages|partials|bin|docs|tests|tmp|storage|docker)(/|$) - [F,L]
+RewriteCond %{REQUEST_URI} !^/vendor/tinymce/tinymce/
+RewriteRule ^vendor(/|$) - [F,L]
+# dotfiles (.env, .git ...) except .well-known, which certificates and federation use
+RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteRule (^|/)\. - [F,L]
+RewriteRule ^(composer\.(json|lock)|phpunit\.xml|README\.md|Dockerfile|docker-compose\.yml|init\.php)$ - [F,L]
+
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.+)$ index.php [QSA,L]

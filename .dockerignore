@@ -1,0 +1,9 @@
+.git
+.env
+.env.docker
+.idea
+tmp/*
+storage/*
+vendor
+Assets/stylesheets/css/*
+node_modules

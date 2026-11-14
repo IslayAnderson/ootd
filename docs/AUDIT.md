@@ -102,7 +102,7 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | F9 | Low | `image_bin_encode()` built MIME types like `image/JPEG` from `finfo`'s text description. | 0.2.0 |
 | F10 | Low | `users.session` was `varchar(32)`; widened to 128 in schema 2. | 0.4.0 |
 | F11 | Low | `Functions/environment.php` warned during install because `.env` didn't exist yet. | 0.5.0 |
-| F12 | Medium *(read)* | `/vendor` is inside the web root. `/account` relies on that to load TinyMCE, but it also exposes every Composer package's files. Worth blocking `/vendor` in `.htaccess` except `vendor/tinymce`. | — |
+| F12 | Medium *(read)* | `/vendor` is inside the web root. `/account` relies on that to load TinyMCE, but it also exposes every Composer package's files. Worth blocking `/vendor` in `.htaccess` except `vendor/tinymce`. Now blocked, along with every code, config and data folder. | 0.10.0 |
 | F13 | Low *(read)* | `Mysql::Fetch()` binds every value as `PDO::PARAM_STR` and then passes `$params` to `execute()` again; works, but the bind loop is redundant. | — |
 | F14 | Medium | `Post\Outfit` selected `outfits.*` and `garments.*` together, so the garment's `timestamp` overwrote the outfit's and posts showed the wrong date. | 0.6.0 |
 | F15 | Low *(read)* | Pages load Google Fonts, and insights loads Chartist from cdnjs: third-party requests, disclosed on `/privacy`. Self-hosting would remove them. | — |
@@ -114,6 +114,9 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | F21 | Medium | Early databases have a different `invites` table and smaller `blogs` columns (content capped at 4096 characters). | 0.7.1 |
 | F22 | Medium | `Functions/environment.php` used `parse_ini_file()`, which fails on, or truncates, values containing `=`, `;`, `!` or quotes. | 0.7.1 |
 | F23 | Low *(read)* | The staging database has tables no code uses: `profile`, `profile_options`, `sizes`, `size_category`, `size_sub_category`, `size_gender`, and `garments.size`. Left untouched; see DECISIONS Q3. | — |
+| F24 | Low | The installer's older table checks read a missing array key on an empty database, so a fresh install printed PHP warnings (the result was still right). | 0.10.0 |
+| F25 | Low | `Classes/classes.php` ran `eval("use X;")` for every class. A `use` inside `eval` does nothing, and each one raised a warning, which filled the command-line output. | 0.10.0 |
+| F26 | Medium | `composer audit`: TinyMCE 7.6 had XSS advisories and PHPUnit 11.5.3 an unsafe-deserialisation one. Updated to TinyMCE 7.9.3 and PHPUnit 11.5.58. One TinyMCE advisory remains (media plugin, fixed in 8.9.3); OOTD doesn't load that plugin and sanitises rich text on the server, see DECISIONS D24. | 0.10.0 |
 
 ### Status on `claude/development`
 

@@ -22,7 +22,8 @@ use ScssPhp\ScssPhp\Compiler;
 $target_css = $_SERVER['DOCUMENT_ROOT'] . '/Assets/stylesheets/css/main.css';
 
 //compiling on every request is slow, turn "Recompile sass" off in /admin once styles are settled
-if (!file_exists($target_css) || setting_get("recompile_sass", 1) == 1) {
+//images that compile the CSS at build time (Docker) set CSS_BUILT and never recompile
+if (!file_exists($target_css) || (empty($_ENV['CSS_BUILT']) && setting_get("recompile_sass", 1) == 1)) {
     $compiler = new Compiler();
     $compressor = new tubalmartin\CssMin\Minifier();
 
