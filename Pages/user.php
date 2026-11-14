@@ -17,12 +17,13 @@ if (($path[3] ?? "") == "blog") {
 
 title_update($user->username);
 ?>
-<section class="header" style="border-top: unset;">
+<section class="header">
+    <p class="kicker">Profile</p>
     <div class="avatar">
         <img src="<?= $user->get_image() ?>" alt="<?= escape($user->username) ?>">
     </div>
-    <h2><?= escape($user->get_username($user->user_id)) ?></h2>
-    <h3><?= escape($user->first_name . " " . $user->last_name) ?></h3>
+    <h1><?= escape($user->get_username($user->user_id)) ?></h1>
+    <p class="byline"><?= escape($user->first_name . " " . $user->last_name) ?></p>
 </section>
 <section class="blog">
     <h2>Blogs</h2>
@@ -32,7 +33,7 @@ title_update($user->username);
         $blogs->render_blogs_profile();
     } else {
         ?>
-        <p>Nothing to be found</p>
+        <p class="empty">Nothing to be found</p>
         <?php
     }
     ?>
@@ -54,7 +55,7 @@ title_update($user->username);
         }
     } else {
         ?>
-        <p>Nothing to be found</p>
+        <p class="empty">Nothing to be found</p>
         <?php
     }
     ?>

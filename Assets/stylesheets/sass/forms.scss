@@ -1,0 +1,68 @@
+label {
+  @include kicker(0.7rem);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+input[type="text"], input[type="email"], input[type="password"], input:not([type]), textarea, select {
+  width: 100%;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  font-family: $serif;
+  font-size: 1.1rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: $ink;
+  background: transparent;
+  border: unset;
+  border-bottom: $rule;
+  border-radius: 0;
+
+  &:focus {
+    outline: unset;
+    border-bottom-width: 2px;
+  }
+
+  &::placeholder {
+    color: $mid-grey;
+    font-style: italic;
+  }
+}
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+select[multiple] {
+  border: $rule;
+  padding: 0.25rem;
+  min-height: 7rem;
+}
+
+input[type="file"] {
+  font-family: $sans;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: $ink;
+}
+
+details {
+  margin-top: 1rem;
+
+  summary {
+    @include kicker(0.75rem);
+    cursor: pointer;
+  }
+
+  form {
+    margin-top: 1rem;
+    text-align: left;
+  }
+}

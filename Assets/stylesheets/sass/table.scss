@@ -1,19 +1,16 @@
 table {
-  border-spacing: 1rem;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 10px;
-  overflow: hidden;
   width: 100%;
-  margin: 0 auto;
-  position: relative;
-  z-index: -1;
-  * {
-    position: relative;
-  }
+  border-collapse: collapse;
+  background: $paper;
+  font-family: $sans;
+  font-size: 0.85rem;
+
   td, th {
-    padding-left: 8px;
+    padding: 0.6rem 0.5rem;
     text-align: left;
+    vertical-align: middle;
+    border-bottom: solid 1px $mid-grey;
+
     &.l {
       text-align: left;
     }
@@ -24,30 +21,31 @@ table {
       text-align: right;
     }
   }
-  thead {
-    tr {
-      height: 60px;
-      background: #36304a;
-    }
+
+  th {
+    @include kicker(0.7rem);
+    border-bottom: $rule;
   }
-  tbody{
-    tr {
-      //font-size: 15px;
-      color: #808080;
-      //line-height: 1.2;
-      font-weight: unset;
-      //height: 50px;
-      &:nth-child(even) {
-        background-color: $light-grey;
-      }
-      &:last-child {
-        border: 0;
-      }
-      &:hover {
-        color: #555555;
-        background-color: $light-grey;
-        cursor: pointer;
-      }
-    }
+
+  tbody tr:hover td {
+    background-color: $light-grey;
+  }
+
+  select {
+    margin: 0;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+    width: auto;
+  }
+
+  input[type="text"] {
+    margin: 0;
+    font-size: 0.8rem;
+    font-family: $sans;
+  }
+
+  button {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.65rem;
   }
 }

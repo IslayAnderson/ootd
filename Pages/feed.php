@@ -15,7 +15,7 @@ title_update("feed");
         }
     } else {
         ?>
-        <p>Nothing to be found</p>
+        <p class="empty">Nothing to be found</p>
         <?php
     }
     ?>

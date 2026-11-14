@@ -35,6 +35,7 @@ release. Nothing has been merged into `claude/main` or `main`.
 | 0.3.0 | Done, merged to `claude/development` |
 | 0.4.0 | Done, merged to `claude/development` |
 | 0.5.0 | Done, merged to `claude/development` |
+| 0.6.0 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -96,6 +97,21 @@ Replaces the hard-coded "just for demo" stats block (B7).
 - `/insights` (already in the nav): wears per month chart (Chartist, already used), most-worn
   garments, and "you haven't worn X in N months" for garments with no recent wear.
 
+### 0.6.0 — Finished UI ✅
+
+Restyle with design cues from Glamcult magazine: editorial, monochrome and type-led.
+
+- Tokens and mixins in `variables.scss`: ink/paper palette, `display()` (Newsreader serif, upper
+  case, italic `<em>` accents), `kicker()` (Inter Tight small caps), `band()` full-bleed sections
+  on a centred column, `inverted` black bands.
+- New partials `typography.scss`, `forms.scss` (underline inputs, black block buttons) and
+  `page/insights.scss`; every page restyled, with empty states and error pages given the same voice.
+- Full-screen black menu that only shows links you can use (Admin for admins, Log in for guests).
+- Feed alternates white and black bands; on desktop each outfit becomes a two-column spread.
+- Dates shown as "14 November 2026" via `date_display()`.
+- Privacy page written.
+- Fixed outfits showing the newest garment's timestamp instead of their own (F14).
+
 ## Later (not started)
 
 - Block `/vendor` from the web except TinyMCE (AUDIT F12).
@@ -104,5 +120,5 @@ Replaces the hard-coded "just for demo" stats block (B7).
 - `media` table from the design diagram instead of inline `BLOB`s (and images served by URL).
 - Moderation queue for user-submitted brands, categories and tags (`in_moderation` columns exist).
 - Only recompile SCSS when the admin "Re-compile SASS" setting is on.
-- Privacy page content.
 - PHPUnit tests (already a dev dependency).
+- Self-host the Google Fonts (Newsreader, Inter Tight) if the site should make no third-party requests (AUDIT F15).

@@ -28,6 +28,7 @@ class Outfit
           garments.image as garment_image, 
           garments.tags as garment_tags,
           outfits.description as outfit_description,
+          outfits.timestamp as outfit_timestamp,
           garments.description as garment_description FROM `outfits`
          JOIN `users` ON outfits.user = users.user_id
          LEFT JOIN JSON_TABLE(COALESCE(outfits.garments, '[]'), '$[*]' COLUMNS (garment_ref INT PATH '$')) AS GT ON TRUE
@@ -43,7 +44,7 @@ class Outfit
 
         $this->outfit_num = $row[0]->outfit_num;
         $this->outfit_id = $row[0]->outfit_id;
-        $this->timestamp = $row[0]->timestamp;
+        $this->timestamp = $row[0]->outfit_timestamp;
         $this->user = array(
             "user_id" => $row[0]->user,
             "username" => $row[0]->username,
@@ -103,20 +104,28 @@ class Outfit
     public function render_outfit($is_profile = false): void
     {
         ?>
-        <article dataset-outfit-id="<?= escape($this->outfit_id) ?>">
+        <article class="outfit" dataset-outfit-id="<?= escape($this->outfit_id) ?>">
             <div class="info">
-                <time datetime="<?= escape($this->timestamp) ?>"><?= escape($this->timestamp) ?></time>
+                <time datetime="<?= escape($this->timestamp) ?>"><?= escape(date_display($this->timestamp)) ?></time>
                 <?php if (!$is_profile): ?>
                     <div class="profile">
                         <a href="/user/<?= escape($this->user['username']) ?>">
+                            <img loading="lazy" src="<?= $this->user['image'] ?>" alt="">
                             <span class="username"><?= escape($this->user['username']) ?></span>
-                            <img loading="lazy" src="<?= $this->user['image'] ?>">
                         </a>
                     </div>
                 <?php endif; ?>
             </div>
+            <div class="album">
+                <figure>
+                    <img loading="lazy" src="<?= $this->image ?>" class="primary"
+                         alt="<?= escape($this->description ?: "Outfit by " . $this->user['username']) ?>">
+                </figure>
+            </div>
             <div class="description">
-                <p><?= escape($this->description) ?></p>
+                <?php if (!empty($this->description)): ?>
+                    <p><?= escape($this->description) ?></p>
+                <?php endif; ?>
                 <?php if ($this->user['user_id'] == ($_SESSION['user_id'] ?? null)): ?>
                     <form action="/API/wear/create.php" method="post" class="wear">
                         <?php CSRF_input(); ?>
@@ -125,23 +134,25 @@ class Outfit
                     </form>
                 <?php endif; ?>
             </div>
-            <div class="album">
-                <figure>
-                    <img loading="lazy" src="<?= $this->image ?>" class="primary">
+            <?php if (count($this->garments) > 0): ?>
+                <ul class="garments">
                     <?php foreach ($this->garments as $garment): ?>
-                        <a href="/garment/<?= escape($garment['garment_id']) ?>"
-                           title="<?= escape($garment['garment_name']) ?>"
-                           dataset-garment-id="<?= escape($garment['garment_id']) ?>"
-                        >
-                            <img loading="lazy"
-                                 src="<?= $garment['image'] ?>"
-                                 alt="<?= escape($garment['garment_name']) ?>"
-                                 class=""
+                        <li>
+                            <a href="/garment/<?= escape($garment['garment_id']) ?>"
+                               title="<?= escape($garment['garment_name']) ?>"
+                               dataset-garment-id="<?= escape($garment['garment_id']) ?>"
                             >
-                        </a>
+                                <img loading="lazy"
+                                     src="<?= $garment['image'] ?>"
+                                     alt="<?= escape($garment['garment_name']) ?>"
+                                     class=""
+                                >
+                                <span><?= escape($garment['garment_name']) ?></span>
+                            </a>
+                        </li>
                     <?php endforeach; ?>
-                </figure>
-            </div>
+                </ul>
+            <?php endif; ?>
         </article>
         <?php
     }

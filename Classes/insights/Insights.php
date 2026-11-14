@@ -80,7 +80,7 @@ class Insights
 
     /**
      * @param int $months
-     * @return array labels (month names) and series (outfits worn per month), oldest first
+     * @return array labels (short month names) and series (outfits worn per month), oldest first
      */
     public function wears_per_month($months = 12): array
     {
@@ -105,7 +105,7 @@ class Insights
         $series = array();
         for ($i = $months - 1; $i >= 0; $i--) {
             $month = strtotime(date("Y-m-01") . " -" . $i . " months");
-            $labels[] = date("F", $month);
+            $labels[] = date("M", $month);
             $series[] = $counts[date("Y-m", $month)] ?? 0;
         }
 
@@ -214,13 +214,13 @@ class Insights
         </div>
         <h3>Daily insights:</h3>
         <?php if (empty($garment->last_worn) && self::time_since($garment->added) == "today"): ?>
-            <p>You haven't worn "<?= escape($garment->garment_name) ?>" yet.</p>
+            <p>You haven't worn &ldquo;<?= escape($garment->garment_name) ?>&rdquo; yet.</p>
         <?php elseif (empty($garment->last_worn)): ?>
-            <p>You haven't worn "<?= escape($garment->garment_name) ?>" since you added it <?= escape(self::time_since($garment->added)) ?> ago.</p>
+            <p>You haven't worn &ldquo;<?= escape($garment->garment_name) ?>&rdquo; since you added it <?= escape(self::time_since($garment->added)) ?> ago.</p>
         <?php elseif (self::time_since($garment->last_worn) == "today"): ?>
-            <p>You've worn everything recently, "<?= escape($garment->garment_name) ?>" included.</p>
+            <p>You've worn everything recently, &ldquo;<?= escape($garment->garment_name) ?>&rdquo; included.</p>
         <?php else: ?>
-            <p>You haven't worn "<?= escape($garment->garment_name) ?>" in <?= escape(self::time_since($garment->last_worn)) ?>.</p>
+            <p>You haven't worn &ldquo;<?= escape($garment->garment_name) ?>&rdquo; in <?= escape(self::time_since($garment->last_worn)) ?>.</p>
         <?php endif;
     }
 }

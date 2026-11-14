@@ -25,7 +25,7 @@ title_update($garment->garments[0]['garment_name']);
         }
     } else {
         ?>
-        <p>Nothing to be found</p>
+        <p class="empty">Nothing to be found</p>
         <?php
     }
     ?>

@@ -2,24 +2,25 @@
 $user = unserialize($_SESSION['user']);
 title_update("account");
 ?>
-<section class="header" style="border-top: unset;">
-    <h1>Account</h1>
+<section class="header">
+    <p class="kicker">Account</p>
     <div class="avatar">
         <img src="<?= $user->get_image() ?>" alt="<?= escape($user->username) ?>">
-        <form action="/API/user/avatar.php" method="post" enctype="multipart/form-data">
-            <?php CSRF_input(); ?>
-            <label>
-                Change photo
-                <input type="file" name="image" accept="image/*" required>
-            </label>
-            <button type="submit">Save</button>
-        </form>
     </div>
-    <h2><?= escape($user->get_username($user->user_id)) ?></h2>
-    <h3><?= escape($user->first_name . " " . $user->last_name) ?></h3>
+    <h1><?= escape($user->get_username($user->user_id)) ?></h1>
+    <p class="byline"><?= escape($user->first_name . " " . $user->last_name) ?></p>
     <?php if (!empty($_GET['posted'])): ?>
         <p class="notice">Your <?= escape($_GET['posted']) ?> has been saved.</p>
     <?php endif; ?>
+    <details class="photo">
+        <summary>Change photo</summary>
+        <form action="/API/user/avatar.php" method="post" enctype="multipart/form-data">
+            <?php CSRF_input(); ?>
+            <label for="avatar_image">New photo</label>
+            <input type="file" id="avatar_image" name="image" accept="image/*" required>
+            <button type="submit">Save photo</button>
+        </form>
+    </details>
     <details class="password">
         <summary>Change password</summary>
         <form action="/API/user/password.php" method="post">
@@ -32,8 +33,8 @@ title_update("account");
         </form>
     </details>
 </section>
-<section class="blog">
-    <h2>New post</h2>
+<section class="new-post">
+    <h2>New <em>post</em></h2>
     <div class="post">
         <script src="/vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
         <div class="post_tabs">
@@ -157,6 +158,8 @@ title_update("account");
         </script>
     </div>
 
+</section>
+<section class="blog">
     <h2>Blogs</h2>
     <?php
     $blogs = new Post\Blog($user->get_user_id());
@@ -180,7 +183,7 @@ title_update("account");
         }
     } else {
         ?>
-        <p>Nothing to be found</p>
+        <p class="empty">Nothing to be found</p>
         <?php
     }
     ?>

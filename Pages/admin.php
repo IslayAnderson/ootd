@@ -1,7 +1,11 @@
 <?php
 title_update("admin");
 ?>
-<div class="accordion" >
+<section class="header">
+    <p class="kicker">Behind the scenes</p>
+    <h1>Admin</h1>
+</section>
+<div class="accordion">
     <div class="accordion__section">
         <div class="accordion__section-header">
             <h2 class="accordion__section-heading">

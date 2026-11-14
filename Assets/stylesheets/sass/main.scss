@@ -1,19 +1,22 @@
 @import "variables";
 @import "reset";
+@import "typography";
 @import "navigation";
 @import "portrait";
 @import "landscape";
 @import "table";
+@import "forms";
 @import "page/feed";
 @import "page/wardrobe";
 @import "page/profile";
 @import "page/admin";
 @import "page/invite";
+@import "page/insights";
 @import "breakpoint/small";
 
 
 body {
-  padding-top: 5rem;
+  padding-top: $top-bar-height;
   width: 100%;
   overflow-x: hidden; // because i'm a hack
 }
@@ -23,29 +26,45 @@ body {
   display: none;
 }
 
-.notice {
-  padding: 0.5rem;
-  border: solid 1px black;
-  background: $light-grey;
+//every page block is a full-bleed band with a centred column
+body > section, body > div.feed > article, body > div.wardrobe, body > form.filters,
+body > div.accordion, body > div.login, body > div.signup, body > div.invite {
+  @include band;
+  padding-top: 2.5rem;
+  padding-bottom: 3rem;
 }
 
-article, section {
-  padding: 1rem 1rem 2rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+body > section {
+  border-top: $rule;
 
-  &:nth-child(odd) {
-    border-bottom: solid 1px black;
-    border-top: solid 1px black;
-  }
-
-  &:nth-child(1) {
+  &:nth-of-type(1) {
     border-top: unset;
   }
 
-  &:last-child {
-    border-bottom: unset;
+  &:nth-of-type(even) {
+    background: $light-grey;
   }
+
+  &.header {
+    text-align: center;
+  }
+}
+
+article {
+  margin: 0;
+}
+
+.notice {
+  @include kicker(0.75rem);
+  padding: 0.75rem;
+  margin: 1rem 0;
+  border: $rule;
+  background: $paper;
+  color: $ink;
+}
+
+.empty {
+  font-style: italic;
 }
 
 //remove this before launch
@@ -53,67 +72,92 @@ article, section {
   display: none !important;
 }
 
-.btn {
-  &.post {
-    position: relative;
-    top: -90px;
-    left: calc(100% - 4.5rem);
-    display: inline-block;
-    margin-right: 1rem;
-    background: #339dff;
-    color: #fff;
-    text-decoration: none;
-    font-size: 1.5rem;
-    line-height: 50px;
-    border-radius: 60px;
-    -webkit-transition: all .3s;
-    transition: all .3s;
-    width: 60px;
-    text-align: center;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-image: url('data:image/svg+xml,<svg clip-rule="evenodd" fill="%23fff" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="45px"><path d="m11.239 15.533c-1.045 3.004-1.238 3.451-1.238 3.84 0 .441.385.627.627.627.272 0 1.108-.301 3.829-1.249zm.888-.888 3.22 3.22 6.408-6.401c.163-.163.245-.376.245-.591 0-.213-.082-.427-.245-.591-.58-.579-1.458-1.457-2.039-2.036-.163-.163-.377-.245-.591-.245-.213 0-.428.082-.592.245zm-3.127-.895c0-.402-.356-.75-.75-.75-2.561 0-2.939 0-5.5 0-.394 0-.75.348-.75.75s.356.75.75.75h5.5c.394 0 .75-.348.75-.75zm5-3c0-.402-.356-.75-.75-.75-2.561 0-7.939 0-10.5 0-.394 0-.75.348-.75.75s.356.75.75.75h10.5c.394 0 .75-.348.75-.75zm0-3c0-.402-.356-.75-.75-.75-2.561 0-7.939 0-10.5 0-.394 0-.75.348-.75.75s.356.75.75.75h10.5c.394 0 .75-.348.75-.75zm0-3c0-.402-.356-.75-.75-.75-2.561 0-7.939 0-10.5 0-.394 0-.75.348-.75.75s.356.75.75.75h10.5c.394 0 .75-.348.75-.75z" fill-rule="nonzero"/></svg>');
+//buttons are black blocks with grotesk caps, inverted on hover
+.btn, button, input[type="submit"] {
+  @include kicker(0.75rem);
+  display: inline-block;
+  padding: 0.7rem 1.2rem;
+  background: $ink;
+  color: $paper;
+  border: $rule;
+  border-radius: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: $paper;
+    color: $ink;
   }
 
   &.secondary {
-    display: inline-block;
-    text-decoration: none;
-    border: 2px solid #D9EDFF;
-    color: #339DFF;
-    font-size: 13px;
-    text-align: center;
-    line-height: 38px;
-    border-radius: 100px;
-    padding: 0 22px;
-    -webkit-transition: all 0.3s;
-    transition: all 0.3s;
-    background: #fff;
-    width: 170px;
-    margin-right: 40px;
+    background: $paper;
+    color: $ink;
+
+    &:hover {
+      background: $ink;
+      color: $paper;
+    }
   }
 
-  &.secondary:hover {
-    box-shadow: 0 2px 4px rgba(83, 100, 255, 0.45);
+  &.post {
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+  }
+}
+
+//"read more" style text buttons
+.link-button, form.wear button {
+  all: unset;
+  font-family: $serif;
+  font-size: 1rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+footer {
+  @include band;
+  @include kicker(0.65rem);
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  border-top: $rule;
+  text-align: center;
+}
+
+.error-page {
+  min-height: calc(100vh - #{$top-bar-height} - 6rem);
+
+  h1 {
+    @include display(9rem);
+    margin-bottom: 1rem;
   }
 
-  &.primary {
-    display: inline-block;
-    margin-right: 10px;
-    background: #339DFF;
-    color: #fff;
-    text-decoration: none;
-    font-size: 13px;
-    line-height: 38px;
-    border-radius: 50px;
-    -webkit-transition: all 0.3s;
-    transition: all 0.3s;
-    width: 170px;
-    text-align: center;
+  p {
+    font-size: 1.4rem;
+    font-style: italic;
+  }
+}
+
+section.privacy {
+  h2 {
+    margin-top: 2rem;
+
+    &:first-child {
+      margin-top: 0;
+    }
   }
 
-  &.primary:hover, &.post:hover {
-    background: #fff;
-    color: #339DFF;
-    box-shadow: 0 4px 4px rgba(83, 100, 255, 0.32);
+  ul {
+    padding-left: 1.2rem;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
   }
 }
