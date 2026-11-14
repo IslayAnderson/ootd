@@ -13,7 +13,7 @@ try {
         "tags"          =>  $_POST['tags'] ?? "",
         "brand"         =>  $_POST['brand'] ?? "",
         "category"      =>  $_POST['category'] ?? "",
-        "image"         =>  image_upload($_FILES['image'] ?? null, false),
+        "media_id"      =>  Media::store_upload($_FILES['image'] ?? null, $_SESSION['user_id'], $_POST['alt_text'] ?? "", false),
         "visibility"    =>  $_POST['visibility'] ?? ""
     );
 

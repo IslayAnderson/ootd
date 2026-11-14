@@ -30,7 +30,7 @@ if (!empty($outfit->description)) {
     <section class="edit">
         <details>
             <summary>Edit outfit</summary>
-            <form action="/API/outfit/update.php" method="post">
+            <form action="/API/outfit/update.php" method="post" enctype="multipart/form-data">
                 <?php CSRF_input(); ?>
                 <input type="hidden" name="outfit_id" value="<?= escape($outfit->outfit_id) ?>">
                 <label>
@@ -48,6 +48,14 @@ if (!empty($outfit->description)) {
                 <label>
                     Tags
                     <input type="text" name="tags" value="<?= escape(tags_display($outfit->tags)) ?>">
+                </label>
+                <label>
+                    Replace photo
+                    <input type="file" name="image" accept="image/*">
+                </label>
+                <label>
+                    Describe the photo
+                    <input type="text" name="alt_text" maxlength="1500" value="<?= escape($outfit->image_alt) ?>">
                 </label>
                 <?php visibility_select($outfit->visibility); ?>
                 <button type="submit">Save changes</button>

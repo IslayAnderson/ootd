@@ -111,6 +111,10 @@ title_update("account");
                     Outfit Photo
                     <input type="file" name="image" accept="image/*" placeholder="Pick photo..." required>
                 </label>
+                <label>
+                    Describe the photo
+                    <input type="text" name="alt_text" maxlength="1500" placeholder="For people using screen readers">
+                </label>
                 <?php visibility_select(); ?>
                 <input type="submit" value="" title="Post" class="btn post">
             </form>
@@ -151,6 +155,10 @@ title_update("account");
                 <label>
                     Photo
                     <input type="file" name="image" accept="image/*">
+                </label>
+                <label>
+                    Describe the photo
+                    <input type="text" name="alt_text" maxlength="1500" placeholder="For people using screen readers">
                 </label>
                 <?php visibility_select(); ?>
                 <input type="submit" value="" title="Post" class="btn post">
