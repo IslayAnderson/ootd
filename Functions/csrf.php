@@ -54,3 +54,15 @@ function CSRF_validate($input = null): true
         throw new Exception('CSRF token mismatch');
     }
 }
+
+/**
+ * Hidden form field carrying the current CSRF token
+ *
+ * @return void
+ */
+function CSRF_input(): void
+{
+    ?>
+    <input type="hidden" name="csrf" value="<?= escape($_SESSION['CSRF']['token'] ?? "") ?>">
+    <?php
+}

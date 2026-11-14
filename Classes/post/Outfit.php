@@ -2,10 +2,12 @@
 
 namespace Post;
 
+use Exception;
 use Mysql;
 
 class Outfit
 {
+    public $outfit_num;
     public $outfit_id;
     public $timestamp;
     public $user;
@@ -13,8 +15,12 @@ class Outfit
     public $image;
     public $garments;
 
-    public function __construct($id)
+    public function __construct($id = null)
     {
+        if (empty($id)) {
+            return;
+        }
+
         $params = array(":a" => $id);
         $sql = "SELECT *, 
           users.image as user_image, 
@@ -24,24 +30,32 @@ class Outfit
           outfits.description as outfit_description,
           garments.description as garment_description FROM `outfits`
          JOIN `users` ON outfits.user = users.user_id
-         JOIN JSON_TABLE(outfits.garments, '$[*]' COLUMNS (garment_id INT PATH '$')) AS GT
-         JOIN `garments` ON garments.garment_num = GT.garment_id
+         LEFT JOIN JSON_TABLE(COALESCE(outfits.garments, '[]'), '$[*]' COLUMNS (garment_ref INT PATH '$')) AS GT ON TRUE
+         LEFT JOIN `garments` ON garments.garment_num = GT.garment_ref
          WHERE `outfit_num` = :a;";
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
 
+        if ($row[0] == '00000') {
+            return;
+        }
+
+        $this->outfit_num = $row[0]->outfit_num;
         $this->outfit_id = $row[0]->outfit_id;
         $this->timestamp = $row[0]->timestamp;
         $this->user = array(
             "username" => $row[0]->username,
-            "image" => image_bin_encode($row[0]->user_image),
+            "image" => image_bin_encode($row[0]->user_image, "/Assets/images/avi.jpg"),
         );
         $this->description = $row[0]->outfit_description;
         $this->image = image_bin_encode($row[0]->outfit_image);
         $garments = array();
 
         foreach ($row as $index => $garment) {
+            if (empty($garment->garment_num)) {
+                continue;
+            }
             $garments[$index] = array(
                 "garment_id" => $garment->garment_id,
                 "garment_name" => $garment->garment_name,
@@ -52,6 +66,37 @@ class Outfit
         }
         $this->garments = $garments;
 
+    }
+
+    /**
+     * @param array $request user_id, description, tags, garments (garment_nums), image (binary)
+     * @return string public outfit_id
+     * @throws Exception
+     */
+    public function create_outfit($request = null)
+    {
+        if (empty($request) || empty($request['user_id']) || empty($request['image'])) {
+            throw new Exception('Outfit photo missing');
+        }
+
+        $outfit_id = md5(id_gen());
+
+        $params = array(
+            ":a" => $outfit_id,
+            ":b" => $request['user_id'],
+            ":c" => json_encode(Garment::owned_garments($request['user_id'], $request['garments'])),
+            ":d" => mb_substr(trim((string)$request['description']), 0, 1024),
+            ":e" => tags_normalise($request['tags']),
+            ":f" => $request['image']
+        );
+
+        $sql = 'INSERT INTO `outfits` (`outfit_id`, `user`, `garments`, `description`, `tags`, `image`)
+                VALUES (:a, :b, :c, :d, :e, :f)';
+
+        $db = new Mysql();
+        $db->Fetch($sql, $params);
+
+        return $outfit_id;
     }
 
     public function render_outfit($is_profile = false): void

@@ -1,5 +1,6 @@
 <?php
-$username = explode("/", parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))[2] ?? "";
+$path = explode("/", parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+$username = $path[2] ?? "";
 $user_id = unserialize($_SESSION['user'])->get_user_id_from_username($username);
 if (empty($user_id)) {
     http_response_code(404);
@@ -7,10 +8,19 @@ if (empty($user_id)) {
     return;
 }
 $user = new User($user_id);
+
+// /user/<username>/blog/<blog_id>
+if (($path[3] ?? "") == "blog") {
+    require $_SERVER['DOCUMENT_ROOT'] . '/Pages/blog.php';
+    return;
+}
+
 title_update($user->username);
 ?>
 <section class="header" style="border-top: unset;">
-    <h1>Account</h1>
+    <div class="avatar">
+        <img src="<?= $user->get_image() ?>" alt="<?= escape($user->username) ?>">
+    </div>
     <h2><?= escape($user->get_username($user->user_id)) ?></h2>
     <h3><?= escape($user->first_name . " " . $user->last_name) ?></h3>
 </section>
@@ -18,7 +28,7 @@ title_update($user->username);
     <h2>Blogs</h2>
     <?php
     $blogs = new Post\Blog($user->get_user_id());
-    if (!$blogs) {
+    if (count($blogs->blogs) > 0) {
         $blogs->render_blogs_profile();
     } else {
         ?>
