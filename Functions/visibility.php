@@ -85,8 +85,11 @@ function visibility_where($table, $owner_column): string
  * @param string $selected
  * @return void
  */
-function visibility_select($selected = VISIBILITY_MEMBERS): void
+function visibility_select($selected = null): void
 {
+    if ($selected === null) {
+        $selected = visibility_normalise(setting_get("default_visibility", VISIBILITY_MEMBERS));
+    }
     ?>
     <label>
         Who can see this

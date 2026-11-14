@@ -13,26 +13,32 @@ $request = array(
     "last_name"     =>  trim($_POST['last_name'] ?? "")
 );
 
-//signups need an approved invite, and the account takes the invited email
+//signups need an approved invite, and the account takes the invited email, unless registration is open
 $code = $_POST['code'] ?? "";
-$open_invite = $invite->find_by_code($code);
-if (!$open_invite) {
+$open_invite = $code !== "" ? $invite->find_by_code($code) : false;
+$open_signup = !$open_invite && $code === "" && registration_mode() == "open";
+$back = $open_signup ? '/signup?error=' : '/invite?code=' . urlencode($code) . '&error=';
+if (!$open_invite && !$open_signup) {
     header('Location: /invite?error=' . urlencode("This invite isn't valid any more"));
     exit();
 }
-$request['email'] = $open_invite->email;
+if ($open_invite) {
+    $request['email'] = $open_invite->email;
+}
 
 $state = $validate->signup($request);
 
 if ($state['state']) {
     try {
         $user->create_user($request);
-        $invite->mark_used($code, $user->get_user_id($request['email']));
+        if ($open_invite) {
+            $invite->mark_used($code, $user->get_user_id($request['email']));
+        }
         header('Location: /login?created=1');
     } catch (Exception $e) {
-        header('Location: /invite?code=' . urlencode($code) . '&error=' . urlencode($e->getMessage()));
+        header('Location: ' . $back . urlencode($e->getMessage()));
     }
 } else {
-    header('Location: /invite?code=' . urlencode($code) . '&error=' . urlencode($state['reason']));
+    header('Location: ' . $back . urlencode($state['reason']));
 }
 exit();

@@ -8,8 +8,14 @@ title_update("login");
         <p>I don't know what else to say, it's the login page</p>
         <?php if (!empty($_GET['created'])): ?>
             <p class="notice">Your account is ready, log in below.</p>
+        <?php elseif (!empty($_GET['reset'])): ?>
+            <p class="notice">Password changed. Log in with the new one.</p>
         <?php endif; ?>
-        <p><a href="/signup">Request an invite</a></p>
+        <?php if (registration_mode() == "open"): ?>
+            <p><a href="/signup">Create an account</a></p>
+        <?php elseif (registration_mode() == "invite"): ?>
+            <p><a href="/signup">Request an invite</a></p>
+        <?php endif; ?>
     </div>
     <form action="/API/user/auth.php" method="post">
         <label for="email">Email</label>
@@ -19,5 +25,6 @@ title_update("login");
         <input type="password" placeholder="Enter Password" name="password" required>
 
         <button type="submit">Login</button>
+        <p><a href="/forgot">Forgot password?</a></p>
     </form>
 </div>

@@ -1,0 +1,203 @@
+#!/usr/bin/env php
+<?php
+/**
+ * OOTD command line
+ *
+ *   php bin/ootd install         create .env from environment variables (if there isn't one) and install
+ *                                 the database, or upgrade it if it's already installed
+ *   php bin/ootd env             only write .env from environment variables (containers)
+ *   php bin/ootd migrate         upgrade the database (same as the "Upgrade database" button)
+ *   php bin/ootd user:create <username> <email> [--admin] [--password=...]
+ *   php bin/ootd jobs            run waiting background jobs once (what cron.php does)
+ *   php bin/ootd health          check the database, storage and jobs; exits 1 if something is wrong
+ *   php bin/ootd version
+ *
+ * install reads: DB_HOST, DB_USER, DB_PASS, DB_SCHEMA, APP_URL, PWD_SEED (generated when missing),
+ * and optionally ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD (generated and printed when missing),
+ * MEDIA_DRIVER, STORAGE_PATH, S3_*, MAIL_*.
+ */
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit();
+}
+
+$root = dirname(__DIR__);
+$_SERVER['DOCUMENT_ROOT'] = $root;
+chdir($root);
+
+$args = array_slice($argv, 1);
+$command = array_shift($args) ?? "help";
+$options = array();
+$positional = array();
+foreach ($args as $arg) {
+    if (preg_match('/^--([a-z-]+)(?:=(.*))?$/', $arg, $m)) {
+        $options[$m[1]] = $m[2] ?? true;
+    } else {
+        $positional[] = $arg;
+    }
+}
+
+function out($text)
+{
+    fwrite(STDOUT, $text . "\n");
+}
+
+function fail($text)
+{
+    fwrite(STDERR, $text . "\n");
+    exit(1);
+}
+
+function env_value($key, $default = null)
+{
+    $value = getenv($key);
+    return $value === false || $value === "" ? $default : $value;
+}
+
+function load_app($root)
+{
+    require $root . "/bin/bootstrap.php";
+}
+
+/**
+ * writes .env from environment variables when there isn't one
+ */
+function write_env($root, $options)
+{
+    $env_file = $root . "/.env";
+    if (!file_exists($env_file) || filesize($env_file) == 0) {
+        $app_url = env_value("APP_URL", $options['app-url'] ?? null);
+        if (!filter_var($app_url, FILTER_VALIDATE_URL)) {
+            fail("Set APP_URL (or --app-url=https://your.site) to the site's address before installing.");
+        }
+        $env = array(
+            "DB_HOST" => env_value("DB_HOST", "localhost"),
+            "DB_USER" => env_value("DB_USER", "ootd"),
+            "DB_PASS" => env_value("DB_PASS", ""),
+            "DB_SCHEMA" => env_value("DB_SCHEMA", "ootd"),
+            "PWD_SEED" => env_value("PWD_SEED", bin2hex(random_bytes(16))),
+            "TINYMCE" => env_value("TINYMCE", "gpl"),
+            "APP_URL" => rtrim($app_url, "/")
+        );
+        foreach (array("MEDIA_DRIVER", "STORAGE_PATH", "S3_ENDPOINT", "S3_REGION", "S3_BUCKET", "S3_KEY", "S3_SECRET", "S3_PATH_STYLE",
+                     "MAIL_HOST", "MAIL_PORT", "MAIL_USER", "MAIL_PASS", "MAIL_ENCRYPTION", "MAIL_FROM", "MAIL_FROM_NAME", "CSS_BUILT") as $key) {
+            if (env_value($key) !== null) {
+                $env[$key] = env_value($key);
+            }
+        }
+        $lines = "";
+        foreach ($env as $key => $value) {
+            //quote values with spaces or # so they survive both .env parsers
+            $lines .= $key . "=" . (preg_match('/[\s#"\']/', $value) ? '"' . str_replace('"', '\"', $value) . '"' : $value) . "\n";
+        }
+        file_put_contents($env_file, $lines);
+        chmod($env_file, 0600);
+        out("wrote .env");
+    }
+}
+
+switch ($command) {
+    case "env":
+        write_env($root, $options);
+        break;
+
+    case "install":
+        write_env($root, $options);
+        $password = env_value("ADMIN_PASSWORD", $options['admin-password'] ?? null);
+        $generated = $password === null;
+        if ($generated) {
+            $password = substr(strtr(base64_encode(random_bytes(18)), "+/", "-_"), 0, 20);
+        }
+        $GLOBALS['cli_install'] = true;
+        $GLOBALS['cli_admin'] = array(
+            "username" => env_value("ADMIN_USERNAME", $options['admin-username'] ?? "admin"),
+            "email" => env_value("ADMIN_EMAIL", $options['admin-email'] ?? "admin@" . (parse_url(env_value("APP_URL", "http://localhost"), PHP_URL_HOST) ?: "localhost")),
+            "password" => $password,
+            "first_name" => "",
+            "last_name" => ""
+        );
+        if (!empty($options['app-url'])) {
+            $GLOBALS['cli_app_url'] = rtrim($options['app-url'], "/");
+        }
+        $run_installer = true;
+        $print_admin = $generated;
+        break;
+
+    case "migrate":
+        if (!empty($options['app-url'])) {
+            $GLOBALS['cli_app_url'] = rtrim($options['app-url'], "/");
+        }
+        $run_installer = true;
+        break;
+
+    case "user:create":
+        load_app($root);
+        list($username, $email) = array_pad($positional, 2, null);
+        if (empty($username) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            fail("usage: bin/ootd user:create <username> <email> [--admin] [--password=...]");
+        }
+        $password = is_string($options['password'] ?? null) ? $options['password'] : substr(strtr(base64_encode(random_bytes(18)), "+/", "-_"), 0, 20);
+        $request = array("username" => $username, "email" => $email, "password" => $password, "first_name" => "", "last_name" => "");
+        $state = (new Validate())->signup(array_merge($request, array("first_name" => "-", "last_name" => "-")));
+        if (!$state['state']) {
+            fail($state['reason']);
+        }
+        try {
+            (new User())->create_user($request, !empty($options['admin']));
+        } catch (Exception $e) {
+            fail($e->getMessage());
+        }
+        out("created " . $username . (!empty($options['admin']) ? " (admin)" : "") . (isset($options['password']) ? "" : ", password: " . $password));
+        break;
+
+    case "jobs":
+        load_app($root);
+        Jobs::schedule_daily();
+        list($ran, $failed) = Jobs::run(50);
+        out("ran " . $ran . " job(s), " . $failed . " failed");
+        break;
+
+    case "health":
+        load_app($root);
+        $health = health_check();
+        foreach ($health['checks'] as $name => $check) {
+            out(str_pad($name, 10) . ($check['ok'] ? "ok   " : "FAIL ") . $check['detail']);
+        }
+        exit($health['ok'] ? 0 : 1);
+
+    case "version":
+        load_app($root);
+        out(OOTD_VERSION);
+        break;
+
+    default:
+        out("usage: php bin/ootd install|env|migrate|user:create|jobs|health|version");
+        exit($command == "help" ? 0 : 1);
+}
+
+//install_actions.php has to run at file scope: it shares variables between its steps
+if (!empty($run_installer)) {
+    //it prints <br> separated progress for the browser
+    ob_start(function ($buffer) {
+        return str_replace("<br>", "\n", $buffer);
+    });
+    register_shutdown_function(function () {
+        $error = error_get_last();
+        if ($error && in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR), true)) {
+            fwrite(STDERR, "\nFailed: " . $error['message'] . "\n");
+            exit(1);
+        }
+    });
+    try {
+        require $root . "/install_actions.php";
+    } catch (Throwable $e) {
+        ob_end_flush();
+        fail("\nFailed: " . $e->getMessage());
+    }
+    ob_end_flush();
+    echo "\n";
+    //the first admin is only created on a fresh install
+    if (!empty($print_admin) && !empty($fresh_install)) {
+        out("Admin login: " . $GLOBALS['cli_admin']['email'] . " / " . $GLOBALS['cli_admin']['password'] . " (change it from /account)");
+    }
+}

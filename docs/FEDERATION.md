@@ -63,6 +63,13 @@ logged in [DECISIONS.md](DECISIONS.md) for sign-off.
 5. **Library or hand-rolled.** The ActivityPub core (signatures, JSON-LD, WebFinger) is small
    enough to write in the house style and test thoroughly; a PHP library (e.g. `landrok/activitypub`)
    is worth a short spike first to compare. Decide in 0.10.0.
+   **Spike result (0.10.0): hand-rolled.** What 0.11.0–0.12.0 need is WebFinger, actor and object
+   JSON, HTTP Signatures (RSA-SHA256 over a few headers, which `openssl_sign` does in a few lines)
+   and an inbox. `landrok/activitypub` covers more than that but brings its own HTTP client and
+   type system, and still leaves delivery, retries and storage to the app. OOTD already has the parts it lacks (jobs with back-off from
+   0.9.0, media, visibility), so the library would mostly duplicate them. Hand-rolled code will be
+   tested against the published HTTP Signature examples and against a real Mastodon instance
+   before 0.11.0 ships.
 6. **Licence.** The repo has no licence file. Self-hostable, federated software normally ships
    with one; AGPL-3.0 is common in this space (it keeps hosted forks open). Needs the owner's call
    before anyone else is invited to run it.

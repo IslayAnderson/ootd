@@ -110,3 +110,34 @@ section.notifications {
   font-size: 0.75em;
   text-align: center;
 }
+
+//instance pages and account data (0.10.0)
+section.about {
+  h2 {
+    margin-top: 2rem;
+  }
+
+  .rules {
+    padding-left: 1.25rem;
+
+    li {
+      padding: 0.35rem 0;
+    }
+  }
+
+  .small {
+    @include kicker(0.65rem);
+    margin-top: 2.5rem;
+  }
+}
+
+section.your-data form {
+  margin-top: 1rem;
+}
+
+form.settings {
+  select, textarea {
+    width: 100%;
+    max-width: 32rem;
+  }
+}

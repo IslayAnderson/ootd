@@ -12,3 +12,5 @@ debug.php
 /Assets/stylesheets/css/*
 /storage/*
 !/storage/.htaccess
+/.env.docker
+/.phpunit.result.cache

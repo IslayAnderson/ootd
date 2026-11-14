@@ -35,3 +35,15 @@ function job_media_purge($payload = array()): void
         Media::remove($row->media_id);
     }
 }
+
+/**
+ * Send one queued email (Mailer::queue)
+ *
+ * @param array $payload to, subject, body
+ * @return void
+ * @throws Exception retried by the job runner when sending fails
+ */
+function job_mail($payload)
+{
+    Mailer::send($payload['to'] ?? "", $payload['subject'] ?? "", $payload['body'] ?? "");
+}

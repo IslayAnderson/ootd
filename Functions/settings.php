@@ -52,3 +52,46 @@ function settings_editable(): array
 
     return $row[0] != '00000' ? $row : array();
 }
+
+/**
+ * @param string $type a setting's type, "choice:a|b|c" for a fixed list
+ * @return array the allowed values for a choice setting, empty for any other type
+ */
+function setting_choices($type): array
+{
+    return strpos((string)$type, "choice:") === 0 ? explode("|", substr($type, 7)) : array();
+}
+
+/**
+ * @param string $type
+ * @param mixed $value as posted from /admin
+ * @param mixed $current the stored value, kept when the posted one isn't allowed
+ * @return string the value to store
+ */
+function setting_clean($type, $value, $current): string
+{
+    $choices = setting_choices($type);
+    if (count($choices) > 0) {
+        return in_array((string)$value, $choices, true) ? (string)$value : (string)$current;
+    }
+    $limit = $type == "text" ? 5000 : 100;
+    return mb_substr(trim((string)$value), 0, $limit);
+}
+
+/**
+ * @return string closed, invite or open
+ */
+function registration_mode(): string
+{
+    $mode = setting_get("registration", "invite");
+    return in_array($mode, array("closed", "invite", "open"), true) ? $mode : "invite";
+}
+
+/**
+ * @return string the instance's name, OOTD unless an admin changed it
+ */
+function instance_name(): string
+{
+    $name = setting_get("instance_name", "OOTD");
+    return $name === null || $name === "" ? "OOTD" : $name;
+}

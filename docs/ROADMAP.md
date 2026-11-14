@@ -57,6 +57,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.7.1 | Done, merged to `claude/development` |
 | 0.8.0 | Done, merged to `claude/development` |
 | 0.9.0 | Done, merged to `claude/development` |
+| 0.10.0 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -217,6 +218,33 @@ Run the jobs with one of:
 * * * * * php /path/to/ootd/bin/cron.php
 php bin/worker.php            # under systemd or supervisor
 ```
+
+### 0.10.0 — Self-hostable ✅
+
+Fourth release of the [federation roadmap](FEDERATION.md). Schema 7. Self-hosting is documented in
+[SELF-HOSTING.md](SELF-HOSTING.md).
+
+- **Instance settings** in `/admin`: name (used in titles and the footer), description, rules,
+  contact, who can join (closed / invite / open) and the default visibility of new posts. A public
+  `/about` page shows them.
+- **Open registration**: with Registration set to open, `/signup` creates an account directly.
+- **Email** over SMTP (`MAIL_*` in `.env`), sent from the job queue. Approving an invite now
+  emails the signup link. Without SMTP, mail goes to `tmp/mail.log`.
+- **Forgot password**: `/forgot` emails a one-hour, single-use link; resetting signs the account
+  out everywhere.
+- **Download your data** (`/account`): a zip of profile, wardrobe, outfits, blogs, wears, follows
+  and photos as JSON plus image files.
+- **`bin/ootd`**: `install` (from environment variables), `migrate`, `user:create`, `jobs`,
+  `health`, `version`.
+- **`/health`** for uptime monitors and container health checks.
+- **Docker**: `Dockerfile`, `docker-compose.yml` (web, worker, MariaDB) and `.env.docker.example`.
+  CI builds the image, starts the stack and checks it.
+- Locked-down web root: `.htaccess` blocks code, config, data and `vendor/` (except TinyMCE)
+  (AUDIT F12).
+- Dependency updates for security advisories (AUDIT F26), class-loader warnings removed (F25),
+  installer warnings on empty databases fixed (F24).
+- The old image BLOB columns are dropped (D27).
+- ActivityPub will be hand-rolled (FEDERATION decision 5).
 
 ## Later (not started)
 
