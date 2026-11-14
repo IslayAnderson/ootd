@@ -57,6 +57,11 @@ class CloudBlog
         if (in_array($name, self::RESERVED, true) || strpos($name, "--") !== false) {
             return "That address is reserved. Try another.";
         }
+        //this blog itself may live under the same domain (islay.treatmag.online)
+        $own = strtolower((string)parse_url((string)($_ENV['APP_URL'] ?? ""), PHP_URL_HOST));
+        if ($own !== "" && $own === $name . "." . self::domain()) {
+            return "That address is taken. Try another.";
+        }
         self::expire_unconfirmed();
         $db = new Mysql();
         $row = $db->Fetch("SELECT 1 AS yes FROM `cloud_blogs` WHERE `subdomain` = :a AND `state` <> 'deleted'", array(":a" => $name));

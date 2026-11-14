@@ -83,6 +83,7 @@ needs an answer before the work that depends on it).
 | D58 | 0.14.0 | "Anyone, instantly" means after confirming an email address, with per-IP and daily caps. | Without a confirmed email, a script could fill the server with subscriptions; the caps bound the damage of one that gets through. | assumed |
 | D59 | 0.14.1 | Without Cloudflare keys, cloud blogs' A records go in the Plesk zone of `CLOUD_DOMAIN` (a subscription of the same reseller), not a wildcard record. | The owner put treatmag.online on Plesk's own name servers. One record per blog means unknown names don't resolve to the server, and delete leaves nothing behind. | assumed |
 | D60 | 0.14.1 | The owner isn't emailed until the blog answers over https with a valid certificate, waiting up to 6 hours. Certificates come from Plesk (SSL It! "Keep websites secured"), not from OOTD. | The reset link and federation both need https. The XML API can't order Let's Encrypt certificates, and Plesk already renews them. | assumed |
+| D61 | 0.14.4 | Moving an install changes its federated identity; the old address only redirects. No ActivityPub `Move` is sent yet (planned with `also_known_as`/`moved_to` in 1.0.0). | Staging's followers elsewhere are test accounts. Other servers don't follow redirects for signed requests, so they'd need a `Move` to carry followers over. | assumed |
 
 ## Questions
 
