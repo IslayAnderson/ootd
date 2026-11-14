@@ -114,6 +114,9 @@ Restyle with design cues from Glamcult magazine: editorial, monochrome and type-
 
 ## Later (not started)
 
+Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
+
+
 - Block `/vendor` from the web except TinyMCE (AUDIT F12).
 - Edit and delete for garments, outfits and blogs (only create exists).
 - Email the invite link instead of an admin copying it from `/admin`.

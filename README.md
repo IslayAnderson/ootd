@@ -29,3 +29,4 @@ no defaults are assumed
 # Docs
 - [docs/AUDIT.md](docs/AUDIT.md) known issues and code conventions
 - [docs/ROADMAP.md](docs/ROADMAP.md) planned releases and branches
+- [docs/FEDERATION.md](docs/FEDERATION.md) plan for self-hosting, a cloud offering and federation
