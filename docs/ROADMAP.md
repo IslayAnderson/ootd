@@ -505,6 +505,16 @@ Schema 15.
 - The code, repository, `bin/ootd`, database names and the federation vocabulary (`ootd:`,
   nodeinfo software name) keep "ootd" (D63).
 
+### 0.14.7 — Who may frame the site ✅
+
+- Every page and form handler sends `Content-Security-Policy: frame-ancestors 'self'`, so other
+  sites can't wrap the blog (or its login page) in a frame. `FRAME_ANCESTORS` in `.env` adds
+  origins that may, e.g. a WordPress site showing `/create-blog`.
+- Staging allows `https://treatmag.online` and `https://www.treatmag.online`; cloud blogs on
+  `*.treatmag.online` aren't included.
+- Tests: 4 checks, and checked in a browser that a listed site can frame `/create-blog` and an
+  unlisted one is blocked.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
