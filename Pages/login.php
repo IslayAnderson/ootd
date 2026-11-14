@@ -5,7 +5,7 @@ title_update("login");
     <div class="description">
         <?= site_logo() ?>
         <h1>Login</h1>
-        <p>I don't know what else to say, it's the login page</p>
+        <p>The TREATwork</p>
         <?php if (!empty($_GET['created'])): ?>
             <p class="notice">Your account is ready, log in below.</p>
         <?php elseif (!empty($_GET['reset'])): ?>
