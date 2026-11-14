@@ -21,12 +21,13 @@ All of Claude's work lives under `claude/`, separate from `main`:
 
 | Branch | Purpose |
 | --- | --- |
-| `claude/main` | Baseline: `main` as found, plus these docs. Only receives a release once it has been reviewed and accepted. |
+| `claude/main` | **Staging.** Deployed to the owner's Plesk staging server. Receives `claude/development` with `--no-ff` once a release has passed local testing. |
 | `claude/development` | Integration branch. Every release branch is merged here with `--no-ff`. |
 | `claude/release/<major.feature.minor>` | One branch per release, cut from `claude/development`, containing that release's work. |
 
 Each release branch builds on the previous one, so `claude/development` always holds the latest
-release. Nothing has been merged into `claude/main` or `main`.
+release. `claude/main` is promoted from `claude/development` and runs on staging; nothing is merged
+into `main`. After a promotion, an admin runs the upgrade at `/install.php` on staging.
 
 | Release | Status |
 | --- | --- |
