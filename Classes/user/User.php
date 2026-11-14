@@ -328,16 +328,13 @@ class User
         //Compare sated input with stored hash
         if (!empty($pwd_hashed) && password_verify($pwd_salted, $pwd_hashed)) {
 
-            //new session id on login to prevent session fixation, stored so it can be reset from /admin
+            //new session id on login to prevent session fixation
             session_regenerate_id(true);
 
-            //Update Session id in the database
-            $params = array(':a' => session_id(), ':b' => $request['email']);
-
-            $sql = "UPDATE `users` SET `session`= :a WHERE `email` = :b";
-
-            $db = new Mysql();
-            $db->Fetch($sql, $params);
+            //every device someone is signed in on shares one key (0.15.1, AUDIT F27); /admin, a password
+            //reset or change replaces it, which ends them all. Signing in again keeps it, so other
+            //devices stay signed in.
+            $_SESSION['session_key'] = session_key_for($this->get_user_id($request['email']));
 
             //Set class properties with basic user info
             $user_id = $this->get_user_id($request['email']);
@@ -369,13 +366,7 @@ class User
      */
     public function deauthenticate()
     {
-        $params = array(':a' => null, ':b' => $this->get_user_id());
-
-        $sql = "UPDATE `users` SET `session`= :a, `csrf`= :a WHERE `user_id` = :b;";
-
-        $db = new Mysql();
-        $db->Fetch($sql, $params);
-
+        //this device only: the person's other sessions carry on (0.15.1)
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(session_name(), '', time() - 42000,
@@ -446,6 +437,12 @@ class User
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
+
+        //other devices are signed out; this one carries on with the new key
+        $db->Fetch("UPDATE `users` SET `session` = NULL WHERE `user_id` = :a", array(":a" => $this->user_id));
+        if ((int)($_SESSION['user_id'] ?? 0) === (int)$this->user_id) {
+            $_SESSION['session_key'] = session_key_for($this->user_id);
+        }
     }
 
     /**
