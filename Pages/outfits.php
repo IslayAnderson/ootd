@@ -1,1 +1,24 @@
 <?php
+title_update("outfits");
+$user = unserialize($_SESSION['user']);
+?>
+<section class="outfits" style="border-top: unset;">
+    <h1>Outfits</h1>
+    <?php
+    $params = array(":a" => $user->get_user_id());
+    $sql = "SELECT `outfit_num` FROM `outfits` where `user` = :a order by `timestamp` DESC limit 100";
+    $db = new Mysql();
+    $row = $db->Fetch($sql, $params);
+
+    if ($row[0] != '00000') {
+        foreach ($row as $outfit) {
+            $post = new Post\Outfit($outfit->outfit_num);
+            $post->render_outfit(true);
+        }
+    } else {
+        ?>
+        <p>Nothing to be found, post your first outfit from your <a href="/account">account</a>.</p>
+        <?php
+    }
+    ?>
+</section>

@@ -53,8 +53,11 @@ switch ($request[0]) {
     case '/account':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/account.php';
         break;
-    case (bool)preg_match('/user.*/', $request[0]):
+    case (bool)preg_match('#^/user/#', $request[0]):
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/user.php';
+        break;
+    case (bool)preg_match('#^/garment/[^/]+$#', $request[0]):
+        require $_SERVER['DOCUMENT_ROOT'] . '/Pages/garment.php';
         break;
     case '/outfits':
         require $_SERVER['DOCUMENT_ROOT'] . '/Pages/outfits.php';
