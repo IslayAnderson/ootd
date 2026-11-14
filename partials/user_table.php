@@ -53,7 +53,7 @@
                             <?php CSRF_input(); ?>
                             <input type="hidden" name="action" value="reset_session">
                             <input type="hidden" name="user_id" value="<?= escape($row_user->user_id) ?>">
-                            <button type="submit">Reset Session</button>
+                            <button type="submit">Sign out everywhere</button>
                         </form>
                     <?php else: ?>
                         &nbsp;

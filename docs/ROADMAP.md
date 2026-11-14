@@ -561,6 +561,20 @@ attack the site (D66–D70).
 - Tests: `tests/Unit/ThemeTest.php` (14 tests: hostile CSS, scoping, headers, polyglots,
   contrast, font names, own-IP) and t150 (51 checks against a fake image and font host).
 
+### 0.15.1 — Signed in on more than one device ✅
+
+- Signing in on a phone no longer signs you out on your laptop (AUDIT F27). `users.session` is now
+  a random key all of a person's devices share, made at the first sign-in and kept by later ones.
+  Sessions from before 0.15.1 carry on: their old session id becomes the key.
+- Signing out ends only that device. **Sign out everywhere** in Admin → Users (was "Reset
+  Session"), a password reset and Kill All Sessions replace the key, which ends every device.
+  Changing your password signs out your other devices and keeps this one.
+- CSRF tokens live in the session, one per device. The previous hour's token is still accepted,
+  so a form left open across the hourly change still works. A wrong token still ends only the
+  session that sent it.
+- Schema 17 clears the old per-user tokens (`users.csrf`, no longer used).
+- Tests: t151 (24 checks: two devices, sign-out, admin sign-out, password change, old sessions).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).
@@ -574,5 +588,4 @@ Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.
 - Only recompile SCSS when the admin "Re-compile SASS" setting is on.
 - PHPUnit tests (already a dev dependency).
 - Self-host the Google Fonts (Newsreader, Inter Tight) if the site should make no third-party requests (AUDIT F15).
-- One CSRF token per session instead of per user, so signing in on a second device doesn't sign the first out on its next form (AUDIT F27).
 - Dark mode for themes (D68).

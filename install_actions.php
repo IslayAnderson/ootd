@@ -435,7 +435,12 @@ $migrations = array(
         "default_name_treat"
     ),
     //themes is a new table (0.15.0)
-    16 => array()
+    16 => array(),
+    //CSRF tokens moved into each session and users.session became a key all of a person's devices
+    //share (0.15.1, AUDIT F27); the old per-user tokens are cleared
+    17 => array(
+        "UPDATE `users` SET `csrf` = NULL"
+    )
 );
 
 function brands_check_table()
