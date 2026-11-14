@@ -377,6 +377,11 @@ Schema 11. Each install now presents itself as a blog, and other servers as othe
 - The account page's "saved" notice only shows known names, not whatever is in the address.
 - Tests: 19 checks for naming, search and fallbacks; the 0.11 to 0.13 runs updated and passing.
 
+### 0.13.2 — Addresses behind Cloudflare ✅
+
+- Cloudflare's email obfuscation took profile addresses (`name@domain`) for email addresses and
+  showed "[email protected]" instead. They are now marked `email_off`, which Cloudflare leaves alone.
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

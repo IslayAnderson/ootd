@@ -39,11 +39,11 @@ if ($asked !== "") {
     <p class="kicker">Search</p>
     <h1>Find <em>people</em></h1>
     <form action="/search" method="get" class="search">
-        <label for="q">Username, someone on another blog like &ldquo;mia from Mia&rsquo;s Closet&rdquo;, or their address like mia@closet.example</label>
+        <label for="q">Username, someone on another blog like &ldquo;mia from Mia&rsquo;s Closet&rdquo;, or their address like <!--email_off-->mia@closet.example<!--/email_off--></label>
         <input type="search" id="q" name="q" value="<?= escape($asked) ?>" placeholder="name from blog, or name@blog address" autocomplete="off" required>
         <button type="submit">Search</button>
     </form>
     <?php if ($message): ?>
-        <p class="notice"><?= escape($message) ?></p>
+        <!--email_off--><p class="notice"><?= escape($message) ?></p><!--/email_off-->
     <?php endif; ?>
 </section>
