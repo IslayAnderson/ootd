@@ -31,7 +31,8 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 
 ### Staging
 
-`https://ootd.islayanderson.co.uk`, on the owner's Plesk server (PHP 8.3, MariaDB 10.6), runs
+`https://islay.treatmag.online` (until 14 Nov 2026 `ootd.islayanderson.co.uk`, which now redirects
+there), on the owner's Plesk server (PHP 8.3, MariaDB 10.6), runs
 `claude/main`. Its database is test data. Each finished release is pushed to GitHub (`claude/main`,
 `claude/development`) and reaches the server like this:
 
@@ -464,6 +465,17 @@ Schema 13. Off until the keys below are in `.env` (SELF-HOSTING.md, "Cloud blogs
 - The every-minute call to each blog's `/cron` goes over https: with the plan redirecting http, the
   POST was answered with a redirect and the blog's jobs never ran. Found in the first real blog on
   treatmag.online (built in 14 seconds, certificate from SSL It! within the hour, then deleted).
+
+### 0.14.4 — Moving to a new address ✅
+
+- `OLD_HOSTS` in `.env` (comma-separated): requests for those hosts get a 301 to the same path at
+  `APP_URL`, before any session or page work.
+- A cloud blog can't take this blog's own address when it lives under `CLOUD_DOMAIN`.
+- Staging moved to `https://islay.treatmag.online`: a second Plesk site on the same folder (files,
+  `ide`, cron and Git deploy unchanged), A record in treatmag.online's zone, Let's Encrypt
+  certificate from SSL It!, `APP_URL` changed, `OLD_HOSTS=ootd.islayanderson.co.uk`. Nothing in the
+  database held the old address. Accounts are now `name@islay.treatmag.online` (D61).
+- Tests: 6 checks (redirect, case, path and query kept, own address reserved).
 
 ## Later (not started)
 

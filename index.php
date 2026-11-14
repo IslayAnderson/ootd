@@ -1,6 +1,26 @@
 <?php
 ini_set('output_handler', null);
 
+//an install that moved: its old addresses (OLD_HOSTS in .env, comma-separated) send people and links
+//to the same page at APP_URL
+$early_host = strtolower(preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? "")));
+if ($early_host !== "" && is_file($_SERVER['DOCUMENT_ROOT'] . "/.env")) {
+    require_once $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
+    try {
+        $early_env = Dotenv\Dotenv::parse((string)file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/.env"));
+    } catch (Throwable $e) {
+        //init.php reports a broken .env
+        $early_env = array();
+    }
+    $old_hosts = array_filter(array_map(function ($host) {
+        return strtolower(trim($host));
+    }, explode(",", (string)($early_env['OLD_HOSTS'] ?? ""))));
+    if (in_array($early_host, $old_hosts, true) && !empty($early_env['APP_URL'])) {
+        header("Location: " . rtrim($early_env['APP_URL'], "/") . $_SERVER['REQUEST_URI'], true, 301);
+        exit();
+    }
+}
+
 //ActivityPub, WebFinger and NodeInfo skip the session and page entirely: always for the federation-only
 //addresses, and for profiles, outfits and blog posts when the client asks for ActivityStreams JSON
 $early_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
