@@ -1,7 +1,12 @@
 <?php
+//also run from the command line by bin/migrate.php, which can only upgrade an existing install
+$cli = PHP_SAPI === 'cli';
+
 ob_start();
-session_save_path($_SERVER['DOCUMENT_ROOT'] . '/tmp');
-session_start();
+if (!$cli) {
+    session_save_path($_SERVER['DOCUMENT_ROOT'] . '/tmp');
+    session_start();
+}
 
 require $_SERVER['DOCUMENT_ROOT'] . "/Functions/functions.php";
 require $_SERVER['DOCUMENT_ROOT'] . "/Classes/classes.php";
@@ -10,7 +15,7 @@ require $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 use Dotenv\Dotenv;
 
 //bump this and add to $columns / $migrations below whenever the schema changes
-$schema_version = 3;
+$schema_version = 4;
 
 /**
  * @return bool true once the installer has run, installs from before 0.1.1 never set the "installed" setting
@@ -27,6 +32,10 @@ function installed()
 
 //an existing install is never re-configured; an admin can re-run this to upgrade the database
 $upgrading = false;
+if ($cli && !(file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0)) {
+    echo "No .env found. Install OOTD through /install.php first.\n";
+    exit(1);
+}
 if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
     $dotenv = Dotenv::createMutable(__DIR__);
     $dotenv->load();
@@ -38,10 +47,15 @@ if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
         $is_installed = true;
     }
 
+    if ($cli && !$is_installed) {
+        echo "OOTD isn't installed in this database yet. Install it through /install.php first.\n";
+        exit(1);
+    }
+
     if ($is_installed) {
         //before schema 1 the admin permission was stored as 0
         $legacy_admin = !empty($_SESSION['user_id']) && current_permission() === 0 && (int)setting_get("schema_version", 0) < 1;
-        if (empty($_SESSION['user_id']) || !(is_admin() || $legacy_admin)) {
+        if (!$cli && (empty($_SESSION['user_id']) || !(is_admin() || $legacy_admin))) {
             http_response_code(403);
             echo "OOTD is already installed. Log in as an admin to upgrade the database.";
             exit();
@@ -49,6 +63,14 @@ if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
         $upgrading = true;
 
         //installs from before 0.7.0 have no APP_URL, take it from the address the admin is using
+        if ($cli && empty($_ENV['APP_URL'])) {
+            if (empty($GLOBALS['cli_app_url'])) {
+                echo "This install has no APP_URL yet. Run again with --app-url=https://your.site\n";
+                exit(1);
+            }
+            $_SERVER['HTTP_HOST'] = parse_url($GLOBALS['cli_app_url'], PHP_URL_HOST) . (parse_url($GLOBALS['cli_app_url'], PHP_URL_PORT) ? ":" . parse_url($GLOBALS['cli_app_url'], PHP_URL_PORT) : "");
+            $_SERVER['HTTPS'] = parse_url($GLOBALS['cli_app_url'], PHP_URL_SCHEME) == "https" ? "on" : "";
+        }
         if (empty($_ENV['APP_URL'])) {
             file_put_contents(__DIR__ . '/.env', "\nAPP_URL=" . app_url() . "\n", FILE_APPEND);
             $_ENV['APP_URL'] = app_url();
@@ -240,7 +262,9 @@ $permissions = array("admin", "moderator", "user");
 //columns added since the first release, added to existing tables when missing
 $columns = array(
     "users" => array(
-        "image" => "mediumblob NULL"
+        "image" => "mediumblob NULL",
+        //CSRF tokens are stored against the user since 0.2.0; databases from before the column existed lack it
+        "csrf" => "varchar(256) NULL"
     ),
     "garments" => array(
         "garment_id" => "varchar(128) NULL AFTER `garment_num`",
@@ -251,6 +275,9 @@ $columns = array(
     ),
     "outfits" => array(
         "timestamp" => "timestamp DEFAULT CURRENT_TIMESTAMP"
+    ),
+    "blogs" => array(
+        "tags" => "varchar(512) NULL"
     )
 );
 //0.7.0: who can see each post, plus edit and soft delete
@@ -275,16 +302,28 @@ $migrations = array(
     ),
     3 => array(
         //the connection asked for utf8mb4 incorrectly before 0.7.0 (AUDIT F16), make sure every table stores it
-        "ALTER TABLE `users` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `garments` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `outfits` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `blogs` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `brands` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `categories` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `invites` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `wears` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `settings` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
-        "ALTER TABLE `permissions` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci"
+        //no COLLATE: utf8mb4_0900_ai_ci is MySQL 8 only, MariaDB picks its own default
+        "ALTER TABLE `users` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `garments` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `outfits` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `blogs` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `brands` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `categories` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `invites` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `wears` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `settings` CONVERT TO CHARACTER SET utf8mb4",
+        "ALTER TABLE `permissions` CONVERT TO CHARACTER SET utf8mb4"
+    ),
+    4 => array(
+        //older MariaDB/MySQL tables got ON UPDATE CURRENT_TIMESTAMP added to their first timestamp column,
+        //so editing a post (0.7.0) would move its date; an explicit DEFAULT without ON UPDATE removes that
+        "ALTER TABLE `garments` MODIFY `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `outfits` MODIFY `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `blogs` MODIFY `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `invites` MODIFY `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `wears` MODIFY `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP",
+        //early blogs tables capped content at 4096 characters
+        "ALTER TABLE `blogs` MODIFY `title` varchar(256) NULL, MODIFY `excerpt` varchar(1024) NULL, MODIFY `content` text NULL"
     )
 );
 
@@ -864,6 +903,8 @@ function schema_upgrade($columns, $migrations, $schema_version)
             foreach ($statements as $statement) {
                 $db->Fetch($statement, null);
             }
+            //saved after every step so a re-run after a failure never repeats one (schema 1 remaps permissions)
+            setting_set("schema_version", $version, "int");
             echo "<br>migrated to schema " . $version;
         }
     }
@@ -888,7 +929,7 @@ function schema_upgrade($columns, $migrations, $schema_version)
 $user = new User();
 $request = array(
     "username" => "admin",
-    "email" => "webmaster@" . $_SERVER['SERVER_NAME'],
+    "email" => "webmaster@" . ($_SERVER['SERVER_NAME'] ?? "localhost"),
     "password" => "root",
     "first_name" => "web",
     "last_name" => "master"
@@ -919,6 +960,14 @@ if (!blogs_check_table()) {
     blogs_create_table();
 } else {
     echo "<br>blogs table already complete";
+}
+
+//some early installs have an invites table from a different design (invite_id, invitee, token, confirmed);
+//keep it as invites_legacy and build the current one
+if (invites_check_table() && !column_exists("invites", "invite_num")) {
+    $legacy_db = new Mysql();
+    $legacy_db->Fetch("RENAME TABLE `invites` TO `invites_legacy`", null);
+    echo "<br>renamed the old invites table to invites_legacy";
 }
 
 //build invites table
