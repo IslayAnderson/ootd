@@ -25,7 +25,7 @@ title_update($user->username);
     <h1><?= escape($user->get_username($user->user_id)) ?></h1>
     <?php if (Federation::enabled()): ?>
         <p class="handle"><?= escape($user->username) ?> from <?= escape(instance_name()) ?></p>
-        <p class="address" title="Other blogs, Mastodon included, find <?= escape($user->username) ?> by this address">Address for other blogs: <span><?= escape($user->username) ?>@<?= escape(Federation::domain()) ?></span></p>
+        <p class="address" title="Other blogs, Mastodon included, find <?= escape($user->username) ?> by this address">Address for other blogs: <!--email_off--><span><?= escape($user->username) ?>@<?= escape(Federation::domain()) ?></span><!--/email_off--></p>
     <?php endif; ?>
     <?php if (!empty($_SESSION['user_id'])): ?>
         <?php //real names stay on this blog, guests only see the username ?>
