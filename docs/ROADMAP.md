@@ -537,9 +537,24 @@ or attack the site. Shape agreed with the owner (D66–D69):
 - **Limited CSS:** an optional box that is parsed, not pasted. Only listed selectors (e.g.
   `.site-logo`, `h1`, `h2`, `.post`, `.kicker`) and listed properties (colours, borders,
   border-radius, font-weight, letter-spacing, text-transform, text-align, margins and padding)
-  are kept; values must fit a strict grammar. `url()`, `@import`, `@font-face`, `expression`,
+  are kept, plus `background-image` with `url()` (below); values must fit a strict grammar.
+  `@import`, `@font-face`, `expression`,
   attribute selectors, `content` and anything else is dropped, and the cleaned result is what's
   saved and shown back. Sent with a CSP that blocks other style and image sources.
+- **Images in `url()`** (D70): checked when the theme is saved, then copied into the blog's
+  media store. The saved CSS points at that copy, so visitors' browsers never contact the
+  original site, and it can't be swapped for something else after the check. The fetch:
+  - `https://` only. The host must resolve to a public address (no private, loopback,
+    link-local or this server's own IPs). The connection is pinned to the checked IP, and
+    redirects are each checked the same way (3 at most).
+  - Suspicious headers fail it: a `Content-Type` other than `image/png`, `image/jpeg`,
+    `image/gif` or `image/webp` (no SVG: it can carry script), `Content-Disposition: attachment`,
+    `Set-Cookie`, `Refresh`, an unexpected `Content-Encoding`, or a `Content-Length` over 2 MB.
+    The download stops at 2 MB whatever the headers say.
+  - The body must be only an image: its magic bytes must match the declared type, it must
+    decode as an image, and it is re-encoded. That strips metadata and anything appended after
+    the image (polyglot files) before storing.
+  - Anything that fails is dropped from the CSS, and the admin is told which link and why.
 - **Fonts:** any Google Font for headings and body. The name must match
   `^[A-Za-z0-9 ]{1,40}$` and is checked against Google's list when saved; the stylesheet link is
   built by the server and CSP allows only `fonts.googleapis.com` / `fonts.gstatic.com`. The
@@ -550,7 +565,8 @@ or attack the site. Shape agreed with the owner (D66–D69):
   navigation and admin pages keep the blog's theme, so nobody can make a page that impersonates
   the login or admin screens.
 - Cloud blogs get the same settings; the hub can't change a blog's theme.
-- Tests: hostile CSS and font names (escaping `</style>`, `url(`, `@import`, unicode escapes,
+- Tests: hostile CSS and font names (escaping `</style>`, `url(` to private IPs, redirects to
+  them, SVG, HTML served as `image/png`, oversized and image+zip polyglot files, `@import`, unicode escapes,
   comments) are all stripped.
 
 ## Later (not started)
