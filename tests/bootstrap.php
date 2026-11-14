@@ -16,3 +16,4 @@ require_once $root . "/Classes/federation/Federation.php";
 require_once $root . "/Classes/federation/Inbox.php";
 require_once $root . "/Classes/federation/RemoteActor.php";
 require_once $root . "/Classes/federation/RemotePost.php";
+require_once $root . "/Classes/mail/Mailer.php";

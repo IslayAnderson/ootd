@@ -9,8 +9,10 @@ What you need either way:
   once federation arrives, part of every account's identity, so pick it before people sign up.
 - A secret `PWD_SEED` (`openssl rand -hex 32`). It peppers every password. Back it up and never
   change it, or nobody can log in.
-- Optionally, an SMTP account for email (password resets and invites). Without one, those emails
-  are written to `tmp/mail.log` and the admin has to pass links on by hand.
+- Email for password resets and invites. On most PHP hosts (Plesk, cPanel, a server with
+  Postfix) it works with no setup: OOTD sends through the server's own `sendmail`. Otherwise give
+  it an SMTP account. With neither (Docker without `MAIL_HOST`, say), emails are written to
+  `tmp/mail.log` and the admin has to pass links on by hand.
 
 ## Docker
 
@@ -70,7 +72,9 @@ To upgrade: `git pull`, then `docker compose --env-file .env.docker up -d --buil
 | `MEDIA_DRIVER` | `local` (default) or `s3`. |
 | `STORAGE_PATH` | Where the local driver keeps photos, default `storage/`. |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_KEY`, `S3_SECRET`, `S3_PATH_STYLE` | S3-compatible storage (Cloudflare R2, AWS, Backblaze B2, MinIO). The bucket stays private. See [Photos on Cloudflare R2](#photos-on-cloudflare-r2). |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM`, `MAIL_FROM_NAME` | SMTP. `MAIL_ENCRYPTION` is `tls` (port 587), `ssl` (465) or `none`. |
+| `MAIL_DRIVER` | `smtp`, `mail` (PHP's mail(), through the server's sendmail) or `log` (write to `tmp/mail.log`). Default: `smtp` when `MAIL_HOST` is set, else `mail` when sendmail exists, else `log`. |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`, `MAIL_USER`, `MAIL_PASS` | SMTP. `MAIL_ENCRYPTION` is `tls` (port 587), `ssl` (465) or `none`. |
+| `MAIL_FROM`, `MAIL_FROM_NAME` | Sender. Default `noreply@` the site's domain and the instance name. |
 | `CSS_BUILT` | Set to `1` when the CSS is compiled at build time (the Docker image does this). |
 
 ## Photos on Cloudflare R2

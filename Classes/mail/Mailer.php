@@ -3,20 +3,51 @@
 use PHPMailer\PHPMailer\PHPMailer;
 
 /**
- * Plain-text email over SMTP, configured in .env:
- * MAIL_HOST, MAIL_PORT (587), MAIL_USER, MAIL_PASS, MAIL_ENCRYPTION (tls, ssl or none), MAIL_FROM, MAIL_FROM_NAME.
- * Without MAIL_HOST nothing is sent; messages are written to tmp/mail.log instead, so a fresh install
- * (or a developer) can still see password reset and invite links.
- * Mail is sent from the job queue (Mailer::queue), so a slow SMTP server never holds up a page.
+ * Plain-text email, configured in .env. MAIL_DRIVER picks how it's sent:
+ * - smtp: MAIL_HOST, MAIL_PORT (587), MAIL_USER, MAIL_PASS, MAIL_ENCRYPTION (tls, ssl or none)
+ * - mail: PHP's mail(), through the server's own sendmail (most PHP hosts, Plesk and cPanel included)
+ * - log: nothing is sent; messages go to tmp/mail.log, so a developer can still see reset and invite links
+ * Without MAIL_DRIVER: smtp when MAIL_HOST is set, otherwise mail when the server has sendmail,
+ * otherwise log. MAIL_FROM (default noreply@ the site's domain) and MAIL_FROM_NAME apply to both.
+ * Mail is sent from the job queue (Mailer::queue), so a slow mail server never holds up a page.
  */
 class Mailer
 {
     /**
-     * @return bool is SMTP configured
+     * @return string smtp, mail or log
+     */
+    public static function driver(): string
+    {
+        $driver = strtolower(trim((string)($_ENV['MAIL_DRIVER'] ?? "")));
+        if (in_array($driver, array("smtp", "mail", "log"), true)) {
+            return $driver;
+        }
+        if (!empty($_ENV['MAIL_HOST'])) {
+            return "smtp";
+        }
+        $sendmail = explode(" ", trim((string)ini_get("sendmail_path")))[0];
+        return $sendmail !== "" && is_executable($sendmail) ? "mail" : "log";
+    }
+
+    /**
+     * @return bool does email actually leave the server
      */
     public static function enabled(): bool
     {
-        return !empty($_ENV['MAIL_HOST']) && !empty($_ENV['MAIL_FROM']);
+        return self::driver() != "log" && self::from() !== "";
+    }
+
+    /**
+     * @return string the From address: MAIL_FROM, or noreply@ the site's domain
+     */
+    public static function from(): string
+    {
+        if (!empty($_ENV['MAIL_FROM'])) {
+            return (string)$_ENV['MAIL_FROM'];
+        }
+        $host = (string)parse_url(app_url(), PHP_URL_HOST);
+        $address = "noreply@" . $host;
+        return strpos($host, ".") !== false && filter_var($address, FILTER_VALIDATE_EMAIL) ? $address : "";
     }
 
     /**
@@ -35,7 +66,7 @@ class Mailer
      * @param string $subject
      * @param string $body
      * @return void
-     * @throws Exception when the SMTP server refuses it, so the job is retried
+     * @throws Exception when the mail server refuses it, so the job is retried
      */
     public static function send($to, $subject, $body): void
     {
@@ -50,6 +81,24 @@ class Mailer
         }
 
         $mail = new PHPMailer(true);
+        if (self::driver() == "mail") {
+            $mail->isMail();
+            //envelope sender, so bounces go somewhere real
+            $mail->Sender = self::from();
+        } else {
+            self::smtp($mail);
+        }
+        $mail->CharSet = PHPMailer::CHARSET_UTF8;
+        $mail->setFrom(self::from(), ($_ENV["MAIL_FROM_NAME"] ?? "") ?: instance_name());
+        $mail->addAddress($to);
+        $mail->Subject = $subject;
+        $mail->Body = $body;
+        $mail->isHTML(false);
+        $mail->send();
+    }
+
+    private static function smtp(PHPMailer $mail): void
+    {
         $mail->isSMTP();
         $mail->Host = $_ENV['MAIL_HOST'];
         $mail->Port = (int)($_ENV['MAIL_PORT'] ?? 587);
@@ -67,12 +116,5 @@ class Mailer
             $mail->Username = $_ENV['MAIL_USER'];
             $mail->Password = $_ENV['MAIL_PASS'] ?? "";
         }
-        $mail->CharSet = PHPMailer::CHARSET_UTF8;
-        $mail->setFrom($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME'] ?? instance_name());
-        $mail->addAddress($to);
-        $mail->Subject = $subject;
-        $mail->Body = $body;
-        $mail->isHTML(false);
-        $mail->send();
     }
 }

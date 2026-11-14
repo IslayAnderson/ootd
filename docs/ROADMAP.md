@@ -65,6 +65,7 @@ into `main`. After a promotion, an admin runs the upgrade at `/install.php` on s
 | 0.11.0 | Done, merged to `claude/development` |
 | 0.11.1 | Hotfix, merged to `claude/development` |
 | 0.12.0 | Done, merged to `claude/development` |
+| 0.12.1 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -317,6 +318,14 @@ on Mastodon and other Fediverse servers and see their posts.
   retrying for days.
 - Tests: an end-to-end run against a simulated Mastodon-style server (61 checks: search,
   follow, Accept/Reject, backfill, posts, spoofing, likes, deletes, cache limit, unfollow).
+
+### 0.12.1 — Email without SMTP ✅
+
+- Email goes through PHP's `mail()` (the server's own sendmail) when no SMTP server is set, so
+  password resets and invites work on ordinary PHP hosts with no setup. `MAIL_DRIVER` (`smtp`,
+  `mail`, `log`) picks explicitly; the sender defaults to `noreply@` the site's domain (Q9).
+- Staging: the unused `profile`, `profile_options` and `size_*` tables and `garments.size` were
+  dropped after a backup (Q3).
 
 ## Later (not started)
 
