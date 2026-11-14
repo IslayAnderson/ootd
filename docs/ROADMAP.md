@@ -36,6 +36,7 @@ release. Nothing has been merged into `claude/main` or `main`.
 | 0.4.0 | Done, merged to `claude/development` |
 | 0.5.0 | Done, merged to `claude/development` |
 | 0.6.0 | Done, merged to `claude/development` |
+| 0.6.1 | Done, merged to `claude/development` |
 
 ## Upgrading an existing install
 
@@ -111,6 +112,11 @@ Restyle with design cues from Glamcult magazine: editorial, monochrome and type-
 - Dates shown as "14 November 2026" via `date_display()`.
 - Privacy page written.
 - Fixed outfits showing the newest garment's timestamp instead of their own (F14).
+
+### 0.6.1 — Wordmark ✅
+
+- Top bar shows the OOTD wordmark on its own; the flower icon is dropped from `logo.svg`
+  (the favicon is unchanged).
 
 ## Later (not started)
 

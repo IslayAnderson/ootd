@@ -40,8 +40,10 @@
       justify-self: end;
     }
 
+    //wordmark only, no icon
     .logo img {
-      height: 1.9rem;
+      display: block;
+      height: 1.4rem;
       width: auto;
     }
   }
