@@ -299,7 +299,7 @@ class RemoteActor
     }
 
     //names servers get by default, which say nothing about which blog it is
-    const GENERIC_NAMES = array("ootd", "mastodon", "misskey", "pleroma", "akkoma", "gotosocial", "pixelfed",
+    const GENERIC_NAMES = array("ootd", "treat blog", "treat", "mastodon", "misskey", "pleroma", "akkoma", "gotosocial", "pixelfed",
         "friendica", "lemmy", "sharkey", "firefish", "iceshrimp", "hubzilla", "wordpress", "writefreely");
 
     private static $blogs = null;

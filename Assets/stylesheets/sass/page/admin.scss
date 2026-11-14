@@ -97,6 +97,15 @@ body > div.accordion {
     border-bottom: solid 1px $mid-grey;
     margin: 0;
 
+    &.logo-upload .current .site-logo--wordmark {
+      display: block;
+      font-family: $sans;
+      font-weight: 800;
+      font-size: 1.6rem;
+      letter-spacing: 0.06em;
+      margin: 0.5rem 0;
+    }
+
     &.logo-upload .current img {
       display: block;
       height: 2rem;

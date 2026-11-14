@@ -14,7 +14,7 @@ class CloudflareDns
     public static function add_a($name, $ip): string
     {
         $result = self::request("POST", "/dns_records", array("type" => "A", "name" => $name, "content" => $ip, "proxied" => true, "ttl" => 1,
-            "comment" => "OOTD cloud blog"));
+            "comment" => "TREAT cloud blog"));
         return (string)($result['id'] ?? "");
     }
 

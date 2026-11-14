@@ -492,6 +492,19 @@ Schema 14.
 - Tests: 12 checks with the peer blog and a stand-in account domain (both directions, redirect
   followed, old address still works, an unbacked claim ignored).
 
+### 0.14.6 — TREAT blog ✅
+
+Schema 15.
+
+- OOTD is now **TREAT blog** wherever people see it: the default blog name (blogs still called
+  "OOTD" are renamed by the migration; names an admin chose stay), the wordmark, page titles, the
+  invite, privacy and create-a-blog pages, settings labels, the installer and the cloud-blog emails.
+- The wordmark is "TREAT" set in Inter Tight (weight 800) instead of the OOTD artwork, which is
+  removed. Settings → Logo can still use an uploaded image or the blog's name.
+- Login page: "Become a TREATer" above **Create my own blog**.
+- The code, repository, `bin/ootd`, database names and the federation vocabulary (`ootd:`,
+  nodeinfo software name) keep "ootd" (D63).
+
 ## Later (not started)
 
 Federation and self-hosting (releases 0.7.0 onwards) are planned in [FEDERATION.md](FEDERATION.md).

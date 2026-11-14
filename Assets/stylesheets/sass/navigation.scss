@@ -54,6 +54,15 @@
       color: inherit;
     }
 
+    .site-logo--wordmark {
+      display: block;
+      font-family: $sans;
+      font-weight: 800;
+      font-size: 1.6rem;
+      line-height: 1;
+      letter-spacing: 0.06em;
+    }
+
     .site-logo--text {
       display: block;
       font-family: $serif;

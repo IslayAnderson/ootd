@@ -14,7 +14,7 @@ $invite = (new Invite())->find_by_code($_GET['code'] ?? "");
         <input type="hidden" name="code" value="<?= escape($invite->code) ?>">
         <div class="description">
             <h1>You’re In!</h1>
-            <p>Complete your signup to get access to OOTD, get ready for daily style inspiration and fresh outfit ideas. We’re excited to have you on board!</p>
+            <p>Complete your signup to get access to <?= escape(instance_name()) ?>, get ready for daily style inspiration and fresh outfit ideas. We’re excited to have you on board!</p>
         </div>
         <div class="name">
             <label for="first_name">First Name <br>

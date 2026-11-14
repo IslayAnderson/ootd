@@ -29,7 +29,7 @@ title_update("login");
     </form>
     <?php if (CloudBlog::enabled()): ?>
         <div class="create-own">
-            <p>Want an OOTD of your own?</p>
+            <p>Become a TREATer</p>
             <a href="/create-blog" class="btn secondary">Create my own blog</a>
         </div>
     <?php endif; ?>

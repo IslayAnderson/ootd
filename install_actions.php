@@ -33,7 +33,7 @@ function installed()
 //an existing install is never re-configured; an admin can re-run this to upgrade the database
 $upgrading = false;
 if ($cli && !(file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0)) {
-    echo "No .env found. Install OOTD with bin/ootd install or through /install.php first.\n";
+    echo "No .env found. Install TREAT blog with bin/ootd install or through /install.php first.\n";
     exit(1);
 }
 if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
@@ -49,7 +49,7 @@ if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
 
     //bin/ootd install sets cli_install; bin/migrate.php only upgrades
     if ($cli && !$is_installed && empty($GLOBALS['cli_install'])) {
-        echo "OOTD isn't installed in this database yet. Run bin/ootd install or use /install.php.\n";
+        echo "TREAT blog isn't installed in this database yet. Run bin/ootd install or use /install.php.\n";
         exit(1);
     }
 
@@ -58,7 +58,7 @@ if (file_exists(__DIR__ . '/.env') && filesize(__DIR__ . '/.env') > 0) {
         $legacy_admin = !empty($_SESSION['user_id']) && current_permission() === 0 && (int)setting_get("schema_version", 0) < 1;
         if (!$cli && (empty($_SESSION['user_id']) || !(is_admin() || $legacy_admin))) {
             http_response_code(403);
-            echo "OOTD is already installed. Log in as an admin to upgrade the database.";
+            echo "TREAT blog is already installed. Log in as an admin to upgrade the database.";
             exit();
         }
         $upgrading = true;
@@ -259,7 +259,7 @@ $settings = array(
     //0.10.0: instance settings, shown on /about and used across the site
     "instance_name" => array(
         "type" => "string",
-        "value" => "OOTD"
+        "value" => "TREAT blog"
     ),
     "instance_description" => array(
         "type" => "text",
@@ -429,7 +429,11 @@ $migrations = array(
     //cloud_blogs is a new table (blogs created from the login page, 0.14.0)
     13 => array(),
     //remote_actors.account_host, account_checked_at are new columns (addresses on another domain, 0.14.5)
-    14 => array()
+    14 => array(),
+    //OOTD became TREAT blog (0.14.6): blogs still called by the old default take the new one
+    15 => array(
+        "default_name_treat"
+    )
 );
 
 function brands_check_table()
@@ -1054,6 +1058,12 @@ function media_migrate_blobs()
 /**
  * schema 11: note the blog of everyone already known, so their names are looked up
  */
+function default_name_treat()
+{
+    $db = new Mysql();
+    $db->Fetch("UPDATE `settings` SET `value` = :a WHERE `setting` = 'instance_name' AND `value` = 'OOTD'", array(":a" => DEFAULT_NAME));
+}
+
 function remote_blogs_backfill()
 {
     $db = new Mysql();
