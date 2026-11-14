@@ -415,11 +415,12 @@ class CloudBlog
                 continue;
             }
             $base = (string)($_ENV['CLOUD_SETUP_URL'] ?? "");
-            $curl = curl_init(($base !== "" ? rtrim($base, "/") : "http://" . $blog->domain) . "/cron");
+            //https: plans may redirect http, which a POST doesn't survive. Ready blogs have a real certificate.
+            $curl = curl_init(($base !== "" ? rtrim($base, "/") : "https://" . $blog->domain) . "/cron");
             $options = array(CURLOPT_POST => true, CURLOPT_POSTFIELDS => http_build_query(array("key" => $key)), CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => array("Host: " . $blog->domain));
             if ($base === "") {
-                $options[CURLOPT_RESOLVE] = array($blog->domain . ":80:" . $_ENV['CLOUD_SERVER_IP']);
+                $options[CURLOPT_RESOLVE] = array($blog->domain . ":443:" . $_ENV['CLOUD_SERVER_IP']);
             }
             curl_setopt_array($curl, $options);
             curl_multi_add_handle($multi, $curl);
