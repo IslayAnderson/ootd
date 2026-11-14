@@ -93,6 +93,7 @@ needs an answer before the work that depends on it).
 | D68 | 0.15.0 | No dark mode for now. | Owner's choice. | asked |
 | D69 | 0.15.0 | Admins theme the blog; each person may theme their own content pages, never navigation, login or admin. | Owner's choice; limiting where personal themes apply stops look-alike login pages. | asked |
 | D70 | 0.15.0 | Theme CSS may use `url()` images. Each is fetched once when saved (https, public IPs only), rejected on suspicious headers or anything but a PNG, JPEG, GIF or WebP body, re-encoded and stored in the media store; the CSS points at the stored copy. | Owner asked for url() with header and body checks. Serving a copy stops visitor tracking and stops the image being swapped after the check; re-encoding removes anything hidden after the image. | asked |
+| D71 | 0.15.1 | A person's devices share one sign-in key (`users.session`); CSRF tokens are per session, with the previous hour's still accepted. | One key keeps "sign out everywhere" a single update (admin, password reset and change), while letting people use a phone and a laptop. Per-session tokens stop one device's new token breaking another's forms. | assumed |
 
 ## Questions
 

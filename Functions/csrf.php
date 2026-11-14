@@ -1,6 +1,10 @@
 <?php
 /**
- * @return bool
+ * CSRF tokens belong to the session (0.15.1, AUDIT F27): each device has its own, so signing in
+ * somewhere else doesn't invalidate forms here. A token lasts an hour; the one before it is still
+ * accepted, so a form left open across the change still works.
+ *
+ * @return bool a new token was made
  * @throws \Random\RandomException
  */
 function CSRF_generate(): bool
@@ -13,17 +17,8 @@ function CSRF_generate(): bool
         return false;
     }
 
-    $CSRF = id_gen();
-
-    if (isset($_SESSION['user_id'])) {
-        $params = array(':a' => $CSRF, ':b' => $_SESSION['user_id']);
-        $sql = "UPDATE `users` SET `csrf`= :a WHERE `user_id` = :b";
-
-        $db = new Mysql();
-        $db->Fetch($sql, $params);
-    }
-
-    $_SESSION['CSRF']["token"] = $CSRF;
+    $_SESSION['CSRF']['previous'] = $_SESSION['CSRF']['token'] ?? "";
+    $_SESSION['CSRF']["token"] = id_gen();
     $_SESSION['CSRF']["expiry"] = strtotime("+1 hour");
 
     return true;
@@ -38,23 +33,16 @@ function CSRF_validate($input = null): true
         throw new Exception('CSRF token missing');
     }
 
-    $params = array(':a' => $_SESSION['user_id']);
-    $sql = "SELECT `csrf` FROM `users` WHERE `user_id` = :a";
-    $db = new Mysql();
-    $row = $db->Fetch($sql, $params);
-
-    $CSRF = $row[0]->csrf;
-
-    if (!empty($CSRF) && hash_equals($CSRF, (string)$input)) {
-        return true;
-    } else {
-        //only the session that sent the bad token is ended, not everyone's
-        $user = new User($_SESSION['user_id']);
-        $user->deauthenticate();
-        throw new Exception('CSRF token mismatch');
+    foreach (array($_SESSION['CSRF']['token'] ?? "", $_SESSION['CSRF']['previous'] ?? "") as $token) {
+        if ($token !== "" && hash_equals((string)$token, (string)$input)) {
+            return true;
+        }
     }
+    //only the session that sent the bad token is ended, not the person's others
+    $user = new User($_SESSION['user_id']);
+    $user->deauthenticate();
+    throw new Exception('CSRF token mismatch');
 }
-
 /**
  * Hidden form field carrying the current CSRF token
  *
