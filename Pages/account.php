@@ -9,11 +9,12 @@ title_update("account");
     </div>
     <h1><?= escape($user->get_username($user->user_id)) ?></h1>
     <p class="byline"><?= escape($user->first_name . " " . $user->last_name) ?></p>
+    <?php $saved_names = array("journal" => "journal entry", "setting" => "setting", "outfit" => "outfit", "garment" => "garment", "avatar" => "profile photo", "password" => "password", "wear" => "wear"); ?>
     <?php if (!empty($_GET['posted'])): ?>
-        <p class="notice">Your <?= escape($_GET['posted']) ?> has been saved.</p>
+        <p class="notice">Your <?= escape($saved_names[$_GET['posted']] ?? "change") ?> has been saved.</p>
     <?php endif; ?>
     <?php if (!empty($_GET['deleted'])): ?>
-        <p class="notice">Your <?= escape($_GET['deleted']) ?> has been deleted.</p>
+        <p class="notice">Your <?= escape($saved_names[$_GET['deleted']] ?? "post") ?> has been deleted.</p>
     <?php endif; ?>
     <details class="photo">
         <summary>Change photo</summary>
@@ -38,7 +39,7 @@ title_update("account");
 </section>
 <section class="your-data" id="data">
     <h2>Your data</h2>
-    <p>Download everything you&rsquo;ve put on <?= escape(instance_name()) ?>: your profile, wardrobe, outfits, blog posts, wears and photos, as a zip of JSON files and images.</p>
+    <p>Download everything you&rsquo;ve put on <?= escape(instance_name()) ?>: your profile, wardrobe, outfits, journal, wears and photos, as a zip of JSON files and images.</p>
     <form action="/API/user/export.php" method="post">
         <?php CSRF_input(); ?>
         <button type="submit" class="secondary">Download your data</button>
@@ -65,11 +66,11 @@ title_update("account");
     </form>
     <?php $remote_requests = Follow::remote_requests($user->get_user_id()); ?>
     <?php if (count($remote_requests) > 0): ?>
-        <h3>Requests from other servers</h3>
+        <h3>Requests from other blogs</h3>
         <ul class="requests">
             <?php foreach ($remote_requests as $request): ?>
                 <li>
-                    <a href="<?= escape($request->url ?: $request->ap_id) ?>" rel="nofollow noopener" target="_blank">@<?= escape($request->username) ?>@<?= escape($request->host) ?></a>
+                    <a href="<?= escape($request->url ?: $request->ap_id) ?>" rel="nofollow noopener" target="_blank" title="<?= escape(RemoteActor::address($request)) ?>"><?= escape(RemoteActor::display($request)) ?></a>
                     <form action="/API/follow/respond_remote.php" method="post">
                         <?php CSRF_input(); ?>
                         <input type="hidden" name="actor" value="<?= (int)$request->actor_num ?>">
@@ -82,13 +83,13 @@ title_update("account");
     <?php endif; ?>
     <?php $elsewhere = Federation::enabled() ? RemoteFollow::following($user->get_user_id()) : array(); ?>
     <?php if (count($elsewhere) > 0): ?>
-        <h3>Following elsewhere</h3>
+        <h3>Following on other blogs</h3>
         <ul class="requests">
             <?php foreach ($elsewhere as $followed): ?>
                 <li>
-                    <a href="<?= escape(RemoteActor::local_path($followed)) ?>"><?= escape(RemoteActor::handle($followed)) ?></a>
+                    <a href="<?= escape(RemoteActor::local_path($followed)) ?>" title="<?= escape(RemoteActor::address($followed)) ?>"><?= escape(RemoteActor::display($followed)) ?></a>
                     <?php if ($followed->state === Follow::PENDING): ?>
-                        <span class="kicker">waiting for <?= escape($followed->host) ?></span>
+                        <span class="kicker">waiting for <?= escape(RemoteActor::blog_name((string)$followed->host)) ?></span>
                     <?php endif; ?>
                 </li>
             <?php endforeach; ?>
@@ -118,7 +119,7 @@ title_update("account");
         <script src="/vendor/tinymce/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
         <div class="post_tabs">
             <button type="button" data-frame="blog">
-                <span>New blog</span>
+                <span>New journal entry</span>
             </button>
             <button type="button" data-frame="outfit" class="active">
                 <span>New outfit</span>
@@ -250,7 +251,7 @@ title_update("account");
 
 </section>
 <section class="blog">
-    <h2>Blogs</h2>
+    <h2>Journal</h2>
     <?php
     $blogs = new Post\Blog($user->get_user_id());
     $blogs->render_blogs_profile();

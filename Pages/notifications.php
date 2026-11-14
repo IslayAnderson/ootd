@@ -16,9 +16,9 @@ $notifications = Notification::latest($_SESSION['user_id']);
                     <?php if (!empty($notification->actor)): ?>
                         <a href="/user/<?= escape($notification->actor) ?>"><?= escape($notification->actor) ?></a>
                     <?php elseif (!empty($notification->object)): ?>
-                        <?php //someone on another server, by handle ?>
+                        <?php //someone on another blog, by handle ?>
                         <?php if (($handle = RemoteActor::parse_handle($notification->object))): ?>
-                            <a href="/@<?= escape(rawurlencode($handle[0]) . "@" . rawurlencode($handle[1])) ?>"><?= escape($notification->object) ?></a>
+                            <a href="/@<?= escape(rawurlencode($handle[0]) . "@" . rawurlencode($handle[1])) ?>" title="<?= escape(ltrim($notification->object, "@")) ?>"><?= escape(RemoteActor::display_handle($notification->object)) ?></a>
                         <?php else: ?>
                             <strong><?= escape($notification->object) ?></strong>
                         <?php endif; ?>

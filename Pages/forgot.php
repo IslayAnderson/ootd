@@ -10,7 +10,7 @@ title_update("forgot password");
             <p>Enter your account&rsquo;s email and we&rsquo;ll send a link to choose a new password.</p>
         <?php endif; ?>
         <?php if (!Mailer::enabled()): ?>
-            <p class="notice">This server can&rsquo;t send email yet, so ask its admin<?= setting_get("admin_contact", "") ? " (" . escape(setting_get("admin_contact", "")) . ")" : "" ?> to reset your password.</p>
+            <p class="notice">This blog can&rsquo;t send email yet, so ask its admin<?= setting_get("admin_contact", "") ? " (" . escape(setting_get("admin_contact", "")) . ")" : "" ?> to reset your password.</p>
         <?php endif; ?>
         <p><a href="/login">Back to login</a></p>
     </div>

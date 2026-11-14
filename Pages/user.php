@@ -24,10 +24,11 @@ title_update($user->username);
     </div>
     <h1><?= escape($user->get_username($user->user_id)) ?></h1>
     <?php if (Federation::enabled()): ?>
-        <p class="handle" title="Follow from Mastodon or any other Fediverse app with this handle">@<?= escape($user->username) ?>@<?= escape(Federation::domain()) ?></p>
+        <p class="handle"><?= escape($user->username) ?> from <?= escape(instance_name()) ?></p>
+        <p class="address" title="Other blogs, Mastodon included, find <?= escape($user->username) ?> by this address">Address for other blogs: <span><?= escape($user->username) ?>@<?= escape(Federation::domain()) ?></span></p>
     <?php endif; ?>
     <?php if (!empty($_SESSION['user_id'])): ?>
-        <?php //real names stay inside the instance, guests only see the username ?>
+        <?php //real names stay on this blog, guests only see the username ?>
         <p class="byline"><?= escape($user->first_name . " " . $user->last_name) ?></p>
     <?php else: ?>
         <p class="notice">You're seeing <?= escape($user->username) ?>'s public posts. <a href="/login">Log in</a> to see more.</p>
@@ -53,7 +54,7 @@ title_update($user->username);
     <?php endif; ?>
 </section>
 <section class="blog">
-    <h2>Blogs</h2>
+    <h2>Journal</h2>
     <?php
     $blogs = new Post\Blog($user->get_user_id());
     if (count($blogs->blogs) > 0) {

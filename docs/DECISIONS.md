@@ -70,6 +70,9 @@ needs an answer before the work that depends on it).
 | D45 | 0.13.0 | Comments federate only on public outfits and on posts from elsewhere; replies from elsewhere are stored only when they answer a public outfit here or a post already stored. A reply to a followers-only post goes to its author only and isn't served. | Comments on members-only outfits would otherwise leak the conversation; storing every reply would pull in strangers' threads. | assumed |
 | D46 | 0.13.0 | Blogs get no likes or comments yet; likes from elsewhere on a blog post still notify. | Blogs are long-form and rarely used; outfits are where the conversation is. | assumed |
 | D47 | 0.13.0 | Garments in a strip from another server link to that server, not to a local copy. | There's no local garment page for them, and the origin shows the current version. | assumed |
+| D48 | 0.13.1 | Each install is presented as a blog: people elsewhere are shown as "name from Blog name", with no @; "server", "host" and "elsewhere" are "blog" in the interface. The protocol, notifications as stored, and profile addresses (`/@name@host`) are unchanged. | Asked for by the owner. Only what members see changes, so Mastodon and other servers are unaffected; Mastodon users still see `@name@host`. | asked |
+| D49 | 0.13.1 | A blog's name is its own `nodeinfo` `nodeName`, looked up in the background and again weekly. The address is shown instead when the name is missing, is a software default (OOTD, Mastodon, …), matches this blog's name, or is shared by two blogs known here. | Names aren't unique or verified; falling back to the address keeps two blogs from looking like one. | assumed |
+| D50 | 0.13.1 | Long-form posts are called **Journal** entries in the interface; their URLs (`/user/<name>/blog/<id>`), tables and code keep "blog". | "Blog" now means the whole install. Renaming URLs would break links already shared. | assumed |
 
 ## Questions
 

@@ -244,6 +244,7 @@ app only needs to be configurable entirely by environment and to report its own 
 | 0.11.0 | `users.public_key`, `users.private_key` (encrypted); `remote_actors`; `deliveries` |
 | 0.12.0 | `remote_follows`, `remote_posts`, `remote_media`; `remote_actors.outbox`/`followers`; `notifications.link` (D35) |
 | 0.13.0 | `likes`, `comments`, `remote_garments`; `remote_media.kind` (no alias tables, D44) |
+| 0.13.1 | `remote_blogs` (other blogs' names, D49) |
 | 0.14.0 | `reports`, `blocks`, `domain_blocks`; `sensitive`, `content_warning` on posts |
 | 1.0.0 | `users.also_known_as`, `users.moved_to` |
 
