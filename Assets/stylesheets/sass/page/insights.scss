@@ -1,0 +1,83 @@
+.insights {
+  //pinned garment card, the "daily insight"
+  .insight_pin {
+    float: right;
+    position: relative;
+    margin: 0.75rem 1.5rem 1rem 1rem;
+    transform: rotate(-6deg);
+    z-index: 4;
+    width: 30%;
+    max-width: 10rem;
+    background: $paper;
+    padding: 0.4rem 0.4rem 1.2rem;
+    border: $rule;
+
+    svg {
+      position: absolute;
+      right: -12px;
+      top: -12px;
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+  }
+
+  h3 + p {
+    @include display(1.6rem);
+    line-height: 1.1;
+  }
+
+  &::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  ol {
+    padding-left: 0;
+    list-style: none;
+    counter-reset: rank;
+
+    li {
+      counter-increment: rank;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: solid 1px $mid-grey;
+
+      &::before {
+        content: counter(rank, decimal-leading-zero);
+        @include kicker(0.75rem);
+      }
+    }
+  }
+
+  //chartist in ink
+  .ct-series-a .ct-line, .ct-series-a .ct-point {
+    stroke: $ink;
+  }
+
+  .ct-series-a .ct-line {
+    stroke-width: 2px;
+  }
+
+  .ct-label {
+    font-family: $sans;
+    font-size: 0.65rem;
+    color: $soft-ink;
+  }
+
+  .ct-grid {
+    stroke: $mid-grey;
+    stroke-dasharray: 0;
+    stroke-width: 0.5px;
+  }
+}
+
+form.wear {
+  margin-top: 0.5rem;
+}

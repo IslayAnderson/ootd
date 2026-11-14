@@ -4,8 +4,9 @@ $user = unserialize($_SESSION['user']);
 $insights = new Insights($user->get_user_id());
 $per_month = $insights->wears_per_month(12);
 ?>
-<section class="insights" style="border-top: unset;">
-    <h1>Insights</h1>
+<section class="insights">
+    <p class="kicker">Insights</p>
+    <h1>What you <em>actually</em> wear</h1>
     <?php $insights->render_daily_insight(); ?>
 </section>
 <section class="insights">
@@ -42,13 +43,15 @@ $per_month = $insights->wears_per_month(12);
     <h2>Most worn</h2>
     <?php $most_worn = $insights->most_worn(5); ?>
     <?php if (count($most_worn) == 0): ?>
-        <p>Nothing to be found</p>
+        <p class="empty">Nothing to be found</p>
     <?php else: ?>
         <ol>
             <?php foreach ($most_worn as $garment): ?>
                 <li>
-                    <a href="/garment/<?= escape($garment->garment_id) ?>"><?= escape($garment->garment_name) ?></a>,
-                    worn <?= escape($garment->worn) ?> <?= $garment->worn == 1 ? "time" : "times" ?>
+                    <span>
+                        <a href="/garment/<?= escape($garment->garment_id) ?>"><?= escape($garment->garment_name) ?></a>,
+                        worn <?= escape($garment->worn) ?> <?= $garment->worn == 1 ? "time" : "times" ?>
+                    </span>
                 </li>
             <?php endforeach; ?>
         </ol>
@@ -58,13 +61,15 @@ $per_month = $insights->wears_per_month(12);
     <h2>Gathering dust</h2>
     <?php $least_worn = $insights->least_recently_worn(5); ?>
     <?php if (count($least_worn) == 0): ?>
-        <p>Nothing to be found</p>
+        <p class="empty">Nothing to be found</p>
     <?php else: ?>
         <ol>
             <?php foreach ($least_worn as $garment): ?>
                 <li>
-                    <a href="/garment/<?= escape($garment->garment_id) ?>"><?= escape($garment->garment_name) ?></a>,
-                    <?= $garment->last_worn ? "last worn " . escape($garment->last_worn) : "never worn" ?>
+                    <span>
+                        <a href="/garment/<?= escape($garment->garment_id) ?>"><?= escape($garment->garment_name) ?></a>,
+                        <?= $garment->last_worn ? "last worn " . escape(date_display($garment->last_worn)) : "never worn" ?>
+                    </span>
                 </li>
             <?php endforeach; ?>
         </ol>

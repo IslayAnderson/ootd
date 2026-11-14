@@ -79,11 +79,11 @@ class Garment
                     <img src="<?= $garment['garment_image'] ?>" alt="<?= escape($garment['garment_name']) ?>">
                 </figure>
                 <div class="info">
-                    <span>Added: <time datetime="<?= escape($garment['timestamp']) ?>"><?= escape(substr((string)$garment['timestamp'], 0, 10)) ?></time></span>,
+                    <span>Added <time datetime="<?= escape($garment['timestamp']) ?>"><?= escape(date_display($garment['timestamp'])) ?></time></span>
                     <?php $last_worn = \Insights::last_worn($garment['garment_num']); ?>
-                    <span>Last worn: <?php if ($last_worn): ?><time datetime="<?= escape($last_worn) ?>"><?= escape($last_worn) ?></time><?php else: ?>never<?php endif; ?></span>
+                    <span>Last worn <?php if ($last_worn): ?><time datetime="<?= escape($last_worn) ?>"><?= escape(date_display($last_worn)) ?></time><?php else: ?>never<?php endif; ?></span>
                     <?php if (!$is_profile): ?>
-                        <span>by <a href="/user/<?= escape($garment['username']) ?>"><?= escape($garment['username']) ?></a></span>
+                        <span>By <a href="/user/<?= escape($garment['username']) ?>"><?= escape($garment['username']) ?></a></span>
                     <?php endif; ?>
                 </div>
                 <div class="category">

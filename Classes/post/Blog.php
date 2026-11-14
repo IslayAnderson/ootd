@@ -101,7 +101,7 @@ class Blog
                        href="/user/<?= escape($blog['username']) ?>/blog/<?= escape($blog['blog_id']) ?>">
                         <h3><?= escape($blog['blog_title']) ?></h3>
                     </a>
-                    <time datetime="<?= escape($blog['timestamp']) ?>"><?= escape($blog['timestamp']) ?></time>
+                    <time datetime="<?= escape($blog['timestamp']) ?>"><?= escape(date_display($blog['timestamp'])) ?></time>
                     <p><?= escape($blog['blog_excerpt']) ?></p>
                 </div>
             </article>
@@ -123,7 +123,7 @@ class Blog
             <article class="blog-post" dataset-blog-id="<?= escape($blog['blog_id']) ?>">
                 <h1><?= escape($blog['blog_title']) ?></h1>
                 <div class="info">
-                    <time datetime="<?= escape($blog['timestamp']) ?>"><?= escape($blog['timestamp']) ?></time>
+                    <time datetime="<?= escape($blog['timestamp']) ?>"><?= escape(date_display($blog['timestamp'])) ?></time>
                     <a href="/user/<?= escape($blog['username']) ?>"><?= escape($blog['username']) ?></a>
                 </div>
                 <p class="excerpt"><?= escape($blog['blog_excerpt']) ?></p>

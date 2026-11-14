@@ -1,51 +1,110 @@
+body > div.accordion {
+  @include band($wide-column);
+}
+
 .accordion {
-  padding: 0.5rem;
   &__section {
-    padding: 0.5rem;
-    border-bottom: solid 1px black;
+    border-bottom: $rule;
+
     &-header {
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
+      cursor: pointer;
+
       &:hover {
         background: $light-grey;
       }
     }
-    &-button{
-      width:100%;
-      display:inline-block;
+
+    &-heading {
+      margin: 0;
     }
+
+    &:has(.accordion__section-content.open) .accordion__section-button::after {
+      content: "\2013";
+    }
+
+    &-button {
+      @include display(1.8rem);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+
+      &::after {
+        content: "+";
+        font-family: $sans;
+        font-size: 1.5rem;
+      }
+    }
+
     &-content {
-      padding: 2rem 0.5rem;
+      padding: 1rem 0 2rem;
       display: none;
-      border-top: solid 1px black;
-      transition: all 1s;
     }
+
     &-content.open {
-      display:block;
+      display: block;
     }
+
     &-content.scroll {
-      overflow-x:scroll;
+      overflow-x: auto;
     }
+
     &-content table {
-      //table.scss sits tables behind the page, which makes their buttons unclickable
+      //table.scss used to sit tables behind the page, which made their buttons unclickable
       z-index: auto;
     }
-    &-content form {
-      display: inline;
+
+    &-content td form {
+      display: flex;
+      flex-direction: row;
+      gap: 0.35rem;
+      align-items: center;
     }
+  }
+}
+
+.invite_create {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+
+  label {
+    width: 100%;
+    margin: 0;
+  }
+
+  input {
+    flex: 1 1 14rem;
+    margin: 0;
   }
 }
 
 .settings {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+
   label {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: solid 1px $mid-grey;
+    margin: 0;
+
+    input[type="text"] {
+      width: 50%;
+      margin: 0;
+    }
+  }
+
+  button {
+    align-self: flex-start;
+    margin-top: 1rem;
   }
 }

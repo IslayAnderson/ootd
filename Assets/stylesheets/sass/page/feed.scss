@@ -1,59 +1,157 @@
-.feed, .outfits {
-  article {
-    .info {
+//an outfit reads like a magazine feature: kicker line, big photo, caption as the deck
+article.outfit {
+  .info {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .profile a {
       display: flex;
       flex-direction: row;
       flex-wrap: nowrap;
-      justify-content: space-between;
       align-items: center;
+      text-decoration: none;
 
-      .profile {
-        margin-right: 0.5rem;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
+      .username {
+        @include kicker(0.75rem);
+        margin-left: 0.5rem;
+      }
 
-        .username {
-          margin-right: 1rem;
-        }
-
-        img {
-          border-radius: 50%;
-          width: 50px;
-          height: 50px;
-        }
+      img {
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        object-fit: cover;
       }
     }
+  }
 
-    .description {
-      padding-top: 0.5rem;
-      padding-bottom: 0.5rem;
+  .album figure {
+    margin: 0;
+
+    img.primary {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+    }
+  }
+
+  .description {
+    padding-top: 1rem;
+
+    p {
+      font-size: 1.45rem;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .garments {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 1rem 0 0;
+    margin: 1rem 0 0;
+    border-top: $rule;
+    overflow-x: auto;
+
+    li {
+      flex: 0 0 6.5rem;
+    }
+
+    a {
+      display: block;
+      text-decoration: none;
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      background: $paper;
+    }
+
+    span {
+      @include kicker(0.6rem);
+      display: block;
+      margin-top: 0.35rem;
+    }
+  }
+}
+
+//the feed alternates white and black bands
+.feed {
+  > article.outfit:nth-child(even) {
+    @include inverted;
+
+    .garments {
+      border-top-color: $paper;
+    }
+  }
+
+  > p {
+    @include band;
+    padding-top: 3rem;
+    font-style: italic;
+  }
+}
+
+//outfit lists inside a page section
+section.outfits article.outfit + article.outfit {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: $rule;
+}
+
+//wide screens set the photo beside the text, like a spread
+@media only screen and (min-width: $large) {
+  article.outfit {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "album info"
+      "album description"
+      "album garments";
+    column-gap: 2rem;
+    align-items: start;
+
+    .info {
+      grid-area: info;
     }
 
     .album {
-      display: flex;
-      justify-content: center;
-      flex-direction: row;
-      flex-wrap: nowrap;
+      grid-area: album;
+    }
 
-      figure {
-        width: auto;
-        margin-right: -4%;
+    .description {
+      grid-area: description;
+      padding-top: 0.5rem;
+    }
 
-        img {
-          &.primary {
-            width: 70%;
-            height: 100%;
-            object-fit: cover;
-          }
+    .garments {
+      grid-area: garments;
+      flex-wrap: wrap;
+      overflow-x: visible;
 
-          width: 30%;
-          height: 33%;
-          float: left;
-          object-fit: cover;
-        }
+      li {
+        flex: 0 0 calc((100% - 1rem) / 3);
       }
+    }
+  }
+
+  .feed > article.outfit {
+    @include band($wide-column);
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+
+    .description p {
+      font-size: 1.9rem;
     }
   }
 }

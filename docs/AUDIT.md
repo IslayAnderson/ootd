@@ -87,7 +87,7 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | B9 | Low | `partials/user_table.php` and `partials/settings.php` are static mock-ups with real-looking personal data. | 0.4.0 |
 | B10 | Low | `Pages/index.php` sends a redirect header then renders anyway. | — |
 
-### Found while building 0.1.1 – 0.5.0
+### Found while building 0.1.1 – 0.6.0
 
 | # | Sev | Finding | Fix |
 | --- | --- | --- | --- |
@@ -104,6 +104,8 @@ column 'user_id'*, `/user/<name>` with *Table 'ootd.blogs' doesn't exist*.
 | F11 | Low | `Functions/environment.php` warned during install because `.env` didn't exist yet. | 0.5.0 |
 | F12 | Medium *(read)* | `/vendor` is inside the web root. `/account` relies on that to load TinyMCE, but it also exposes every Composer package's files. Worth blocking `/vendor` in `.htaccess` except `vendor/tinymce`. | — |
 | F13 | Low *(read)* | `Mysql::Fetch()` binds every value as `PDO::PARAM_STR` and then passes `$params` to `execute()` again; works, but the bind loop is redundant. | — |
+| F14 | Medium | `Post\Outfit` selected `outfits.*` and `garments.*` together, so the garment's `timestamp` overwrote the outfit's and posts showed the wrong date. | 0.6.0 |
+| F15 | Low *(read)* | Pages load Google Fonts, and insights loads Chartist from cdnjs: third-party requests, disclosed on `/privacy`. Self-hosting would remove them. | — |
 
 ### Status on `claude/development`
 

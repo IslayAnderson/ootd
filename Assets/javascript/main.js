@@ -43,10 +43,13 @@ let register_listeners = (callbackfn, thisArg) => {
 //UI
 let main_nav = () =>{
     let nav = document.querySelector(".main-nav");
+    let nav_draw = document.querySelector("body > div.top-bar > div > button:nth-child(1)");
     if(nav.classList.contains('open')){
         nav.classList.remove('open');
+        nav_draw.setAttribute('aria-expanded', 'false');
     }else{
         nav.classList.add('open');
+        nav_draw.setAttribute('aria-expanded', 'true');
     }
 }
 
