@@ -185,7 +185,7 @@ It stays off until the first five keys are in `.env`:
 | --- | --- |
 | `CLOUD_DOMAIN` | the domain new blogs go under, e.g. `treatmag.online` |
 | `CLOUD_SERVER_IP` | the Plesk server's public IP (subscriptions and DNS records point at it) |
-| `PLESK_API_URL` | `https://<server>:8443/enterprise/control/agent.php` |
+| `PLESK_API_URL` | `https://<server's public IP>:8443/enterprise/control/agent.php`: not 127.0.0.1, or the call comes from 127.0.0.1 and a key limited to the public IP is refused |
 | `PLESK_API_KEY` | the reseller's secret key (not the admin's) |
 | `CLOUD_PLAN` | the reseller's service plan, e.g. `"OOTD Blog"` (quote names with spaces) |
 | `PLESK_VERIFY_TLS` | `0` if the panel's certificate is for another name (optional) |
@@ -202,9 +202,10 @@ Setting it up with Plesk as the name server:
    customers unlimited (or your cap), and the permissions **Customer management**, **Subscription
    management** (create subscriptions) and **DNS zone management**.
 3. As the reseller, **Service Plans → Add Plan** "OOTD Blog": e.g. 2 GB disk, 1 database, no mail
-   accounts, DNS on, PHP 8.3 (FPM), FTP on.
-4. As admin, **Tools & Settings → SSL/TLS Certificates → Keep websites secured** on, so each new
-   blog gets a Let's Encrypt certificate. The owner is emailed once it has one.
+   accounts, DNS on, PHP 8.3 (FPM), SSL on.
+4. On that plan, **Additional Services → Keep websites secured** (SSL It!), so each new blog gets a
+   Let's Encrypt certificate. The owner is emailed once it has one. Through the XML API this is
+   `<service-plan><add-plan-item><filter><name>OOTD Blog</name></filter><plan-item><name>urn:ext:sslit:plan-item-sdk:keep-secured</name></plan-item></add-plan-item></service-plan>`.
 5. Make an API key for the reseller on the server, limited to this blog's IP:
    `plesk bin secret_key --create -login ootd -ip-address <this server's IP> -description "OOTD cloud blogs"`.
    A key for the admin would work too, but could then touch every site on the server.

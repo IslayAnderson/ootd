@@ -215,9 +215,11 @@ PHP;
      */
     public static function run_setup($domain, $script, $token): array
     {
-        //straight to this server by IP, so it works before DNS and certificates have caught up
+        //straight to this server by IP, so it works before DNS and certificates have caught up. Over
+        //https (plans may redirect http there), without checking the certificate: the blog has no
+        //real one yet, and the connection never leaves this server.
         $base = (string)($_ENV['CLOUD_SETUP_URL'] ?? "");
-        $curl = curl_init(($base !== "" ? rtrim($base, "/") : "http://" . $domain) . "/" . $script);
+        $curl = curl_init(($base !== "" ? rtrim($base, "/") : "https://" . $domain) . "/" . $script);
         $options = array(
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => http_build_query(array("token" => $token)),
@@ -225,8 +227,12 @@ PHP;
             CURLOPT_TIMEOUT => 600,
             CURLOPT_HTTPHEADER => array("Host: " . $domain)
         );
-        if ($base === "" && !empty($_ENV['CLOUD_SERVER_IP'])) {
-            $options[CURLOPT_RESOLVE] = array($domain . ":80:" . $_ENV['CLOUD_SERVER_IP']);
+        if ($base === "") {
+            $options[CURLOPT_SSL_VERIFYPEER] = false;
+            $options[CURLOPT_SSL_VERIFYHOST] = 0;
+            if (!empty($_ENV['CLOUD_SERVER_IP'])) {
+                $options[CURLOPT_RESOLVE] = array($domain . ":443:" . $_ENV['CLOUD_SERVER_IP']);
+            }
         }
         curl_setopt_array($curl, $options);
         $response = curl_exec($curl);
