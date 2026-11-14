@@ -42,9 +42,20 @@ if (!empty($minified_css) && is_string($minified_css)) {
 $GLOBALS['sass_len'] = strlen($scssContents);
 $GLOBALS['sass_gen'] = "true";
 
+//pages and API endpoints guests are allowed to reach
+$guest_paths = array(
+    "/login",
+    "/signup",
+    "/invite",
+    "/API/user/auth.php",
+    "/API/user/create.php",
+    "/API/user/invite.php"
+);
+
 if (!isset($_SESSION['user_id'])) {
-    if ($_SERVER['REQUEST_URI'] != "/login" && $_SERVER['REQUEST_URI'] != '/signup' && $_SERVER['REQUEST_URI'] != '/invite') {
+    if (!in_array(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), $guest_paths)) {
         header("location: /login");
+        exit();
     }
 } else {
     if (!isset($_SESSION['user'])) {

@@ -11,17 +11,21 @@ class Blog
 
     public function __construct($user_id, $blog_id = null, $limit = 100)
     {
+        $this->blogs = array();
         $params = array(":a" => $user_id);
-        is_int($blog_id) ? $id_type = "blog_num" : $id_type = "blog_id";
-        $blog = $blog_id ? " `" . $id_type . "` = " . $blog_id . " " : " ";
-        $sql = "SELECT * FROM `blogs` WHERE `user` = :a" . $blog . "order by `timestamp` LIMIT " . $limit;
+        $filter = " ";
+        if ($blog_id) {
+            is_int($blog_id) ? $id_type = "blog_num" : $id_type = "blog_id";
+            $filter = " AND `" . $id_type . "` = :b ";
+            $params[":b"] = $blog_id;
+        }
+        $sql = "SELECT * FROM `blogs` WHERE `user` = :a" . $filter . "order by `timestamp` DESC LIMIT " . (int)$limit;
 
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
         if ($row[0] == "00000") {
-            return false;
+            return;
         }
-        $this->blogs = array();
         foreach ($row as $index => $blog) {
             $this->blogs[$index]['blog_id'] = $blog->blog_id;
             $this->blogs[$index]['user'] = $blog->user;
@@ -66,19 +70,19 @@ class Blog
                 );
             }
             ?>
-            <article dataset-outfit-id="<?= $blog['blog_id'] ?>" style="
+            <article dataset-outfit-id="<?= escape($blog['blog_id']) ?>" style="
                 display: flex;
                 flex-direction: row;
                 flex-wrap: nowrap;
                 align-items: center;
             ">
-                <img src="<?= $image[0] ?>" alt="<?= $image[1] ?>" width="33%">
+                <img src="<?= $image[0] ?>" alt="<?= escape($image[1]) ?>" width="33%">
                 <div>
-                    <a title="<?= $blog['blog_title'] ?>"
-                       href="/user/<?= $blog['user'] ?>/blog/<?= $blog['blog_id'] ?>">
-                        <h3><?= $blog['blog_title'] ?></h3>
+                    <a title="<?= escape($blog['blog_title']) ?>"
+                       href="/user/<?= escape($blog['user']) ?>/blog/<?= escape($blog['blog_id']) ?>">
+                        <h3><?= escape($blog['blog_title']) ?></h3>
                     </a>
-                    <p><?= $blog['blog_excerpt'] ?></p>
+                    <p><?= escape($blog['blog_excerpt']) ?></p>
                 </div>
             </article>
         <?php

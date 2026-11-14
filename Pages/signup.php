@@ -1,3 +1,6 @@
+<?php
+title_update("request invite");
+?>
 <div class="invite">
     <h1>Request Invite</h1>
     <p>Discover daily outfit inspiration, trends and personal insights with OOTD. Request an invitation to explore curated looks and fresh style ideas, updated regularly to keep you inspired.</p>

@@ -28,6 +28,10 @@ class User
      * @var string
      */
     public $username;
+    /**
+     * @var integer permission id, see Functions/permission.php
+     */
+    public $permission;
     private $email;
     /**
      * @var string
@@ -48,6 +52,7 @@ class User
             $this->last_name = $this->get_name($id)[1];
             $this->email = $this->get_email($id);
             $this->username = $this->get_username($id);
+            $this->permission = $this->get_permission($id);
         }
 
     }
@@ -61,6 +66,8 @@ class User
             'user_id' => $this->user_id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
+            'username' => $this->username,
+            'permission' => $this->permission,
             'email' => $this->email
         ];
     }
@@ -74,6 +81,8 @@ class User
         $this->user_id = $data['user_id'];
         $this->first_name = $data['first_name'];
         $this->last_name = $data['last_name'];
+        $this->username = $data['username'] ?? null;
+        $this->permission = $data['permission'] ?? null;
         $this->email = $data['email'];
     }
 
@@ -167,6 +176,28 @@ class User
     }
 
     /**
+     * @param $id
+     * @return int
+     * @throws Exception
+     */
+    public function get_permission($id = null)
+    {
+        if (empty($id)) {
+            throw new Exception('ID variable missing and permission property malformed');
+        }
+
+        $params = array(':a' => $id);
+
+        $sql = "SELECT `permission` FROM `users` WHERE `user_id` = :a";
+
+        $db = new Mysql();
+        $row = $db->Fetch($sql, $params);
+
+        return (int)$row[0]->permission;
+
+    }
+
+    /**
      * @param $user
      * @return mixed
      * @throws Exception
@@ -193,6 +224,10 @@ class User
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
 
+        if ($row[0] == '00000') {
+            return null;
+        }
+
         return $row[0]->PASSWORD;
     }
 
@@ -202,7 +237,7 @@ class User
      */
     public function set_user_id($user_id)
     {
-        $this->$user_id = $user_id;
+        $this->user_id = $user_id;
     }
 
     /**
@@ -211,7 +246,7 @@ class User
      */
     public function set_first_name($first_name)
     {
-        $this->$first_name = $first_name;
+        $this->first_name = $first_name;
     }
 
     /**
@@ -220,7 +255,7 @@ class User
      */
     public function set_last_name($last_name)
     {
-        $this->$last_name = $last_name;
+        $this->last_name = $last_name;
     }
 
     /**
@@ -229,7 +264,7 @@ class User
      */
     public function set_email($email)
     {
-        $this->$email = $email;
+        $this->email = $email;
     }
 
     /**
@@ -238,7 +273,7 @@ class User
      */
     private function set_password($password)
     {
-        $this->$password = $password;
+        $this->password = $password;
     }
 
     /**
@@ -258,7 +293,7 @@ class User
         $pwd_hashed = $this->get_password(array("email" => $request['email']));
 
         //Compare sated input with stored hash
-        if (password_verify($pwd_salted, $pwd_hashed)) {
+        if (!empty($pwd_hashed) && password_verify($pwd_salted, $pwd_hashed)) {
 
             //Update Session id in the database
             $params = array(':a' => session_id(), ':b' => $request['email']);
@@ -269,13 +304,17 @@ class User
             $db->Fetch($sql, $params);
 
             //Set class properties with basic user info
-            $this->set_user_id($this->get_user_id($request['email']));
-            $this->set_first_name($request['first_name']);
-            $this->set_last_name($request['last_name']);
+            $user_id = $this->get_user_id($request['email']);
+            $name = $this->get_name($user_id);
+            $this->set_user_id($user_id);
+            $this->set_first_name($name[0]);
+            $this->set_last_name($name[1]);
             $this->set_email($request['email']);
             $this->set_password($pwd_hashed);
 
-            $_SESSION['user_id'] = $this->get_user_id($request['email']);
+            //new session id on login to prevent session fixation
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = $user_id;
             $_SESSION['loggedin_time'] = time();
 
             session_write_close();
@@ -296,8 +335,7 @@ class User
     {
         $params = array(':a' => null, ':b' => $this->get_user_id());
 
-        $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` = :b
-                UPDATE `users` SET `csrf`= :a WHERE `user_id` = :b;";
+        $sql = "UPDATE `users` SET `session`= :a, `csrf`= :a WHERE `user_id` = :b;";
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
@@ -322,8 +360,7 @@ class User
     {
         $params = array(':a' => null);
 
-        $sql = "UPDATE `users` SET `session`= :a WHERE `user_id` > 0;
-                UPDATE `users` SET `csrf`= :a WHERE `user_id` > 0;";
+        $sql = "UPDATE `users` SET `session`= :a, `csrf`= :a WHERE `user_id` > 0;";
 
         $db = new Mysql();
         $db->Fetch($sql, $params);
@@ -373,11 +410,11 @@ class User
             ":c" => $pwd_hashed,
             ":d" => $request['first_name'],
             ":e" => $request['last_name'],
-            ":f" => 1
+            ":f" => PERMISSION_USER
         );
 
         if ($admin) {
-            $params[":f"] = 0;
+            $params[":f"] = PERMISSION_ADMIN;
         }
 
         $sql = 'INSERT INTO `users` (`username`, `email`, `password`, `first_name`, `last_name`, `permission`) VALUES (:a, :b, :c, :d, :e, :f)';
@@ -430,6 +467,9 @@ class User
         $sql = 'SELECT `user_id` FROM `users` WHERE `username` = :a';
         $db = new Mysql();
         $row = $db->Fetch($sql, $params);
+        if ($row[0] == '00000') {
+            return null;
+        }
         return $row[0]->user_id;
     }
 

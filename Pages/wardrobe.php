@@ -1,3 +1,6 @@
+<?php
+title_update("wardrobe");
+?>
 <form class="filters">
     <button>
         Categories 
